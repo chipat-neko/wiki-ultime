@@ -2,8 +2,10 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './core/StateManager.jsx';
 import { ShipImagesProvider } from './core/ShipImagesContext.jsx';
+import { AuthProvider } from './core/AuthContext.jsx';
 import MainLayout from './ui/layouts/MainLayout.jsx';
 import ErrorBoundary from './ui/components/ErrorBoundary.jsx';
+import ProtectedRoute from './ui/components/ProtectedRoute.jsx';
 
 // Lazy-loaded modules for performance
 const Dashboard = React.lazy(() => import('./modules/dashboard/Dashboard.jsx'));
@@ -43,6 +45,10 @@ const Mining = React.lazy(() => import('./modules/mining/Mining.jsx'));
 const Salvage = React.lazy(() => import('./modules/salvage/Salvage.jsx'));
 const ShipWeapons = React.lazy(() => import('./modules/shipweapons/ShipWeapons.jsx'));
 const NotFound = React.lazy(() => import('./ui/components/NotFound.jsx'));
+const Login = React.lazy(() => import('./modules/auth/Login.jsx'));
+const UserProfile = React.lazy(() => import('./modules/auth/UserProfile.jsx'));
+const AdminPanel = React.lazy(() => import('./modules/auth/AdminPanel.jsx'));
+const Contribute = React.lazy(() => import('./modules/auth/Contribute.jsx'));
 
 import LoadingSpinner from './ui/components/LoadingSpinner.jsx';
 
@@ -50,6 +56,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
+        <AuthProvider>
         <ShipImagesProvider>
         <MainLayout>
           <ErrorBoundary>
@@ -131,12 +138,23 @@ function App() {
             {/* Parametres */}
             <Route path="/parametres" element={<Settings />} />
 
+            {/* Auth */}
+            <Route path="/connexion" element={<Login />} />
+            <Route path="/profil" element={<UserProfile />} />
+            <Route path="/contribuer" element={
+              <ProtectedRoute require="active"><Contribute /></ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute require="mod"><AdminPanel /></ProtectedRoute>
+            } />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
             </React.Suspense>
           </ErrorBoundary>
         </MainLayout>
         </ShipImagesProvider>
+        </AuthProvider>
       </AppProvider>
     </ErrorBoundary>
   );

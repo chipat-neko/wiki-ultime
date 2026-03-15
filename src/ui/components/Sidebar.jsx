@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link } from 'react-router-dom';
 import { useAppState, useAppActions } from '../../core/StateManager.jsx';
+import { useAuth, getLevelInfo } from '../../core/AuthContext.jsx';
 import clsx from 'clsx';
 import {
   LayoutDashboard,
@@ -38,6 +39,9 @@ import {
   Mountain,
   Gem,
   Recycle,
+  User,
+  LogIn,
+  PlusCircle,
 } from 'lucide-react';
 
 const NAV_SECTIONS = [
@@ -134,6 +138,68 @@ const NAV_SECTIONS = [
     ],
   },
 ];
+
+function UserWidget({ isCollapsed }) {
+  const { user, profile, isAdmin, isMod } = useAuth();
+  const levelInfo = getLevelInfo(profile?.stars ?? 0);
+
+  if (!user) {
+    return (
+      <div className={clsx('border-t border-space-400/20 p-2', isCollapsed && 'flex justify-center')}>
+        <Link
+          to="/connexion"
+          title={isCollapsed ? 'Connexion' : undefined}
+          className={clsx(
+            'flex items-center gap-2 rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-space-700/50 transition-all text-sm',
+            isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2'
+          )}
+        >
+          <LogIn className="w-4 h-4 flex-shrink-0" />
+          {!isCollapsed && <span>Se connecter</span>}
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-space-400/20 p-2">
+      <Link
+        to="/profil"
+        title={isCollapsed ? profile?.username : undefined}
+        className={clsx(
+          'flex items-center gap-2 rounded-lg hover:bg-space-700/50 transition-all group',
+          isCollapsed ? 'justify-center p-2.5' : 'px-3 py-2'
+        )}
+      >
+        <div className={clsx(
+          'flex-shrink-0 rounded-full flex items-center justify-center font-bold text-xs border',
+          isCollapsed ? 'w-7 h-7' : 'w-6 h-6',
+          levelInfo.bg, levelInfo.color, 'border-current/20'
+        )}>
+          {profile?.username?.[0]?.toUpperCase() ?? '?'}
+        </div>
+        {!isCollapsed && (
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-medium text-slate-200 truncate">{profile?.username}</div>
+            <div className={clsx('text-xs truncate', levelInfo.color)}>{levelInfo.name} · {profile?.stars ?? 0}★</div>
+          </div>
+        )}
+        {!isCollapsed && isMod && (
+          <Shield className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+        )}
+      </Link>
+      {!isCollapsed && (
+        <Link
+          to="/contribuer"
+          className="flex items-center gap-2 px-3 py-1.5 mt-1 rounded-lg text-cyan-400/70 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all text-xs"
+        >
+          <PlusCircle className="w-3.5 h-3.5" />
+          Contribuer
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export default function Sidebar() {
   const { ui } = useAppState();
@@ -252,6 +318,9 @@ export default function Sidebar() {
             </div>
           ))}
         </nav>
+
+        {/* User widget */}
+        <UserWidget isCollapsed={isCollapsed} />
 
         {/* Collapse button */}
         <div className="border-t border-space-400/20 p-2">
