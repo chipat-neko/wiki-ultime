@@ -39,6 +39,7 @@ import {
   Mountain,
   Gem,
   Recycle,
+  Hammer,
   User,
   LogIn,
   PlusCircle,
@@ -100,6 +101,8 @@ const NAV_SECTIONS = [
       { path: '/guides', label: 'Guides de Jeu', icon: BookOpen },
       { path: '/minage', label: 'Guide de Minage', icon: Gem },
       { path: '/salvage', label: 'Guide Salvage', icon: Recycle },
+      { path: '/artisanat', label: 'Artisanat (Wikelo)', icon: Hammer },
+      { path: '/engineering', label: 'Engineering', icon: Zap },
     ],
   },
   {
@@ -252,7 +255,7 @@ export default function Sidebar() {
               <div className="text-sm font-bold font-display text-white leading-tight truncate">
                 SC COMPANION
               </div>
-              <div className="text-xs text-slate-500">v1.0.0 • Alpha 4.0</div>
+              <div className="text-xs text-slate-500">v1.0.0 • Alpha 4.6</div>
             </div>
           )}
         </div>

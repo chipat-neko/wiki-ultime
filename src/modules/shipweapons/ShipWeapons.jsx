@@ -405,10 +405,10 @@ export default function ShipWeapons() {
     return list;
   }, [search, selectedSizes, selectedType, selectedClass, selectedManufacturer, sortBy]);
 
-  const maxDps = useMemo(
-    () => Math.max(...SHIP_WEAPONS.map(w => w.stats.dps)),
-    []
-  );
+  const maxDps = useMemo(() => {
+    const values = SHIP_WEAPONS.map(w => w.stats?.dps ?? 0).filter(v => v > 0);
+    return values.length > 0 ? Math.max(...values) : 1;
+  }, []);
 
   // Stats globales
   const totalEnergy = SHIP_WEAPONS.filter(w => w.class === 'energy').length;

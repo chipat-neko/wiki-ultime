@@ -49,6 +49,10 @@ const Login = React.lazy(() => import('./modules/auth/Login.jsx'));
 const UserProfile = React.lazy(() => import('./modules/auth/UserProfile.jsx'));
 const AdminPanel = React.lazy(() => import('./modules/auth/AdminPanel.jsx'));
 const Contribute = React.lazy(() => import('./modules/auth/Contribute.jsx'));
+const ResetPassword = React.lazy(() => import('./modules/auth/ResetPassword.jsx'));
+const VerifyEmail = React.lazy(() => import('./modules/auth/VerifyEmail.jsx'));
+const Wikelo = React.lazy(() => import('./modules/wikelo/Wikelo.jsx'));
+const EngineeringModule = React.lazy(() => import('./modules/engineering/Engineering.jsx'));
 
 import LoadingSpinner from './ui/components/LoadingSpinner.jsx';
 
@@ -135,6 +139,12 @@ function App() {
             {/* Salvage */}
             <Route path="/salvage" element={<Salvage />} />
 
+            {/* Artisanat */}
+            <Route path="/artisanat" element={<Wikelo />} />
+
+            {/* Engineering */}
+            <Route path="/engineering" element={<EngineeringModule />} />
+
             {/* Parametres */}
             <Route path="/parametres" element={<Settings />} />
 
@@ -147,6 +157,8 @@ function App() {
             <Route path="/admin" element={
               <ProtectedRoute require="mod"><AdminPanel /></ProtectedRoute>
             } />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

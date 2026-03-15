@@ -34,6 +34,8 @@ const getInitialState = () => ({
     routes: [],
     stations: [],
     guides: [],
+    vehicles: [],
+    factions: [],
   }),
 
   // Historique de navigation
@@ -189,7 +191,7 @@ function favoritesReducer(state, action) {
       EventBus.emit(EVENTS.FAVORITE_REMOVED, { type: itemType, item });
       break;
     case 'FAVORITES_CLEAR':
-      newFavorites = { ships: [], routes: [], stations: [], guides: [] };
+      newFavorites = { ships: [], routes: [], stations: [], guides: [], vehicles: [], factions: [] };
       break;
     default:
       return state;
@@ -284,6 +286,8 @@ function appReducer(state, action) {
   switch (action.type) {
     case 'SET_THEME':
       return themeReducer(state, action);
+    case 'TOGGLE_THEME':
+      return themeReducer(state, { payload: state.theme === 'dark' ? 'light' : 'dark' });
 
     case 'UI_SIDEBAR_TOGGLE':
     case 'UI_SIDEBAR_COLLAPSE':
@@ -358,7 +362,7 @@ export function AppProvider({ children }) {
   // Actions mémorisées
   const actions = useMemo(() => ({
     setTheme: (theme) => dispatch({ type: 'SET_THEME', payload: theme }),
-    toggleTheme: () => dispatch({ type: 'SET_THEME', payload: state.theme === 'dark' ? 'light' : 'dark' }),
+    toggleTheme: () => dispatch({ type: 'TOGGLE_THEME' }),
 
     toggleSidebar: () => dispatch({ type: 'UI_SIDEBAR_TOGGLE' }),
     collapseSidebar: () => dispatch({ type: 'UI_SIDEBAR_COLLAPSE' }),
@@ -404,7 +408,7 @@ export function AppProvider({ children }) {
         setTimeout(() => dispatch({ type: 'UI_NOTIFICATION_REMOVE', payload: id }), duration);
       }
     },
-  }), [state.favorites, state.theme, isFavorite]);
+  }), [isFavorite]);
 
   const value = useMemo(() => ({ state, dispatch, actions }), [state, actions]);
 

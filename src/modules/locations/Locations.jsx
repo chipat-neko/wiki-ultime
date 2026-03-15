@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LOCATIONS, LOCATION_TYPES, LOCATION_DIFFICULTIES,
   LOCATIONS_BY_SYSTEM, CAVE_LOCATIONS, COMBAT_LOCATIONS, ILLEGAL_LOCATIONS,
@@ -7,7 +8,7 @@ import clsx from 'clsx';
 import {
   MapPin, Search, Mountain, Shield, Building2, Anchor, Beaker,
   Layers, Rocket, Home, ChevronDown, ChevronUp, Info,
-  AlertTriangle, Star, Users, Package, Flame, SortAsc,
+  AlertTriangle, Star, Users, Package, Flame, SortAsc, Globe,
 } from 'lucide-react';
 
 const DIFFICULTY_ORDER = { 'Facile': 0, 'Moyen': 1, 'Difficile': 2, 'Extrême': 3 };
@@ -26,10 +27,18 @@ const TYPE_ICONS = {
 const SYSTEM_LABELS = {
   stanton: 'Stanton',
   pyro: 'Pyro',
+  nyx: 'Nyx',
+};
+
+const SYSTEM_ROUTES = {
+  stanton: '/systemes/stanton',
+  pyro: '/systemes/pyro',
+  nyx: '/systemes/nyx',
 };
 
 function LocationCard({ loc }) {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
   const Icon = TYPE_ICONS[loc.type] || MapPin;
   const typeInfo = LOCATION_TYPES[loc.type];
   const diffInfo = LOCATION_DIFFICULTIES[loc.difficulty];
@@ -48,9 +57,22 @@ function LocationCard({ loc }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-slate-200 truncate">{loc.name}</span>
               {loc.system === 'pyro' && (
-                <span className="badge bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs flex items-center gap-0.5">
+                <button
+                  onClick={e => { e.stopPropagation(); navigate(SYSTEM_ROUTES.pyro); }}
+                  className="badge bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs flex items-center gap-0.5 hover:bg-orange-500/30 transition-colors"
+                  title="Voir le système Pyro"
+                >
                   <Flame className="w-3 h-3" />PYRO
-                </span>
+                </button>
+              )}
+              {loc.system === 'nyx' && (
+                <button
+                  onClick={e => { e.stopPropagation(); navigate(SYSTEM_ROUTES.nyx); }}
+                  className="badge bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs flex items-center gap-0.5 hover:bg-purple-500/30 transition-colors"
+                  title="Voir le système Nyx"
+                >
+                  <Globe className="w-3 h-3" />NYX
+                </button>
               )}
               {!loc.legal && (
                 <span className="badge bg-danger-500/15 text-danger-400 border-danger-500/30 text-xs">Illégal</span>
@@ -289,6 +311,7 @@ export default function Locations() {
             <option value="all">Tous systèmes</option>
             <option value="stanton">Stanton</option>
             <option value="pyro">Pyro</option>
+            <option value="nyx">Nyx</option>
           </select>
           <select value={diffFilter} onChange={e => setDiffFilter(e.target.value)} className="input text-sm">
             <option value="all">Toutes difficultés</option>

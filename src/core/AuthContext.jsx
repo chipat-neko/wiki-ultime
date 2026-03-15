@@ -58,12 +58,24 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Session initiale
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user).finally(() => setLoading(false));
-      else setLoading(false);
-    });
+    // Session initiale (avec retry x2 en cas d'erreur réseau)
+    const initSession = async (attempt = 0) => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setUser(session?.user ?? null);
+        if (session?.user) await loadProfile(session.user);
+      } catch {
+        if (attempt < 2) {
+          setTimeout(() => initSession(attempt + 1), 1500 * (attempt + 1));
+          return;
+        }
+        setUser(null);
+      } finally {
+        if (attempt === 0 || attempt >= 2) setLoading(false);
+      }
+    };
+    initSession();
 
     // Écoute les changements d'auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -82,6 +94,12 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(email, password, username) {
+    if (!password || password.length < 8)
+      throw new Error('Le mot de passe doit contenir au moins 8 caractères.');
+    if (!/[A-Z]/.test(password))
+      throw new Error('Le mot de passe doit contenir au moins une majuscule.');
+    if (!/[0-9]/.test(password))
+      throw new Error('Le mot de passe doit contenir au moins un chiffre.');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

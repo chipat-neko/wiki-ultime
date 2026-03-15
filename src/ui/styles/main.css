@@ -195,6 +195,7 @@
   .badge-red { @apply badge bg-danger-500/20 text-danger-400 border border-danger-500/20; }
   .badge-yellow { @apply badge bg-warning-500/20 text-warning-400 border border-warning-500/20; }
   .badge-purple { @apply badge bg-purple-500/20 text-purple-400 border border-purple-500/20; }
+  .badge-blue { @apply badge bg-blue-500/20 text-blue-400 border border-blue-500/20; }
   .badge-slate { @apply badge bg-slate-500/20 text-slate-300 border border-slate-500/20; }
   .badge-gold { @apply badge bg-gold-500/20 text-gold-400 border border-gold-500/20; }
 

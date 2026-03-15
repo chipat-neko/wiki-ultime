@@ -12,6 +12,18 @@ import {
   ChevronDown, ChevronUp, X, RotateCcw, ArrowUpDown,
 } from 'lucide-react';
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
+const PAGE_SIZE = 24;
+
+// ─── Persistance filtres (sessionStorage) ─────────────────────────────────────
+const FILTER_KEY = 'ships_filters_v1';
+function loadSavedFilters() {
+  try {
+    const raw = sessionStorage.getItem(FILTER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 // ─── Catégories de rôles ─────────────────────────────────────────────────────
 const ROLE_CATEGORIES = [
   { key: 'Combat',      label: 'Combat',      activeCls: 'bg-red-500/20 border-red-500/40 text-red-400'    },
@@ -105,6 +117,15 @@ function ShipImageBanner({ imageUrl, name, inGame }) {
         <Rocket className="w-12 h-12 text-space-600 relative z-10" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-space-900/90 via-transparent to-transparent z-10" />
+      {/* Badge Made by the Community */}
+      {src && !error && (
+        <img
+          src="/images/fankit/made-by-community-white.png"
+          alt="Made by the Community"
+          className="absolute bottom-1.5 left-2 h-4 w-auto z-20 pointer-events-none"
+          style={{ opacity: 0.5 }}
+        />
+      )}
       <div className="absolute top-2 right-2 z-20">
         <span className={`badge text-xs ${inGame ? 'badge-green' : 'badge-yellow'}`}>
           {inGame ? 'En Jeu' : 'Pledge'}
@@ -296,21 +317,25 @@ export default function ShipsDatabase() {
   const [viewMode, setViewMode]       = useState('grid');
   const [filtersOpen, setFiltersOpen] = useState(true);
 
-  // Filtres
-  const [search, setSearch]                     = useState('');
-  const [selCategories, setSelCategories]       = useState([]);
-  const [selManufacturers, setSelManufacturers] = useState([]);
-  const [selSizes, setSelSizes]                 = useState([]);
-  const [statusFilter, setStatusFilter]         = useState('all');
-  const [cargoMin, setCargoMin]                 = useState('');
-  const [cargoMax, setCargoMax]                 = useState('');
-  const [priceMax, setPriceMax]                 = useState('');
-  const [crewMin, setCrewMin]                   = useState('');
-  const [speedMin, setSpeedMin]                 = useState('');
+  // Filtres (chargés depuis sessionStorage si disponible) — appelé une seule fois grâce aux lazy useState inits
+  const _saved = loadSavedFilters();
+  const [search, setSearch]                     = useState(() => _saved?.search || '');
+  const [selCategories, setSelCategories]       = useState(() => _saved?.selCategories || []);
+  const [selManufacturers, setSelManufacturers] = useState(() => _saved?.selManufacturers || []);
+  const [selSizes, setSelSizes]                 = useState(() => _saved?.selSizes || []);
+  const [statusFilter, setStatusFilter]         = useState(() => _saved?.statusFilter || 'all');
+  const [cargoMin, setCargoMin]                 = useState(() => _saved?.cargoMin || '');
+  const [cargoMax, setCargoMax]                 = useState(() => _saved?.cargoMax || '');
+  const [priceMax, setPriceMax]                 = useState(() => _saved?.priceMax || '');
+  const [crewMin, setCrewMin]                   = useState(() => _saved?.crewMin || '');
+  const [speedMin, setSpeedMin]                 = useState(() => _saved?.speedMin || '');
 
   // Tri
-  const [sortField, setSortField] = useState('name');
-  const [sortDir,   setSortDir]   = useState('asc');
+  const [sortField, setSortField] = useState(() => _saved?.sortField || 'name');
+  const [sortDir,   setSortDir]   = useState(() => _saved?.sortDir || 'asc');
+
+  // Pagination
+  const [page, setPage] = useState(1);
 
   const handleSort = useCallback((field) => {
     setSortField(prev => {
@@ -390,11 +415,37 @@ export default function ShipsDatabase() {
     setSearch(''); setSelCategories([]); setSelManufacturers([]); setSelSizes([]);
     setStatusFilter('all'); setCargoMin(''); setCargoMax('');
     setPriceMax(''); setCrewMin(''); setSpeedMin('');
+    setPage(1);
   }, []);
 
   // Toggle d'un élément dans un tableau de sélection
   const toggle = setter => val =>
     setter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+
+  // Persistance des filtres dans sessionStorage
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem(FILTER_KEY, JSON.stringify({
+        search, selCategories, selManufacturers, selSizes,
+        statusFilter, cargoMin, cargoMax, priceMax, crewMin, speedMin,
+        sortField, sortDir,
+      }));
+    } catch {}
+  }, [search, selCategories, selManufacturers, selSizes, statusFilter,
+      cargoMin, cargoMax, priceMax, crewMin, speedMin, sortField, sortDir]);
+
+  // Reset page quand les filtres changent
+  React.useEffect(() => { setPage(1); }, [
+    search, selCategories, selManufacturers, selSizes,
+    statusFilter, cargoMin, cargoMax, priceMax, crewMin, speedMin,
+  ]);
+
+  // Vaisseaux paginés
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
 
   // Flotte
   const handleAddToFleet = useCallback((ship) => {
@@ -680,6 +731,9 @@ export default function ShipsDatabase() {
         <span className="text-sm text-slate-400">
           <span className="font-semibold text-slate-200">{filtered.length}</span> vaisseau{filtered.length !== 1 ? 'x' : ''}
           {activeFilters > 0 && <span className="text-slate-500"> sur {stats.total}</span>}
+          {totalPages > 1 && (
+            <span className="text-slate-500"> · page {page}/{totalPages}</span>
+          )}
         </span>
         {activeFilters > 0 && (
           <button onClick={resetFilters} className="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors">
@@ -699,7 +753,7 @@ export default function ShipsDatabase() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map(ship => (
+          {paged.map(ship => (
             <ShipCard
               key={ship.id}
               ship={ship}
@@ -729,7 +783,7 @@ export default function ShipsDatabase() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(ship => (
+                {paged.map(ship => (
                   <TableRow
                     key={ship.id}
                     ship={ship}
@@ -742,6 +796,49 @@ export default function ShipsDatabase() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ── Pagination ───────────────────────────────────────────────────────── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 py-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="btn-secondary btn-sm px-3 disabled:opacity-30"
+          >
+            ‹
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 2)
+            .reduce((acc, n, idx, arr) => {
+              if (idx > 0 && n - arr[idx - 1] > 1) acc.push('…');
+              acc.push(n);
+              return acc;
+            }, [])
+            .map((item, idx) =>
+              item === '…' ? (
+                <span key={`ellipsis-${idx}`} className="px-1 text-slate-500 text-sm">…</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => setPage(item)}
+                  className={clsx(
+                    'btn-sm px-3 min-w-[2rem]',
+                    item === page ? 'btn-primary' : 'btn-secondary'
+                  )}
+                >
+                  {item}
+                </button>
+              )
+            )}
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="btn-secondary btn-sm px-3 disabled:opacity-30"
+          >
+            ›
+          </button>
         </div>
       )}
     </div>

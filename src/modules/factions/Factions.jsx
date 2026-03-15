@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FACTIONS, FACTION_TYPES } from '../../datasets/factions.js';
 import { filterBy } from '../../utils/helpers.js';
+import { useFavorites } from '../../core/StateManager.jsx';
 import clsx from 'clsx';
 import {
   Shield, Users, AlertTriangle, Globe, ChevronRight,
-  Search, Building, Crosshair, Anchor,
+  Search, Building, Crosshair, Anchor, Star, XCircle,
 } from 'lucide-react';
 
 const ALIGNMENT_STYLES = {
@@ -47,7 +48,16 @@ function FactionAvatar({ faction, size = 'md' }) {
 }
 
 function FactionCard({ faction, onClick }) {
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const alignStyle = ALIGNMENT_STYLES[faction.alignment] || ALIGNMENT_STYLES.Neutre;
+  const fav = isFavorite('factions', faction.id);
+
+  const toggleFav = (e) => {
+    e.stopPropagation();
+    fav
+      ? removeFavorite('factions', { id: faction.id })
+      : addFavorite('factions', { id: faction.id, name: faction.name, type: faction.type, alignment: faction.alignment, color: faction.color });
+  };
 
   return (
     <div
@@ -57,9 +67,21 @@ function FactionCard({ faction, onClick }) {
       <div className="flex items-start gap-4 mb-3">
         <FactionAvatar faction={faction} />
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
-            {faction.name}
-          </h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-bold text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
+              {faction.name}
+            </h3>
+            <button
+              onClick={toggleFav}
+              className={clsx(
+                'flex-shrink-0 p-1 rounded transition-colors',
+                fav ? 'text-yellow-400 hover:text-yellow-300' : 'text-slate-600 hover:text-yellow-400'
+              )}
+              title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            >
+              <Star className={clsx('w-4 h-4', fav && 'fill-current')} />
+            </button>
+          </div>
           <div className="flex flex-wrap gap-1 mt-1">
             <span className="badge badge-slate">{faction.type}</span>
             <span className={`badge ${alignStyle.badge}`}>{faction.alignment}</span>
@@ -163,16 +185,30 @@ export default function Factions() {
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-children">
-        {filtered.map(faction => (
-          <FactionCard
-            key={faction.id}
-            faction={faction}
-            onClick={(f) => navigate(`/factions/${f.id}`)}
-          />
-        ))}
-      </div>
+      {/* Grid / Empty state */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <XCircle className="w-12 h-12 text-slate-600 mb-3" />
+          <p className="text-slate-400 font-medium">Aucune faction trouvée</p>
+          <p className="text-slate-600 text-sm mt-1">Essayez de modifier vos filtres ou votre recherche.</p>
+          <button
+            onClick={() => { setSearch(''); setFilterType(''); setFilterAlignment(''); }}
+            className="mt-4 btn-secondary text-sm"
+          >
+            Réinitialiser les filtres
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-children">
+          {filtered.map(faction => (
+            <FactionCard
+              key={faction.id}
+              faction={faction}
+              onClick={(f) => navigate(`/factions/${f.id}`)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

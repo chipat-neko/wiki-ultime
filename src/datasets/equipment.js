@@ -958,7 +958,7 @@ export const FPS_WEAPONS = [
     stats: {
       dmgHead: 500, dmgBody: 400, dmgLimb: 300,
       dmgBlast: 200, blastRadius: 5,
-      rpm: 50, dps: null,
+      rpm: 50, dps: 333,
       magSize: 6, totalAmmo: 18,
       reloadTactical: 1.0, reloadFull: 5.0,
       spreadMin: 0.0, spreadMax: 0.5,
@@ -1633,7 +1633,7 @@ export const FPS_WEAPONS = [
       dmgHead: 800, dmgBody: 600, dmgLimb: 450,
       dmgBlast: 400, blastRadius: 8,
       dmgVehicle: 2500,
-      rpm: 20, dps: null,
+      rpm: 20, dps: 200,
       magSize: 2, totalAmmo: 6,
       reloadTactical: 2.0, reloadFull: 6.0,
       spreadMin: 0.0, spreadMax: 0.3,
@@ -3386,6 +3386,56 @@ export const FPS_WEAPONS = [
     tier: 'standard',
     notes: 'Cadence record des LMG (1100 tpm). DPS maximal sur courte durée. Rechargement long — position couverte obligatoire.',
     tags: ['haute-cadence', 'lmg', 'ballistic', 'suppression'],
+  },
+
+  // ── Nouvelles armes — Patch 4.2 à 4.5 ──────────────────────────────────────
+  {
+    id: 'volt-pulse-pistol',
+    name: 'Volt Pulse Pistol',
+    manufacturer: 'volt',
+    category: 'pistol',
+    ammoType: 'energy',
+    damage: { physical: 0, energy: 95, distortion: 45 },
+    stats: {
+      rpm: 300,
+      magazineSize: 20,
+      reloadTime: 1.8,
+      range: 45,
+      velocity: 450,
+      dps: 475,
+    },
+    price: 5800,
+    legal: true,
+    availableAt: ['Area18', 'New Babbage', 'Lorville'],
+    attachments: ['optics', 'barrel'],
+    description: 'Pistolet à énergie Volt de deuxième génération. Tirs en rafale courte délivrant des impulsions d\'énergie concentrées. Excellent contre les armures légères énergie. Introduit dans le patch 4.2.',
+    tier: 'standard',
+    notes: 'Pistolet énergie polyvalent — meilleur que le Arclight en DPS total. Chargeur 20 cellules, rechargement rapide.',
+    tags: ['énergie', 'pistolet', 'volt', 'rafale', 'patch-4.2'],
+  },
+  {
+    id: 'volt-zenith',
+    name: 'Volt Zenith',
+    manufacturer: 'volt',
+    category: 'rifle',
+    ammoType: 'energy',
+    damage: { physical: 0, energy: 180, distortion: 85 },
+    stats: {
+      rpm: 420,
+      magazineSize: 30,
+      reloadTime: 2.4,
+      range: 95,
+      velocity: 650,
+      dps: 1260,
+    },
+    price: 24000,
+    legal: true,
+    availableAt: ['Area18', 'New Babbage'],
+    attachments: ['optics', 'barrel', 'underbarrel', 'magazine'],
+    description: 'Fusil d\'assaut à énergie haut de gamme Volt. Le Zenith représente le summum de la technologie d\'armement énergétique civil. Sa cadence de tir élevée et ses dégâts supérieurs en font un choix premium pour les combattants avancés. Introduit dans le patch 4.4.',
+    tier: 'premium',
+    notes: 'L\'un des meilleurs DPS énergie du jeu. Excellent pour les armures légères et moyennes. Synérgise parfaitement avec armures Shadow Ops ou Luminary.',
+    tags: ['énergie', 'fusil', 'volt', 'premium', 'patch-4.4'],
   },
 ];
 
@@ -6051,7 +6101,7 @@ export const ARMOR_SETS = [
     armorType: 'light',
     slots: ['novikov-undersuit', 'novikov-helmet', 'novikov-core', 'novikov-arms', 'novikov-legs'],
     priceTotal: 20100,
-    bonus: null,
+    bonus: 'Légèreté maximale',
     description: 'Set starter complet RSI. Mobilité maximale, protection minimale. Idéal pour débutants et scouts.',
     playstyle: 'Mobilité, reconnaissance, infiltration légère',
     totalResistance: { physical: 69, energy: 46, distortion: 26, biochemical: 15, stun: 23 },
@@ -6296,6 +6346,10 @@ export const ARMOR_SETS = [
   { id: 'shadow-op', name: 'Set Shadow Ops (Coda)', tier: 'premium', armorType: 'medium', slots: ['shadow-op-undersuit', 'shadow-op-helmet', 'shadow-op-core', 'shadow-op-arms', 'shadow-op-legs'], priceTotal: 206000, bonus: 'Seul medium IR-low | Distorsion medium record | Brouilleur IFF premium | Bruit de pas -55%', description: 'Set medium furtif Coda. Protection medium avec discrétion light. Le compromis ultime entre protection et infiltration.', playstyle: 'Infiltration protégée, opérations nocturnes, espionnage, exfiltration', totalResistance: { physical: 128, energy: 108, distortion: 156, biochemical: 86, stun: 85 }, illegal: true },
   { id: 'luminary', name: 'Set Luminary (Origin)', tier: 'premium', armorType: 'light', slots: ['luminary-undersuit', 'luminary-helmet', 'luminary-core', 'luminary-arms', 'luminary-legs'], priceTotal: 238000, bonus: 'Design luxe premium unique | Énergie light top-3 | Sprint +8% | Vision nocturne | Signature IR low', description: 'Set luxe Origin Luminary. Esthétique premium et protection énergie excellente. Pour ceux qui veulent briller et survivre.', playstyle: 'PvP style, zones énergie, showoff premium, exploration légère', totalResistance: { physical: 73, energy: 114, distortion: 92, biochemical: 62, stun: 56 } },
   { id: 'stormwall', name: 'Set Stormwall (Anvil)', tier: 'elite', armorType: 'heavy', slots: ['stormwall-undersuit', 'stormwall-helmet', 'stormwall-core', 'stormwall-arms', 'stormwall-legs'], priceTotal: 195000, bonus: 'Stun resistance record heavy elite | ERA anti-explosifs | Vision nocturne | Anti-mine | Protection globale', description: 'Set heavy militaire Anvil. Résistance stun record et protection explosion. Le heavy le plus équilibré des elites.', playstyle: 'Assaut militaire, siège, défense position, anti-grenade spécialisé', totalResistance: { physical: 191, energy: 159, distortion: 113, biochemical: 93, stun: 124 } },
+
+  // ── Nouveaux sets — Patch 4.2 à 4.5 ──────────────────────────────────────
+  { id: 'stirling-exploration', imageUrl: '/images/equipment/stirling-exploration.jpg', name: 'Set Stirling Exploration (Odyssey)', tier: 'premium', armorType: 'light', slots: ['stirling-undersuit', 'stirling-helmet', 'stirling-core', 'stirling-arms', 'stirling-legs'], priceTotal: 145000, bonus: 'O2 Storage +200 | Température survie [-80°C / +120°C] | Scanner longue portée | EVA thrust +15% | Vision nocturne', description: 'Set d\'exploration longue durée d\'Odyssey. Conçu pour survivre aux environnements les plus hostiles : vide spatial, planètes gelées, zones irradiées. Le set de référence pour les explorateurs sérieux. Introduit dans le patch 4.2.', playstyle: 'Exploration EVA, planètes hostiles, spelunking, expéditions longues', totalResistance: { physical: 62, energy: 88, distortion: 72, biochemical: 118, stun: 55 } },
+  { id: 'asd-geist', imageUrl: '/images/equipment/asd-geist.jpg', name: 'Set ASD Geist Stealth (ASD)', tier: 'elite', armorType: 'light', slots: ['geist-undersuit', 'geist-helmet', 'geist-core', 'geist-arms', 'geist-legs'], priceTotal: 312000, bonus: 'Signature IR quasi-nulle | Bruit de pas -75% | Brouilleur IFF actif | Camouflage adaptatif partiel | Pistolet holster intégré', description: 'Set furtif expérimental récupéré des laboratoires abandonnés ASD dans Pyro. La technologie de camouflage adaptatif partiel le rend quasi invisible aux systèmes de détection passifs. Extrêmement rare — ne se trouve que dans les complexes ASD et sur le marché noir. Introduit dans le patch 4.3.', playstyle: 'Infiltration pure, espionnage, assassinat, missions non-détection', totalResistance: { physical: 55, energy: 72, distortion: 98, biochemical: 62, stun: 44 }, illegal: true },
 ];
 
 // ─── Catégories & Enums ─────────────────────────────────────────────────────

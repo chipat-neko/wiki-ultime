@@ -628,7 +628,7 @@ export default function Equipment() {
       {/* Header */}
       <div>
         <h1 className="page-title">Équipement FPS</h1>
-        <p className="page-subtitle">Base de données complète — Armes, Armures, Gadgets, Attachements — Alpha 4.0</p>
+        <p className="page-subtitle">Base de données complète — Armes, Armures, Gadgets, Attachements — Alpha 4.6</p>
       </div>
 
       {/* Stats */}

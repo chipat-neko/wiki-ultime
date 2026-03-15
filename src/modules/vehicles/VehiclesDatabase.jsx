@@ -24,6 +24,21 @@ const TYPE_COLORS = {
   'Multi-Rôle':  'text-orange-400',
 };
 
+function VehicleAvatar({ vehicle }) {
+  const [imgError, setImgError] = React.useState(false);
+  if (!imgError && vehicle.imageUrl) {
+    return (
+      <img
+        src={vehicle.imageUrl}
+        alt={vehicle.name}
+        onError={() => setImgError(true)}
+        className="w-full h-full object-cover rounded-lg"
+      />
+    );
+  }
+  return <Car className="w-5 h-5 text-slate-400" />;
+}
+
 function VehicleCard({ vehicle, onSelect }) {
   const [expanded, setExpanded] = useState(false);
   const { addFavorite, removeFavorite, isFavorite } = useAppActions();
@@ -37,8 +52,8 @@ function VehicleCard({ vehicle, onSelect }) {
       <div className="flex items-start justify-between gap-3">
         {/* Icon + nom */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-space-700 flex items-center justify-center flex-shrink-0">
-            <Car className="w-5 h-5 text-slate-400" />
+          <div className="w-10 h-10 rounded-lg bg-space-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <VehicleAvatar vehicle={vehicle} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">

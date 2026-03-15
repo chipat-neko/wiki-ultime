@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SHIPS } from '../../datasets/ships.js';
 import { useShipImages } from '../../core/ShipImagesContext.jsx';
 import { resolveShipImage } from '../../services/ShipImageService.js';
@@ -193,7 +193,10 @@ const MAX_SHIPS = 3;
 
 export default function ShipComparator() {
   const navigate = useNavigate();
-  const [selectedIds, setSelectedIds] = useState([null, null, null]);
+  const [searchParams] = useSearchParams();
+  // I-09: pré-charger le vaisseau passé via ?a= depuis ShipDetail
+  const preloadId = searchParams.get('a') ?? null;
+  const [selectedIds, setSelectedIds] = useState([preloadId, null, null]);
 
   const ships = selectedIds.map(id => SHIPS.find(s => s.id === id) || null);
   const selectedShips = ships.filter(Boolean);

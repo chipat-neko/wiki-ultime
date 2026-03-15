@@ -106,7 +106,12 @@ declare
   v_new_stars integer;
   v_new_level integer;
 begin
-  -- ① Vérifie que l'appelant est admin ou modérateur
+  -- ① Vérifie que l'appelant est authentifié (SECURITY DEFINER — défense en profondeur)
+  if auth.uid() is null then
+    raise exception 'Non authentifié';
+  end if;
+
+  -- ② Vérifie que l'appelant est admin ou modérateur
   select role into caller_role
   from public.profiles
   where id = auth.uid();
@@ -164,7 +169,12 @@ declare
   caller_role   text;
   target_status text;
 begin
-  -- ① Vérifie que l'appelant est admin
+  -- ① Vérifie que l'appelant est authentifié (SECURITY DEFINER — défense en profondeur)
+  if auth.uid() is null then
+    raise exception 'Non authentifié';
+  end if;
+
+  -- ② Vérifie que l'appelant est admin
   select role into caller_role
   from public.profiles
   where id = auth.uid();
@@ -210,14 +220,26 @@ drop policy if exists "profiles_update_admin"    on public.profiles;
 drop policy if exists "contributions_select_auth"   on public.contributions;
 drop policy if exists "contributions_insert_active" on public.contributions;
 drop policy if exists "contributions_update_mod"    on public.contributions;
+-- Anciennes variantes nommées différemment
+drop policy if exists "profiles_select_all"      on public.profiles;
+drop policy if exists "contributions_update_admin" on public.contributions;
 
 -- ─── Policies : profiles ──────────────────────────────────────────────────────
 
--- Lecture : tout utilisateur connecté peut lire les profils
+-- Lecture : profils actifs visibles par tous les connectés ; pending/banned uniquement par soi-même ou admin/mod
+-- S-02 : empêche l'énumération des comptes en attente par des utilisateurs ordinaires
 create policy "profiles_select_auth"
   on public.profiles for select
   to authenticated
-  using (true);
+  using (
+    status = 'active'
+    OR id = auth.uid()
+    OR exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+      and p.role in ('admin', 'moderator')
+    )
+  );
 
 -- Mise à jour champs personnels : username, bio, avatar_url UNIQUEMENT
 -- SÉCURITÉ : le WITH CHECK empêche de modifier role, status, stars, level
@@ -269,6 +291,7 @@ create policy "contributions_insert_active"
   );
 
 -- Mise à jour : uniquement les admin/mod (pour les reviews)
+-- S-03 : WITH CHECK restreint les champs modifiables aux seuls champs de review (status, reviewer_id, reviewed_at, stars_awarded, reviewer_note)
 create policy "contributions_update_mod"
   on public.contributions for update
   to authenticated
@@ -278,6 +301,12 @@ create policy "contributions_update_mod"
       where p.id = auth.uid()
       and p.role in ('admin', 'moderator')
     )
+  )
+  with check (
+    -- Les champs structurels ne peuvent pas être modifiés par les reviewers
+    user_id = (select c.user_id from public.contributions c where c.id = id)
+    AND type  = (select c.type  from public.contributions c where c.id = id)
+    AND title = (select c.title from public.contributions c where c.id = id)
   );
 
 -- ══════════════════════════════════════════════════════════════════════════════

@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RECURRING_EVENTS, SEASONAL_EVENTS, EVENT_TYPES } from '../../datasets/events.js';
+import { FACTIONS_BY_ID } from '../../datasets/factions.js';
 import {
   Zap, Calendar, Clock, Users, Star, AlertTriangle,
   ChevronDown, ChevronRight, Globe, Target, Gift, Shield,
@@ -18,7 +20,7 @@ import { formatNumber } from '../../utils/formatters.js';
 function getSeasonalStatus(event) {
   if (!event.startMonth) return { isActive: false, monthsUntil: null };
   const now = new Date();
-  const m = now.getMonth() + 1; // 1-12
+  const m = now.getUTCMonth() + 1; // 1-12, UTC pour éviter les dépendances de timezone
 
   // Check if active: handle year-wrap (ex: Luminalia: 12-1)
   let isActive = false;
@@ -40,11 +42,10 @@ function getSeasonalStatus(event) {
 // ─── Config ─────────────────────────────────────────────────────────────────
 
 const DIFF_COLORS = {
-  'Facile':        'badge-green',
-  'Moyen':         'badge-yellow',
-  'Difficile':     'badge-red',
-  'Très Difficile':'badge-red',
-  'Extrême':       'badge-red',
+  'Facile':    'badge-green',
+  'Moyen':     'badge-yellow',
+  'Difficile': 'badge-red',
+  'Extrême':   'badge-purple',
 };
 
 const STATUS_CONFIG = {
@@ -58,6 +59,7 @@ const STATUS_CONFIG = {
 
 function RecurringEventCard({ event }) {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
   const sc = STATUS_CONFIG[event.status] || STATUS_CONFIG.inactive;
 
   return (
@@ -192,9 +194,20 @@ function RecurringEventCard({ event }) {
           {/* Factions */}
           <div className="flex flex-wrap gap-1">
             <span className="text-xs text-slate-500 mr-1">Factions:</span>
-            {event.factions.map(f => (
-              <span key={f} className="badge badge-slate text-xs">{f}</span>
-            ))}
+            {event.factions.map(f => {
+              const factionEntry = Object.values(FACTIONS_BY_ID).find(faction =>
+                faction.name.toLowerCase().includes(f.toLowerCase()) ||
+                faction.shortName?.toLowerCase() === f.toLowerCase()
+              );
+              return factionEntry ? (
+                <button key={f} onClick={() => navigate(`/factions/${factionEntry.id}`)}
+                  className="badge badge-slate text-xs hover:text-cyan-400 hover:border-cyan-500/30 transition-colors cursor-pointer">
+                  {f}
+                </button>
+              ) : (
+                <span key={f} className="badge badge-slate text-xs">{f}</span>
+              );
+            })}
           </div>
         </div>
       )}
@@ -310,7 +323,7 @@ export default function Events() {
       {/* Header */}
       <div>
         <h1 className="page-title">Événements</h1>
-        <p className="page-subtitle">Événements dynamiques et saisonniers — Alpha 4.0</p>
+        <p className="page-subtitle">Événements dynamiques et saisonniers — Alpha 4.6</p>
       </div>
 
       {/* Stats */}

@@ -268,7 +268,7 @@ export default function MissionPlanner() {
 
         {/* Active Missions */}
         <div>
-          <h2 className="section-title mb-4">Missions Actives (Exemple)</h2>
+          <h2 className="section-title mb-4">Missions Actives</h2>
           <div className="space-y-3 stagger-children">
             {SAMPLE_MISSIONS.slice(0, 12).map(mission => (
               <ActiveMissionCard key={mission.id} mission={mission} />

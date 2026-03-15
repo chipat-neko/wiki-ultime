@@ -10,7 +10,9 @@
  * }
  */
 
-const STATUS_URL = 'https://status.robertsspaceindustries.com/index.json';
+// En dev : Vite proxy /api/status → status.robertsspaceindustries.com/index.json
+// En prod : Vercel serverless function api/status.js (résout le CORS navigateur)
+const STATUS_URL = '/api/status';
 const TIMEOUT_MS = 8000;
 
 /**

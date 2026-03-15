@@ -4,6 +4,7 @@ import { useAppActions } from '../../core/StateManager.jsx';
 import { COMMODITIES, LEGAL_COMMODITIES, COMMODITY_CATEGORIES } from '../../datasets/commodities.js';
 import { STATIONS, LEGAL_STATIONS, STATIONS_BY_ID } from '../../datasets/stations.js';
 import { useLiveCommodities } from '../../hooks/useLiveData.js';
+import { useSCTradeData } from '../../hooks/useSCTradeData.js';
 import {
   STATION_PRICES,
   TOP_TRADE_ROUTES,
@@ -182,6 +183,9 @@ export default function TradePlanner() {
 
   // ---- Données live UEX Corp ----
   const { commodities: liveCommodities, isLive, loading: liveLoading, error: liveError, refresh: refreshLive } = useLiveCommodities();
+
+  // ---- Données SC Trade Tools (crowdsource — chargement à la demande) ----
+  const { routes: sctRoutes, listings: sctListings, scVersion, isLive: sctIsLive, loading: sctLoading, error: sctError, fetch: fetchSCT } = useSCTradeData();
 
   // ---- Calcul des routes avec données STATION_PRICES ----
   const tradeRoutes = useMemo(() => {
@@ -518,39 +522,115 @@ export default function TradePlanner() {
         </div>
       )}
 
-      {/* ---- Onglet : SC Trade Tools ---- */}
+      {/* ---- Onglet : SC Trade Tools (données crowdsourcées live) ---- */}
       {activeTab === 'sct' && (
-        <div className="card p-8 text-center space-y-4">
-          <ExternalLink className="w-12 h-12 text-slate-600 mx-auto" />
-          <div>
-            <p className="font-semibold text-slate-300">SC Trade Tools — Site externe</p>
-            <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
-              L'API de sc-trade.tools nécessite l'exécution JavaScript côté serveur et n'est pas accessible directement depuis le navigateur (pas de REST API publique).
-            </p>
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="card p-4 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="font-semibold text-slate-200">SC Trade Tools — Données Crowdsourcées</h2>
+                {sctIsLive && (
+                  <span className="flex items-center gap-1 text-xs text-success-400">
+                    <Wifi className="w-3 h-3" /> Live
+                  </span>
+                )}
+                {scVersion && (
+                  <span className="badge badge-cyan text-xs">{scVersion}</span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                Prix soumis par la communauté via SC Trade Tools — {sctListings.length > 0 ? `${sctListings.length} prix chargés` : 'chargement à la demande'}
+              </p>
+            </div>
+            <button
+              onClick={fetchSCT}
+              disabled={sctLoading}
+              className="btn-primary gap-2 flex-shrink-0"
+            >
+              <RefreshCw className={clsx('w-4 h-4', sctLoading && 'animate-spin')} />
+              {sctLoading ? 'Chargement…' : sctIsLive ? 'Actualiser' : 'Charger les données'}
+            </button>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+
+          {/* Erreur */}
+          {sctError && !sctLoading && (
+            <div className="card p-4 flex items-center gap-3 border-danger-500/20">
+              <WifiOff className="w-5 h-5 text-danger-400 flex-shrink-0" />
+              <p className="text-sm text-slate-400">{sctError}</p>
+            </div>
+          )}
+
+          {/* État initial */}
+          {!sctIsLive && !sctLoading && !sctError && (
+            <div className="card p-8 text-center space-y-3">
+              <TrendingUp className="w-10 h-10 text-slate-600 mx-auto" />
+              <p className="text-slate-400 text-sm">
+                Clique sur <strong className="text-slate-300">Charger les données</strong> pour récupérer les prix en temps réel soumis par la communauté SC Trade Tools.
+              </p>
+              <p className="text-xs text-slate-600">
+                Environ 300 prix d'achat/vente sont chargés pour calculer les meilleures routes.
+              </p>
+            </div>
+          )}
+
+          {/* Routes calculées */}
+          {sctIsLive && sctRoutes.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-slate-500 px-1">{sctRoutes.length} routes calculées depuis les données crowd</p>
+              {sctRoutes.map((route, i) => (
+                <div key={i} className="card p-4 hover:border-cyan-500/20 transition-all">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-slate-200">{route.commodity}</span>
+                        <span className="badge badge-slate text-xs">#{i + 1}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500 flex-wrap">
+                        <MapPin className="w-3 h-3 flex-shrink-0 text-green-400" />
+                        <span className="text-green-400 font-medium">Acheter : {route.buyAt}</span>
+                        <span className="text-slate-600">{formatCredits(route.buyPrice)} /SCU</span>
+                        <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                        <MapPin className="w-3 h-3 flex-shrink-0 text-cyan-400" />
+                        <span className="text-cyan-400 font-medium">Vendre : {route.sellAt}</span>
+                        <span className="text-slate-600">{formatCredits(route.sellPrice)} /SCU</span>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-lg font-bold text-success-400">
+                        +{formatCredits(route.profitPerScu)} /SCU
+                      </div>
+                      {route.age > 0 && (
+                        <div className="text-xs text-slate-600 mt-0.5">
+                          {Math.round((Date.now() - route.age) / 60000)} min
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {sctIsLive && sctRoutes.length === 0 && !sctError && (
+            <div className="card p-6 text-center">
+              <p className="text-slate-500 text-sm">Aucune route rentable trouvée dans les données chargées.</p>
+              <p className="text-xs text-slate-600 mt-1">Essaie d'actualiser pour obtenir plus de données.</p>
+            </div>
+          )}
+
+          {/* Lien externe */}
+          <div className="text-center pt-2">
             <a
               href="https://sc-trade.tools/best-routes"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary gap-2"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-cyan-400 transition-colors"
             >
-              <ExternalLink className="w-4 h-4" />
-              Ouvrir SC Trade Tools
-            </a>
-            <a
-              href="https://uexcorp.space"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Ouvrir UEX Corp
+              <ExternalLink className="w-3 h-3" />
+              Calculateur avancé sur sc-trade.tools (routes optimisées par vaisseau)
             </a>
           </div>
-          <p className="text-xs text-slate-600">
-            Les routes calculées (onglet 1) et les prix live UEX Corp sont disponibles directement dans ce planificateur.
-          </p>
         </div>
       )}
 

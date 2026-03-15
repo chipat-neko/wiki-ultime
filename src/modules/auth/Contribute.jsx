@@ -160,6 +160,11 @@ export default function Contribute() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!title.trim()) { setError('Le titre est requis.'); return; }
+    // I-06 : pour le type "image", une image doit obligatoirement être jointe
+    if (selectedType === 'image' && !imageUrl) {
+      setError("Une image est obligatoire pour ce type de contribution. Veuillez en uploader une.");
+      return;
+    }
     setError('');
     setSubmitting(true);
     try {

@@ -71,3 +71,14 @@ export const FLEETYARDS = {
   MODEL_SEARCH:  (q)    => `${FLEETYARDS_BASE}/models?q=${encodeURIComponent(q)}&perPage=5`,
   MANUFACTURERS: `${FLEETYARDS_BASE}/manufacturers`,
 };
+
+export const SCWIKI_BASE = 'https://api.star-citizen.wiki/api/v2';
+
+export const SCWIKI = {
+  // Recherche par nom exact (retourne 1 résultat)
+  VEHICLE_SEARCH: (name) =>
+    `${SCWIKI_BASE}/vehicles?filter[name]=${encodeURIComponent(name)}&limit=1&locale=en_EN`,
+  // Accès direct par slug (ex: "aurora-mr")
+  VEHICLE: (slug) =>
+    `${SCWIKI_BASE}/vehicles/${encodeURIComponent(slug)}?locale=en_EN`,
+};

@@ -39,8 +39,8 @@ function StatBar({ label, value, max, color = 'bg-cyan-500', unit = '', decimals
 
 // ─── Panneau latéral détail ────────────────────────────────────────────────
 function DetailPanel({ item, category, onClose }) {
-  if (!item) return null;
-  const grade = GRADE_CONFIG[item.grade];
+  if (!item || !category) return null;
+  const grade = GRADE_CONFIG[item.grade] || {};
   const Icon = CAT_ICONS[category.id] || Zap;
 
   return (
@@ -430,7 +430,7 @@ export default function ShipComponents() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title text-gradient-cyan">Composants Vaisseaux</h1>
-          <p className="page-subtitle">Base de données des composants équipables — Alpha 4.0</p>
+          <p className="page-subtitle">Base de données des composants équipables — Alpha 4.6</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-space-700/50 border border-space-400/20">

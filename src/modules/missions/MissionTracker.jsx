@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import {
   Plus, CheckCircle2, Clock, XCircle, AlertTriangle,
   Target, Trash2, TrendingUp, Filter, BarChart3,
-  Package, Compass, Star, Shield, Layers,
+  Package, Compass, Star, Shield, Layers, Archive,
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -42,11 +42,25 @@ function useTrackerState() {
     }
   });
 
+  // I-07: archive des missions complétées/échouées
+  const [archived, setArchived] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sc_mission_archive');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const save = setTracked;
 
   useEffect(() => {
     try { localStorage.setItem('sc_mission_tracker', JSON.stringify(tracked)); } catch {}
   }, [tracked]);
+
+  useEffect(() => {
+    try { localStorage.setItem('sc_mission_archive', JSON.stringify(archived)); } catch {}
+  }, [archived]);
 
   const addMission = useCallback((mission) => {
     save(prev => [
@@ -78,11 +92,20 @@ function useTrackerState() {
     save(prev => prev.filter(m => m.trackId !== trackId));
   }, []);
 
-  const clearCompleted = useCallback(() => {
-    save(prev => prev.filter(m => m.status !== 'completed'));
+  // I-07: archive les complétées au lieu de les supprimer
+  const archiveCompleted = useCallback(() => {
+    setTracked(prev => {
+      const toArchive = prev.filter(m => m.status === 'completed' || m.status === 'failed' || m.status === 'abandoned');
+      setArchived(prevArch => [...toArchive, ...prevArch].slice(0, 500)); // limite archive à 500
+      return prev.filter(m => m.status === 'active');
+    });
   }, []);
 
-  return { tracked, addMission, setStatus, updatePayout, remove, clearCompleted };
+  const clearArchive = useCallback(() => {
+    setArchived([]);
+  }, []);
+
+  return { tracked, archived, addMission, setStatus, updatePayout, remove, archiveCompleted, clearArchive };
 }
 
 function AddMissionModal({ onAdd, onClose }) {
@@ -313,9 +336,10 @@ function TrackedMissionRow({ mission, onStatusChange, onPayoutEdit, onRemove }) 
 }
 
 export default function MissionTracker() {
-  const { tracked, addMission, setStatus, updatePayout, remove, clearCompleted } = useTrackerState();
+  const { tracked, archived, addMission, setStatus, updatePayout, remove, archiveCompleted, clearArchive } = useTrackerState();
   const [showModal, setShowModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [activeTab, setActiveTab] = useState('tracker'); // 'tracker' | 'archive'
 
   const stats = useMemo(() => {
     const active    = tracked.filter(m => m.status === 'active');
@@ -333,6 +357,12 @@ export default function MissionTracker() {
 
   const sortedFiltered = [...filtered].sort((a, b) => b.addedAt - a.addedAt);
 
+  const archiveStats = useMemo(() => ({
+    total: archived.length,
+    completed: archived.filter(m => m.status === 'completed').length,
+    earned: archived.filter(m => m.status === 'completed').reduce((s, m) => s + (m.earnedPayout || 0), 0),
+  }), [archived]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -346,6 +376,90 @@ export default function MissionTracker() {
           Ajouter une Mission
         </button>
       </div>
+
+      {/* I-07: onglets Suivi / Historique */}
+      <div className="flex gap-2 border-b border-space-400/20">
+        {[
+          { id: 'tracker', label: 'Suivi Actif', icon: Target, badge: tracked.length },
+          { id: 'archive', label: 'Historique', icon: Archive, badge: archived.length },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={clsx(
+              'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors',
+              activeTab === t.id
+                ? 'border-cyan-400 text-cyan-400'
+                : 'border-transparent text-slate-500 hover:text-slate-300'
+            )}
+          >
+            <t.icon className="w-4 h-4" />
+            {t.label}
+            {t.badge > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-space-700 text-slate-400 text-xs">{t.badge}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ─── Onglet Historique ───────────────────────────────────────────── */}
+      {activeTab === 'archive' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="card p-4 text-center">
+              <Archive className="w-4 h-4 text-slate-400 mx-auto mb-1" />
+              <div className="text-lg font-bold font-display text-slate-300">{archiveStats.total}</div>
+              <div className="text-xs text-slate-500">Archivées</div>
+            </div>
+            <div className="card p-4 text-center">
+              <CheckCircle2 className="w-4 h-4 text-success-400 mx-auto mb-1" />
+              <div className="text-lg font-bold font-display text-success-400">{archiveStats.completed}</div>
+              <div className="text-xs text-slate-500">Complétées</div>
+            </div>
+            <div className="card p-4 text-center">
+              <TrendingUp className="w-4 h-4 text-gold-400 mx-auto mb-1" />
+              <div className="text-lg font-bold font-display text-gold-400">{formatCredits(archiveStats.earned, true)}</div>
+              <div className="text-xs text-slate-500">Gains totaux</div>
+            </div>
+          </div>
+          {archived.length === 0 ? (
+            <div className="text-center py-16 text-slate-500">
+              <Archive className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+              <p className="text-sm">Aucune mission dans l'historique.</p>
+              <p className="text-xs text-slate-600 mt-1">Archivez les missions complétées depuis l'onglet Suivi Actif.</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-end">
+                <button onClick={clearArchive} className="text-xs text-slate-500 hover:text-danger-400 transition-colors flex items-center gap-1">
+                  <Trash2 className="w-3 h-3" />
+                  Vider l'historique
+                </button>
+              </div>
+              <div className="space-y-2">
+                {archived.map(m => {
+                  const statusCfg = STATUS_CONFIG[m.status] ?? STATUS_CONFIG.completed;
+                  const Icon = CATEGORY_ICONS[m.category] || Target;
+                  return (
+                    <div key={m.trackId} className="card p-3 flex items-center gap-3 opacity-70">
+                      <Icon className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-slate-300 truncate">{m.name}</div>
+                        <div className="text-xs text-slate-600">{formatRelativeTime ? formatRelativeTime(m.completedAt || m.addedAt) : ''}</div>
+                      </div>
+                      <span className={`badge ${statusCfg.color} text-xs`}>{statusCfg.label}</span>
+                      <span className="text-xs text-gold-400 flex-shrink-0">{formatCredits(m.earnedPayout || 0, true)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ─── Onglet Suivi Actif ───────────────────────────────────────────── */}
+      {activeTab === 'tracker' && <>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -383,13 +497,13 @@ export default function MissionTracker() {
             </button>
           ))}
         </div>
-        {stats.completed > 0 && (
+        {(stats.completed > 0 || stats.failed > 0) && (
           <button
-            onClick={clearCompleted}
-            className="ml-auto text-xs text-slate-500 hover:text-danger-400 transition-colors flex items-center gap-1"
+            onClick={archiveCompleted}
+            className="ml-auto text-xs text-slate-500 hover:text-cyan-400 transition-colors flex items-center gap-1"
           >
-            <Trash2 className="w-3 h-3" />
-            Effacer les complétées
+            <Archive className="w-3 h-3" />
+            Archiver les terminées
           </button>
         )}
       </div>
@@ -450,6 +564,8 @@ export default function MissionTracker() {
           </div>
         </div>
       )}
+
+      </>}
 
       {/* Modal */}
       {showModal && (

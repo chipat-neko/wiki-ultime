@@ -204,10 +204,18 @@ export default function Manufacturers() {
 
   const shipsByManufacturer = useMemo(() => {
     return MANUFACTURERS.reduce((acc, mfr) => {
-      acc[mfr.id] = SHIPS.filter(s =>
-        s.manufacturer.toLowerCase() === mfr.shortName.toLowerCase() ||
-        s.manufacturer.toLowerCase() === mfr.name.toLowerCase().split(' ')[0].toLowerCase()
-      );
+      const mfrShort = mfr.shortName.toLowerCase();
+      const mfrFull  = mfr.name.toLowerCase();
+      acc[mfr.id] = SHIPS.filter(s => {
+        const sm = s.manufacturer.toLowerCase();
+        return (
+          sm === mfrShort ||
+          sm === mfrFull ||
+          // I-17: correspondance partielle robuste (évite le bug du premier mot uniquement)
+          mfrFull.startsWith(sm) ||
+          sm.startsWith(mfrShort)
+        );
+      });
       return acc;
     }, {});
   }, []);

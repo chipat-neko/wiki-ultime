@@ -8,6 +8,7 @@ import { getBuyLocations, isPledgeOnly } from '../../datasets/buyLocations.js';
 import { formatCredits, formatCargo, formatSpeed, formatNumber } from '../../utils/formatters.js';
 import { StatWidget } from '../../ui/components/InfoCard.jsx';
 import { useFleetyardsShip } from '../../hooks/useFleetyardsShip.js';
+import { useSCWikiShip } from '../../hooks/useSCWikiShip.js';
 import clsx from 'clsx';
 import {
   ArrowLeft, Star, Plus, ExternalLink, Rocket, Shield,
@@ -28,22 +29,38 @@ function SpecBar({ label, value, max, unit, color = 'bg-cyan-500' }) {
   );
 }
 
-// ─── Panel données live Fleetyards.net ────────────────────────────────────────
+// ─── Stat mini-card réutilisable ──────────────────────────────────────────────
+function MiniStat({ label, value, unit, color = 'text-slate-200' }) {
+  if (value == null) return null;
+  return (
+    <div className="p-2 rounded-lg bg-space-900/60">
+      <div className={`text-sm font-semibold ${color}`}>{value}{unit ? ` ${unit}` : ''}</div>
+      <div className="text-xs text-slate-600 mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+// ─── Panel données live Fleetyards + SC Wiki ──────────────────────────────────
 function LiveDataPanel({ shipName }) {
   const [enabled, setEnabled] = useState(false);
-  const { data: fy, loading, error } = useFleetyardsShip(shipName, enabled);
+
+  const { data: fy, loading: fyLoading, error: fyError } = useFleetyardsShip(shipName, enabled);
+  const { data: wiki, loading: wikiLoading, error: wikiError } = useSCWikiShip(shipName, enabled);
+
+  const loading = fyLoading || wikiLoading;
+  const hasData = fy || wiki;
 
   return (
     <div className="card p-5" style={{ borderColor: '#06b6d420' }}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="section-title flex items-center gap-2">
           <Database className="w-4 h-4 text-cyan-400" />
-          Données Live — Fleetyards.net
+          Données Live — Fleetyards &amp; SC Wiki
         </h2>
         {!enabled ? (
           <button onClick={() => setEnabled(true)} className="btn-secondary btn-sm gap-2">
             <RefreshCw className="w-3.5 h-3.5" />
-            Charger depuis Fleetyards
+            Charger les données live
           </button>
         ) : loading ? (
           <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -51,91 +68,124 @@ function LiveDataPanel({ shipName }) {
             Chargement…
           </div>
         ) : (
-          <span className="text-xs text-cyan-400">{fy ? 'Fleetyards ✓' : '—'}</span>
+          <div className="flex items-center gap-2 text-xs">
+            {fy && <span className="text-cyan-400">Fleetyards ✓</span>}
+            {wiki && <span className="text-blue-400">SC Wiki ✓</span>}
+            {!fy && !wiki && <span className="text-slate-500">Aucune donnée</span>}
+          </div>
         )}
       </div>
 
       {!enabled && (
         <p className="text-xs text-slate-500">
-          Masse, dimensions, carburant et vitesses précises depuis{' '}
-          <span className="text-cyan-400">Fleetyards.net</span> — chargement à la demande.
+          Dimensions, masse, vitesses, boucliers et émissions depuis{' '}
+          <span className="text-cyan-400">Fleetyards.net</span> et{' '}
+          <span className="text-blue-400">api.star-citizen.wiki</span> — chargement à la demande.
         </p>
       )}
 
-      {enabled && !loading && error && (
-        <p className="text-xs text-slate-500 italic">{error}</p>
+      {enabled && !loading && !hasData && (
+        <div className="space-y-1">
+          {fyError && <p className="text-xs text-slate-500 italic">Fleetyards : {fyError}</p>}
+          {wikiError && <p className="text-xs text-slate-500 italic">SC Wiki : {wikiError}</p>}
+        </div>
       )}
 
-      {enabled && !loading && fy && (
-        <div className="space-y-4">
-          {fy.description && (
+      {enabled && !loading && hasData && (
+        <div className="space-y-5">
+          {/* Description Fleetyards */}
+          {fy?.description && (
             <p className="text-xs text-slate-400 leading-relaxed border-l-2 border-cyan-500/30 pl-3">
               {fy.description}
             </p>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {fy.mass && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-slate-200">{formatNumber(fy.mass)} kg</div>
-                <div className="text-xs text-slate-600 mt-0.5">Masse</div>
+          {/* Dimensions & masse */}
+          {(fy?.mass || fy?.length || fy?.beam || fy?.height || wiki?.mass) && (
+            <div>
+              <div className="text-xs text-slate-600 uppercase tracking-wide mb-2">Dimensions &amp; Masse</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <MiniStat label="Masse" value={formatNumber(fy?.mass ?? wiki?.mass)} unit="kg" />
+                <MiniStat label="Longueur" value={fy?.length ?? wiki?.length} unit="m" />
+                <MiniStat label="Largeur" value={fy?.beam ?? wiki?.beam} unit="m" />
+                <MiniStat label="Hauteur" value={fy?.height ?? wiki?.height} unit="m" />
               </div>
-            )}
-            {fy.length && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-slate-200">{fy.length} m</div>
-                <div className="text-xs text-slate-600 mt-0.5">Longueur</div>
-              </div>
-            )}
-            {fy.beam && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-slate-200">{fy.beam} m</div>
-                <div className="text-xs text-slate-600 mt-0.5">Largeur</div>
-              </div>
-            )}
-            {fy.height && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-slate-200">{fy.height} m</div>
-                <div className="text-xs text-slate-600 mt-0.5">Hauteur</div>
-              </div>
-            )}
-            {fy.speed?.scm && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-cyan-400">{fy.speed.scm} m/s</div>
-                <div className="text-xs text-slate-600 mt-0.5">SCM</div>
-              </div>
-            )}
-            {fy.speed?.maxSpeed && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-blue-400">{fy.speed.maxSpeed} m/s</div>
-                <div className="text-xs text-slate-600 mt-0.5">Vitesse max</div>
-              </div>
-            )}
-            {fy.hydrogenFuel && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-green-400">{formatNumber(fy.hydrogenFuel)} L</div>
-                <div className="text-xs text-slate-600 mt-0.5">Carburant H₂</div>
-              </div>
-            )}
-            {fy.quantumFuel && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-purple-400">{formatNumber(fy.quantumFuel)} L</div>
-                <div className="text-xs text-slate-600 mt-0.5">Carburant QT</div>
-              </div>
-            )}
-            {fy.cargo != null && (
-              <div className="p-2 rounded-lg bg-space-900/60">
-                <div className="text-sm font-semibold text-gold-400">{fy.cargo} SCU</div>
-                <div className="text-xs text-slate-600 mt-0.5">Cargo</div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="flex items-center justify-between text-xs text-slate-600">
-            {fy.updatedAt && (
-              <span>Mis à jour : {new Date(fy.updatedAt).toLocaleDateString('fr-FR')}</span>
-            )}
-            {fy.storeImage && (
+          {/* Vitesses */}
+          {(fy?.speed?.scm || fy?.speed?.maxSpeed || wiki?.speed?.scm || wiki?.speed?.max) && (
+            <div>
+              <div className="text-xs text-slate-600 uppercase tracking-wide mb-2">Vitesses</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <MiniStat label="SCM" value={fy?.speed?.scm ?? wiki?.speed?.scm} unit="m/s" color="text-cyan-400" />
+                <MiniStat label="Vitesse max" value={fy?.speed?.maxSpeed ?? wiki?.speed?.max} unit="m/s" color="text-blue-400" />
+                {wiki?.speed?.boost && (
+                  <MiniStat label="Boost av." value={wiki.speed.boost} unit="m/s" color="text-purple-400" />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Carburant & QT */}
+          {(fy?.hydrogenFuel || fy?.quantumFuel || wiki?.fuel?.hydrogen || wiki?.fuel?.quantum || wiki?.quantum?.speed) && (
+            <div>
+              <div className="text-xs text-slate-600 uppercase tracking-wide mb-2">Carburant &amp; Quantum</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <MiniStat label="H₂" value={formatNumber(fy?.hydrogenFuel ?? wiki?.fuel?.hydrogen)} unit="L" color="text-green-400" />
+                <MiniStat label="QT" value={formatNumber(fy?.quantumFuel ?? wiki?.fuel?.quantum)} unit="L" color="text-purple-400" />
+                {wiki?.quantum?.speed && (
+                  <MiniStat label="Vitesse QT" value={formatNumber(wiki.quantum.speed)} unit="m/s" color="text-blue-400" />
+                )}
+                {wiki?.quantum?.range && (
+                  <MiniStat label="Portée QT" value={formatNumber(wiki.quantum.range)} unit="Gm" color="text-slate-300" />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Boucliers */}
+          {(wiki?.shield?.hp || wiki?.shield?.regen) && (
+            <div>
+              <div className="text-xs text-slate-600 uppercase tracking-wide mb-2">Boucliers</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <MiniStat label="HP bouclier" value={formatNumber(wiki.shield.hp)} unit="HP" color="text-cyan-400" />
+                {wiki.shield.regen && (
+                  <MiniStat label="Régén." value={wiki.shield.regen} unit="HP/s" color="text-blue-400" />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Cargo */}
+          {(fy?.cargo != null || wiki?.cargo != null) && (
+            <div>
+              <div className="text-xs text-slate-600 uppercase tracking-wide mb-2">Cargo</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <MiniStat label="Capacité cargo" value={fy?.cargo ?? wiki?.cargo} unit="SCU" color="text-gold-400" />
+              </div>
+            </div>
+          )}
+
+          {/* Émissions */}
+          {(wiki?.emission?.ir || wiki?.emission?.emIdle) && (
+            <div>
+              <div className="text-xs text-slate-600 uppercase tracking-wide mb-2">Émissions</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <MiniStat label="IR" value={wiki.emission.ir} color="text-red-400" />
+                <MiniStat label="EM idle" value={wiki.emission.emIdle} color="text-orange-400" />
+                <MiniStat label="EM full" value={wiki.emission.emFull} color="text-orange-300" />
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between text-xs text-slate-600 border-t border-space-600/30 pt-3">
+            <div className="flex items-center gap-3">
+              {fy?.updatedAt && <span>Fleetyards : {new Date(fy.updatedAt).toLocaleDateString('fr-FR')}</span>}
+              {wiki?.updatedAt && <span>SC Wiki : {new Date(wiki.updatedAt).toLocaleDateString('fr-FR')}</span>}
+            </div>
+            {fy?.storeImage && (
               <a
                 href={fy.storeImage}
                 target="_blank"
@@ -143,7 +193,7 @@ function LiveDataPanel({ shipName }) {
                 className="inline-flex items-center gap-1 text-cyan-400/70 hover:text-cyan-400"
               >
                 <ExternalLink className="w-3 h-3" />
-                Voir l'image officielle
+                Image officielle
               </a>
             )}
           </div>
@@ -226,6 +276,15 @@ export default function ShipDetail() {
             <Rocket className="w-32 h-32 text-space-600 relative z-10" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-space-900/70 via-transparent to-transparent z-10" />
+          {/* Badge "Made by the Community" — requis par RSI Fankit */}
+          {heroImageUrl && !imgError && (
+            <img
+              src="/images/fankit/made-by-community-white.png"
+              alt="Made by the Community"
+              className="absolute bottom-3 left-3 h-6 w-auto z-20 pointer-events-none"
+              style={{ opacity: 0.55 }}
+            />
+          )}
           <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
             <span className={`badge ${ship.inGame ? 'badge-green' : 'badge-yellow'}`}>
               {ship.inGame ? 'En Jeu' : 'Prévu'}
@@ -412,7 +471,7 @@ export default function ShipDetail() {
         </div>
       </div>
 
-      {/* Données Live Fleetyards + Erkul */}
+      {/* Données Live Fleetyards + SC Wiki */}
       <LiveDataPanel shipName={ship.name} />
 
       {/* Où Acheter */}

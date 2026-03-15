@@ -19,6 +19,29 @@ export default defineConfig({
   server: {
     port: 3001,
     open: true,
+    proxy: {
+      // Proxy /api/status → RSI cState (résout le CORS en dev, comme la Vercel function en prod)
+      '/api/status': {
+        target: 'https://status.robertsspaceindustries.com',
+        changeOrigin: true,
+        rewrite: () => '/index.json',
+      },
+      // Proxy /api/sc-trade → SC Trade Tools (endpoints gratuits, pas de CORS)
+      '/api/sc-trade': {
+        target: 'https://sc-trade.tools',
+        changeOrigin: true,
+        rewrite: (path) => {
+          // /api/sc-trade?path=crowdsource/commodity-listings&page=0
+          // → /api/crowdsource/commodity-listings?page=0
+          const url = new URL(path, 'http://localhost');
+          const endpoint = url.searchParams.get('path') ?? '';
+          const page = url.searchParams.get('page');
+          let upstream = `/api/${endpoint}`;
+          if (page !== undefined && page !== null) upstream += `?page=${page}`;
+          return upstream;
+        },
+      },
+    },
   },
   build: {
     outDir: 'dist',

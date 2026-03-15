@@ -62,7 +62,7 @@ export default function Settings() {
 
   const [storageInfo] = useState(() => {
     const size = StorageManager.getStorageSize();
-    return { used: (size / 1024).toFixed(1), keys: Object.keys(localStorage).filter(k => k.startsWith('sc_companion_')).length };
+    return { used: size.kb.toFixed(1), keys: Object.keys(localStorage).filter(k => k.startsWith('sc_companion_')).length };
   });
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -277,7 +277,7 @@ export default function Settings() {
         <div className="flex-1">
           <h3 className="text-sm font-bold text-slate-200">Star Citizen Companion</h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Version 1.0.0 • Données basées sur Star Citizen Alpha 4.0 •
+            Version 1.0.0 • Données basées sur Star Citizen Alpha 4.6 •
             Non affilié avec Cloud Imperium Games
           </p>
         </div>

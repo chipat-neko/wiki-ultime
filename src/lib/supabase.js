@@ -121,8 +121,10 @@ export async function rejectContribution(contributionId, reason = '') {
 /** Upload une image de contribution vers Supabase Storage */
 export async function uploadContributionImage(userId, file) {
   if (!supabase) throw new Error('Supabase non configuré');
-  // Validation type et taille
-  if (!file.type.startsWith('image/')) throw new Error('Le fichier doit être une image.');
+  // Validation type et taille — whitelist explicite pour bloquer les SVG (XSS)
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type))
+    throw new Error('Format non supporté. Utilisez JPG, PNG, GIF ou WEBP uniquement.');
   if (file.size > 8 * 1024 * 1024) throw new Error('L\'image ne doit pas dépasser 8 Mo.');
   const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
   const path = `${userId}/${Date.now()}.${ext}`;
