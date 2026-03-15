@@ -7,10 +7,13 @@ import { SHIPS_BY_ID } from '../../datasets/ships.js';
 import { getBuyLocations, isPledgeOnly } from '../../datasets/buyLocations.js';
 import { formatCredits, formatCargo, formatSpeed, formatNumber } from '../../utils/formatters.js';
 import { StatWidget } from '../../ui/components/InfoCard.jsx';
+import { useFleetyardsShip } from '../../hooks/useFleetyardsShip.js';
+import { useErkulShip } from '../../hooks/useErkulShip.js';
 import clsx from 'clsx';
 import {
   ArrowLeft, Star, Plus, ExternalLink, Rocket, Shield,
-  Zap, Package, Users, Target, ChevronRight, Info, MapPin, ShoppingCart,
+  Zap, Package, Users, Target, ChevronRight, Info, MapPin, ShoppingCart, GitCompare,
+  RefreshCw, Database, Gauge,
 } from 'lucide-react';
 
 function SpecBar({ label, value, max, unit, color = 'bg-cyan-500' }) {
@@ -22,6 +25,158 @@ function SpecBar({ label, value, max, unit, color = 'bg-cyan-500' }) {
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs text-slate-300 w-16 flex-shrink-0">{value} {unit}</span>
+    </div>
+  );
+}
+
+// ─── Panel données live (Fleetyards + Erkul) ──────────────────────────────────
+function LiveDataPanel({ shipName }) {
+  const [enabled, setEnabled] = useState(false);
+  const { data: fy, loading: fyLoading, error: fyError } = useFleetyardsShip(shipName, enabled);
+  const { data: erkul, loading: erkulLoading, error: erkulError } = useErkulShip(shipName, enabled);
+
+  const loading = fyLoading || erkulLoading;
+
+  return (
+    <div className="card p-5" style={{ borderColor: '#06b6d420' }}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="section-title flex items-center gap-2">
+          <Database className="w-4 h-4 text-cyan-400" />
+          Données Live
+        </h2>
+        {!enabled ? (
+          <button
+            onClick={() => setEnabled(true)}
+            className="btn-secondary btn-sm gap-2"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Charger (Fleetyards + Erkul)
+          </button>
+        ) : loading ? (
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            Chargement…
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs">
+            {fy && <span className="text-cyan-400">Fleetyards ✓</span>}
+            {erkul && <span className="text-green-400 ml-1">Erkul ✓</span>}
+          </div>
+        )}
+      </div>
+
+      {!enabled && (
+        <p className="text-xs text-slate-500">
+          Specs enrichies depuis <span className="text-cyan-400">Fleetyards.net</span> et stats de combat depuis <span className="text-green-400">Erkul Games</span> — chargement à la demande.
+        </p>
+      )}
+
+      {enabled && !loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* ── Fleetyards ── */}
+          <div>
+            <h3 className="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
+              Fleetyards.net
+            </h3>
+            {fyError ? (
+              <p className="text-xs text-slate-500 italic">{fyError}</p>
+            ) : fy ? (
+              <div className="space-y-3">
+                {fy.description && (
+                  <p className="text-xs text-slate-400 leading-relaxed">{fy.description}</p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  {fy.mass && (
+                    <div className="p-2 rounded-lg bg-space-900/60">
+                      <div className="text-sm font-semibold text-slate-200">{formatNumber(fy.mass)} kg</div>
+                      <div className="text-xs text-slate-600 mt-0.5">Masse</div>
+                    </div>
+                  )}
+                  {fy.speed?.scm && (
+                    <div className="p-2 rounded-lg bg-space-900/60">
+                      <div className="text-sm font-semibold text-cyan-400">{fy.speed.scm} m/s</div>
+                      <div className="text-xs text-slate-600 mt-0.5">SCM (Fleetyards)</div>
+                    </div>
+                  )}
+                  {fy.speed?.afterburner && (
+                    <div className="p-2 rounded-lg bg-space-900/60">
+                      <div className="text-sm font-semibold text-blue-400">{fy.speed.afterburner} m/s</div>
+                      <div className="text-xs text-slate-600 mt-0.5">Afterburner</div>
+                    </div>
+                  )}
+                  {fy.cargo != null && (
+                    <div className="p-2 rounded-lg bg-space-900/60">
+                      <div className="text-sm font-semibold text-green-400">{fy.cargo} SCU</div>
+                      <div className="text-xs text-slate-600 mt-0.5">Cargo (Fleetyards)</div>
+                    </div>
+                  )}
+                </div>
+                {fy.updatedAt && (
+                  <p className="text-xs text-slate-600">
+                    Mis à jour : {new Date(fy.updatedAt).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
+                {fy.fleetchartImage && (
+                  <a
+                    href={fy.fleetchartImage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-cyan-400 hover:underline"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Voir le fleetchart
+                  </a>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {/* ── Erkul ── */}
+          <div>
+            <h3 className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+              Erkul Games
+            </h3>
+            {erkulError ? (
+              <p className="text-xs text-slate-500 italic">{erkulError}</p>
+            ) : erkul ? (
+              <div className="grid grid-cols-2 gap-2">
+                {erkul.shield > 0 && (
+                  <div className="p-2 rounded-lg bg-space-900/60">
+                    <div className="text-sm font-semibold text-cyan-400">{formatNumber(erkul.shield)} HP</div>
+                    <div className="text-xs text-slate-600 mt-0.5">Boucliers (Erkul)</div>
+                  </div>
+                )}
+                {erkul.hull > 0 && (
+                  <div className="p-2 rounded-lg bg-space-900/60">
+                    <div className="text-sm font-semibold text-orange-400">{formatNumber(erkul.hull)} HP</div>
+                    <div className="text-xs text-slate-600 mt-0.5">Coque (Erkul)</div>
+                  </div>
+                )}
+                {erkul.speed?.scm > 0 && (
+                  <div className="p-2 rounded-lg bg-space-900/60">
+                    <div className="text-sm font-semibold text-blue-400">{erkul.speed.scm} m/s</div>
+                    <div className="text-xs text-slate-600 mt-0.5">SCM (Erkul)</div>
+                  </div>
+                )}
+                {erkul.speed?.afterburner > 0 && (
+                  <div className="p-2 rounded-lg bg-space-900/60">
+                    <div className="text-sm font-semibold text-purple-400">{erkul.speed.afterburner} m/s</div>
+                    <div className="text-xs text-slate-600 mt-0.5">Afterburner (Erkul)</div>
+                  </div>
+                )}
+                {erkul.speed?.quantum > 0 && (
+                  <div className="p-2 rounded-lg bg-space-900/60">
+                    <div className="text-sm font-semibold text-gold-400">{formatNumber(erkul.speed.quantum)} m/s</div>
+                    <div className="text-xs text-slate-600 mt-0.5">Quantum (Erkul)</div>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -139,6 +294,14 @@ export default function ShipDetail() {
               <button onClick={handleAddToFleet} className="btn-primary gap-2">
                 <Plus className="w-4 h-4" />
                 Ajouter à la Flotte
+              </button>
+              <button
+                onClick={() => navigate(`/vaisseaux/comparer?a=${id}`)}
+                className="btn-secondary gap-2"
+                title="Comparer avec d'autres vaisseaux"
+              >
+                <GitCompare className="w-4 h-4" />
+                Comparer
               </button>
             </div>
           </div>
@@ -276,6 +439,9 @@ export default function ShipDetail() {
           )}
         </div>
       </div>
+
+      {/* Données Live Fleetyards + Erkul */}
+      <LiveDataPanel shipName={ship.name} />
 
       {/* Où Acheter */}
       <BuyLocationsPanel shipId={ship.id} inGame={ship.inGame} pledgePrice={ship.pledgePrice} />

@@ -62,3 +62,12 @@ export const SCTRADETOOLS = {
   BEST_ROUTES: (from, to, scu, budget) =>
     `${SCTRADETOOLS_BASE}/routes?from=${from}&to=${to}&scu=${scu}&budget=${budget}`,
 };
+
+export const FLEETYARDS_BASE = 'https://api.fleetyards.net/v1';
+
+export const FLEETYARDS = {
+  MODELS:        `${FLEETYARDS_BASE}/models`,
+  MODEL:         (slug) => `${FLEETYARDS_BASE}/models/${slug}`,
+  MODEL_SEARCH:  (q)    => `${FLEETYARDS_BASE}/models?q=${encodeURIComponent(q)}&perPage=5`,
+  MANUFACTURERS: `${FLEETYARDS_BASE}/manufacturers`,
+};
