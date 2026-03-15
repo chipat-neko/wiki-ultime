@@ -67,6 +67,7 @@ class SearchEngineClass {
    */
   search(indexName, query, options = {}) {
     if (!query || query.trim().length < 1) return [];
+    if (query.length > 200) query = query.slice(0, 200);
 
     const cacheKey = `${CACHE_KEYS.SEARCH}${indexName}:${query}`;
     const cached = CacheManager.get(cacheKey);
@@ -102,6 +103,7 @@ class SearchEngineClass {
    */
   searchAll(query, options = {}) {
     if (!query || query.trim().length < 1) return {};
+    if (query.length > 200) query = query.slice(0, 200);
 
     const results = {};
     const limit = options.limitPerIndex || 5;
@@ -206,6 +208,7 @@ export const SEARCH_INDICES = {
   FACTIONS: 'factions',
   GUIDES: 'guides',
   MISSIONS: 'missions',
+  WIKELO: 'wikelo',
   GLOBAL: 'global',
 };
 

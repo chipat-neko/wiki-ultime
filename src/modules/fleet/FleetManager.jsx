@@ -58,7 +58,7 @@ function FleetShipCard({ fleetShip, onRemove, onEdit }) {
           <div className="text-center p-1.5 rounded bg-space-900/60">
             <div className="text-xs text-slate-500">Crew</div>
             <div className="text-xs font-medium text-slate-300">
-              {ship.crew?.min ?? ship.specs?.crew?.min ?? 1}-{ship.crew?.max ?? ship.specs?.crew?.max ?? 1}
+              {ship.crew?.min ?? 1}-{ship.crew?.max ?? 1}
             </div>
           </div>
           <div className="text-center p-1.5 rounded bg-space-900/60">
@@ -80,12 +80,24 @@ function FleetShipCard({ fleetShip, onRemove, onEdit }) {
 export default function FleetManager() {
   const navigate = useNavigate();
   const { fleet } = useAppState();
-  const { addShipToFleet, removeShipFromFleet, renameFleet, clearFleet, saveFleetSetup, notify } = useAppActions();
+  const { addShipToFleet, removeShipFromFleet, updateFleetShip, renameFleet, clearFleet, saveFleetSetup, notify } = useAppActions();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSaveSetup, setShowSaveSetup] = useState(false);
   const [editingFleetName, setEditingFleetName] = useState(false);
+  const [editingShip, setEditingShip] = useState(null); // { fleetShip, note }
+
+  const handleOpenEdit = (fleetShip) => {
+    setEditingShip({ fleetShip, note: fleetShip.note ?? '' });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingShip) return;
+    updateFleetShip({ ...editingShip.fleetShip, note: editingShip.note.trim() });
+    notify('Vaisseau mis à jour.', 'success');
+    setEditingShip(null);
+  };
   const [fleetNameInput, setFleetNameInput] = useState(fleet.name);
   const [setupName, setSetupName] = useState('');
   const [searchShip, setSearchShip] = useState('');
@@ -183,7 +195,7 @@ export default function FleetManager() {
         {[
           { label: 'Vaisseaux', value: fleet.ships.length, icon: Rocket, color: 'text-cyan-400' },
           { label: 'Cargo Total', value: formatCargo(totalCargo), icon: Package, color: 'text-green-400' },
-          { label: 'Équipage Min', value: formatNumber(fleet.ships.reduce((s, fs) => { const sh = SHIPS_BY_ID[fs.shipId] || fs; return s + (sh.crew?.min || sh.specs?.crew?.min || 1); }, 0)), icon: Users, color: 'text-orange-400' },
+          { label: 'Équipage Min', value: formatNumber(fleet.ships.reduce((s, fs) => { const sh = SHIPS_BY_ID[fs.shipId] || fs; return s + (sh.crew?.min || 1); }, 0)), icon: Users, color: 'text-orange-400' },
           { label: 'Valeur Totale', value: formatCredits(totalValue, true), icon: Star, color: 'text-gold-400' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="card p-4 flex items-center gap-3">
@@ -219,7 +231,7 @@ export default function FleetManager() {
                 removeShipFromFleet(id);
                 notify('Vaisseau retiré de la flotte', 'info');
               }}
-              onEdit={() => {}}
+              onEdit={handleOpenEdit}
             />
           ))}
         </div>
@@ -316,6 +328,35 @@ export default function FleetManager() {
             onChange={e => setSetupName(e.target.value)}
             className="input"
           />
+        </div>
+      </Modal>
+
+      {/* Edit Ship Modal */}
+      <Modal
+        isOpen={!!editingShip}
+        onClose={() => setEditingShip(null)}
+        title={`Modifier — ${SHIPS_BY_ID[editingShip?.fleetShip?.shipId]?.name ?? editingShip?.fleetShip?.name ?? 'Vaisseau'}`}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1">Note personnelle (optionnel)</label>
+            <textarea
+              value={editingShip?.note ?? ''}
+              onChange={e => setEditingShip(prev => prev ? { ...prev, note: e.target.value } : prev)}
+              placeholder="Ex: vaisseau principal, rôle minier, piloté par Zara…"
+              rows={3}
+              className="input w-full resize-none"
+              maxLength={200}
+            />
+            <p className="text-xs text-slate-600 mt-1">{(editingShip?.note ?? '').length}/200</p>
+          </div>
+          <div className="flex gap-2 justify-end pt-2">
+            <button onClick={() => setEditingShip(null)} className="btn-secondary">Annuler</button>
+            <button onClick={handleSaveEdit} className="btn-primary gap-2">
+              <Save className="w-4 h-4" />
+              Enregistrer
+            </button>
+          </div>
         </div>
       </Modal>
 

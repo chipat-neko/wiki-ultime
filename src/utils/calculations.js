@@ -142,8 +142,8 @@ export function calcFleetStats(ships) {
 
   const totalCargo = ships.reduce((sum, s) => sum + (s.specs?.cargo || 0), 0);
   const totalValue = ships.reduce((sum, s) => sum + (s.price || 0), 0);
-  const minCrew = ships.reduce((sum, s) => sum + (s.crew?.min || s.specs?.crew?.min || 1), 0);
-  const maxCrew = ships.reduce((sum, s) => sum + (s.crew?.max || s.specs?.crew?.max || 1), 0);
+  const minCrew = ships.reduce((sum, s) => sum + (s.crew?.min || 1), 0);
+  const maxCrew = ships.reduce((sum, s) => sum + (s.crew?.max || 1), 0);
 
   const roles = ships.reduce((acc, s) => {
     acc[s.role] = (acc[s.role] || 0) + 1;

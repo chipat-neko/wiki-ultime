@@ -23,7 +23,7 @@ const DIFFICULTY_STYLES = {
   Facile: 'badge-green',
   Moyen: 'badge-yellow',
   Difficile: 'badge-red',
-  'Très Difficile': 'badge-red',
+  Extrême: 'badge-purple',
   Expert: 'badge-red',
 };
 
@@ -83,7 +83,7 @@ export default function GameplayGuides() {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
 
-  const difficulties = ['Facile', 'Moyen', 'Difficile', 'Très Difficile', 'Expert'];
+  const difficulties = ['Facile', 'Moyen', 'Difficile', 'Extrême', 'Expert'];
 
   const filtered = useMemo(() => {
     return GUIDES.filter(g => {
@@ -150,7 +150,7 @@ export default function GameplayGuides() {
           { label: 'Total Guides', value: GUIDES.length, color: 'text-cyan-400' },
           { label: 'Catégories', value: GUIDE_CATEGORIES.length, color: 'text-blue-400' },
           { label: 'Pour Débutants', value: GUIDES.filter(g => g.difficulty === 'Facile').length, color: 'text-success-400' },
-          { label: 'Guides Avancés', value: GUIDES.filter(g => g.difficulty === 'Difficile' || g.difficulty === 'Très Difficile' || g.difficulty === 'Expert').length, color: 'text-danger-400' },
+          { label: 'Guides Avancés', value: GUIDES.filter(g => g.difficulty === 'Difficile' || g.difficulty === 'Extrême' || g.difficulty === 'Expert').length, color: 'text-danger-400' },
         ].map(({ label, value, color }) => (
           <div key={label} className="card p-4 text-center">
             <div className={`text-2xl font-bold font-display ${color}`}>{value}</div>

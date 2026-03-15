@@ -1162,7 +1162,7 @@ export const MINING_SHIPS = [
   {
     id: 'mole',
     name: 'MOLE',
-    manufacturer: 'ARGO',
+    manufacturer: 'Argo',
     type: 'ship',
     crew: { min: 1, max: 4 },
     cargoSCU: 96,

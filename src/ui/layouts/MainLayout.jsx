@@ -12,6 +12,7 @@ import { STAR_SYSTEMS_DATA } from '../../datasets/systems.js';
 import { FACTIONS } from '../../datasets/factions.js';
 import { GUIDES, GUIDES_BY_ID } from '../../datasets/guides.js';
 import { MISSION_TYPES_DATA } from '../../datasets/missions.js';
+import { WIKELO_BLUEPRINTS } from '../../datasets/wikelo.js';
 
 export default function MainLayout({ children }) {
   const location = useLocation();
@@ -26,6 +27,10 @@ export default function MainLayout({ children }) {
     SearchEngine.createIndex(SEARCH_INDICES.FACTIONS, FACTIONS, INDEX_CONFIGS.factions);
     SearchEngine.createIndex(SEARCH_INDICES.GUIDES, GUIDES, {
       keys: [{ name: 'title', weight: 2 }, { name: 'category', weight: 1 }, { name: 'description', weight: 0.5 }],
+      threshold: 0.3,
+    });
+    SearchEngine.createIndex('wikelo', WIKELO_BLUEPRINTS, {
+      keys: [{ name: 'name', weight: 2 }, { name: 'description', weight: 1 }, { name: 'category', weight: 0.5 }],
       threshold: 0.3,
     });
   }, []);
@@ -61,6 +66,10 @@ export default function MainLayout({ children }) {
       '/minage': 'Guide de Minage',
       '/locations': 'Locations & POI',
       '/evenements': 'Événements In-Game',
+      '/artisanat': 'Artisanat (Wikelo)',
+      '/engineering': 'Engineering',
+      '/salvage': 'Récupération (Salvage)',
+      '/armes-vaisseaux': 'Armes de Vaisseaux',
       '/outils': 'Outils de Jeu',
       '/parametres': 'Paramètres',
     };
