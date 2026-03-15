@@ -55,27 +55,34 @@ class FleetyardsApiClass {
    */
   normalizeModel(m) {
     return {
-      id:          m.slug,
-      name:        m.name,
-      description: m.description ?? null,
-      focus:       m.focus ?? null,
-      size:        m.size ?? null,
-      mass:        m.mass ?? null,
-      cargo:       m.cargo ?? null,
+      id:           m.slug,
+      name:         m.name,
+      description:  m.description ?? null,
+      focus:        m.focus ?? m.classification ?? null,
+      // metrics (taille, masse, cargo, carburant) — sous m.metrics
+      size:         m.metrics?.size ?? null,
+      mass:         m.metrics?.mass ?? null,
+      cargo:        m.metrics?.cargo ?? null,
+      hydrogenFuel: m.metrics?.hydrogenFuelTankSize ?? null,
+      quantumFuel:  m.metrics?.quantumFuelTankSize ?? null,
+      length:       m.metrics?.length ?? null,
+      beam:         m.metrics?.beam ?? null,
+      height:       m.metrics?.height ?? null,
+      // équipage — sous m.crew
       crew: {
-        min: m.minCrew ?? 1,
-        max: m.maxCrew ?? 1,
+        min: m.crew?.min ?? 1,
+        max: m.crew?.max ?? 1,
       },
+      // vitesses — sous m.speeds
       speed: {
-        scm:          m.speed?.scm ?? null,
-        afterburner:  m.speed?.afterburner ?? null,
-        quantum:      m.speed?.quantum ?? null,
+        scm:      m.speeds?.scmSpeed ?? null,
+        maxSpeed: m.speeds?.maxSpeedAcceleration ?? null,
       },
-      storeImage:      m.storeImage ?? null,
-      fleetchartImage: m.fleetchartImage ?? null,
-      manufacturer:    m.manufacturer?.name ?? null,
-      updatedAt:       m.updatedAt ?? null,
-      source:          'fleetyards',
+      // images — sous m.media
+      storeImage:   m.media?.storeImage?.source ?? m.media?.angledView?.source ?? null,
+      manufacturer: m.manufacturer?.name ?? null,
+      updatedAt:    m.updatedAt ?? null,
+      source:       'fleetyards',
     };
   }
 }
