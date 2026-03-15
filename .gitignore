@@ -1,0 +1,64 @@
+# ─── Dépendances ─────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Build ───────────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+*.local
+
+# ─── Variables d'environnement (SECRETS — ne jamais committer)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# .env.example est volontairement commité (pas de secrets dedans)
+
+# ─── Données externes volumineuses ───────────────────────────
+# datasc/ contient ~1.1 GB de données brutes — non nécessaire en prod
+datasc/
+
+# ─── Logs ────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Éditeurs / OS ───────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+
+# ─── Vite / Rollup ───────────────────────────────────────────
+*.tsbuildinfo
+vite.config.js.timestamp-*
+
+# ─── Coverage / Tests ────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output
+
+# ─── Vercel (cache local CLI) ────────────────────────────────
+.vercel
+
+# ─── Misc ────────────────────────────────────────────────────
+*.pid
+*.seed
+*.pid.lock
+.cache/
