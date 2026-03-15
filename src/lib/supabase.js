@@ -118,6 +118,24 @@ export async function rejectContribution(contributionId, reason = '') {
   if (error) throw error;
 }
 
+/** Upload une image de contribution vers Supabase Storage */
+export async function uploadContributionImage(userId, file) {
+  if (!supabase) throw new Error('Supabase non configuré');
+  // Validation type et taille
+  if (!file.type.startsWith('image/')) throw new Error('Le fichier doit être une image.');
+  if (file.size > 8 * 1024 * 1024) throw new Error('L\'image ne doit pas dépasser 8 Mo.');
+  const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const path = `${userId}/${Date.now()}.${ext}`;
+  const { data, error } = await supabase.storage
+    .from('contribution-images')
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  const { data: { publicUrl } } = supabase.storage
+    .from('contribution-images')
+    .getPublicUrl(data.path);
+  return publicUrl;
+}
+
 /** Soumet une nouvelle contribution */
 export async function submitContribution(userId, contribution) {
   if (!supabase) return;

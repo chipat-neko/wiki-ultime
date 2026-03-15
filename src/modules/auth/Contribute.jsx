@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../core/AuthContext.jsx';
 import { submitContribution } from '../../lib/supabase.js';
+import ImageUpload from '../../ui/components/ImageUpload.jsx';
 import {
   PlusCircle, Rocket, Package, BookOpen, Image, Wrench,
   AlertCircle, CheckCircle, ChevronRight, Star,
@@ -69,7 +70,6 @@ const CONTRIBUTION_TYPES = [
     stars: 2,
     fields: [
       { key: 'subject', label: 'Sujet (vaisseau, faction…)', type: 'text', required: true },
-      { key: 'url',     label: "URL de l'image",            type: 'url',  required: true },
       { key: 'source',  label: 'Source / crédits',           type: 'text', required: true },
     ],
   },
@@ -98,6 +98,7 @@ export default function Contribute() {
   const [title, setTitle]       = useState('');
   const [description, setDescription] = useState('');
   const [fields, setFields]     = useState({});
+  const [imageUrl, setImageUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState(false);
@@ -137,7 +138,7 @@ export default function Contribute() {
         </p>
         <div className="flex gap-3 mt-2">
           <button
-            onClick={() => { setSuccess(false); setSelectedType(null); setTitle(''); setDescription(''); setFields({}); }}
+            onClick={() => { setSuccess(false); setSelectedType(null); setTitle(''); setDescription(''); setFields({}); setImageUrl(''); }}
             className="px-4 py-2 rounded-lg bg-cyan-500 text-space-950 font-semibold text-sm hover:bg-cyan-400 transition-colors"
           >
             Nouvelle contribution
@@ -166,7 +167,7 @@ export default function Contribute() {
         type: selectedType,
         title: title.trim(),
         description: description.trim(),
-        content: fields,
+        content: { ...fields, ...(imageUrl ? { imageUrl } : {}) },
       });
       setSuccess(true);
     } catch (err) {
@@ -294,6 +295,15 @@ export default function Contribute() {
               )}
             </div>
           ))}
+
+          {/* Upload image — disponible pour tous les types */}
+          <div className="border-t border-space-400/10 pt-4">
+            <ImageUpload
+              value={imageUrl}
+              onChange={setImageUrl}
+              label={selectedType === 'image' ? 'Image à soumettre *' : 'Ajouter une image (optionnel)'}
+            />
+          </div>
 
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">

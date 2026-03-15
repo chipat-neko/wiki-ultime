@@ -281,6 +281,42 @@ create policy "contributions_update_mod"
   );
 
 -- ══════════════════════════════════════════════════════════════════════════════
+-- STORAGE — Bucket pour les images de contributions
+-- À faire dans : Dashboard Supabase → Storage → New bucket
+-- Nom du bucket : contribution-images
+-- Public : OUI (les images sont lisibles par tous)
+-- Taille max fichier : 8 Mo
+-- ──────────────────────────────────────────────────────────────────────────────
+-- Ensuite coller ces policies dans : Storage → contribution-images → Policies
+-- ══════════════════════════════════════════════════════════════════════════════
+
+-- Policy 1 : lecture publique (SELECT)
+-- Cocher "Allow public access" dans les options du bucket OU ajouter :
+/*
+create policy "contribution_images_select"
+  on storage.objects for select
+  using ( bucket_id = 'contribution-images' );
+*/
+
+-- Policy 2 : upload — uniquement les utilisateurs actifs, dans leur dossier
+/*
+create policy "contribution_images_insert"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'contribution-images'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+    AND exists (
+      select 1 from public.profiles
+      where id = auth.uid() and status = 'active'
+    )
+  );
+*/
+
+-- Policy 3 : suppression interdite aux utilisateurs (admins via service_role seulement)
+-- Ne rien ajouter = aucun DELETE autorisé
+
+-- ══════════════════════════════════════════════════════════════════════════════
 -- PREMIER ADMIN — À exécuter UNE SEULE FOIS après ton inscription
 -- Remplace 'ton@email.com' par l'adresse avec laquelle tu t'es inscrit
 -- ══════════════════════════════════════════════════════════════════════════════
