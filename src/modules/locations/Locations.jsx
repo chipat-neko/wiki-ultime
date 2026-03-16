@@ -167,9 +167,15 @@ function LocationCard({ loc }) {
           )}
 
           {/* Respawn */}
-          {loc.respawnTime && (
+          {loc.respawnTime > 0 && (
             <div className="text-xs text-slate-500">
-              Respawn: {loc.respawnTime >= 3600 ? `${loc.respawnTime / 3600}h` : `${loc.respawnTime / 60} min`}
+              {(() => {
+                const h = Math.floor(loc.respawnTime / 3600);
+                const m = Math.round((loc.respawnTime % 3600) / 60);
+                if (h > 0 && m > 0) return `Respawn: ${h}h ${m}min`;
+                if (h > 0) return `Respawn: ${h}h`;
+                return `Respawn: ${m} min`;
+              })()}
             </div>
           )}
 

@@ -216,7 +216,7 @@ function DetailPanel({ item, category, onClose }) {
 function ComponentCard({ item, category, onSelect }) {
   const grade = GRADE_CONFIG[item.grade];
   const Icon = CAT_ICONS[category.id] || Zap;
-  const mainStatValue = item.stats[category.mainStat];
+  const mainStatValue = item.stats?.[category.mainStat] ?? 0;
   const mainStatPct = Math.min(100, Math.round((mainStatValue / category.mainStatMax) * 100));
   const displayMain = category.id === 'quantum'
     ? mainStatValue.toFixed(3)
@@ -300,7 +300,7 @@ function ComponentCard({ item, category, onSelect }) {
 // ─── Ligne de tableau ─────────────────────────────────────────────────────
 function TableRow({ item, category, onSelect }) {
   const grade = GRADE_CONFIG[item.grade];
-  const mainStatValue = item.stats[category.mainStat];
+  const mainStatValue = item.stats?.[category.mainStat] ?? 0;
   const displayMain = category.id === 'quantum'
     ? mainStatValue.toFixed(3) + ' ' + category.mainStatUnit
     : mainStatValue.toLocaleString('fr-FR') + (category.mainStatUnit ? ' ' + category.mainStatUnit : '');
@@ -403,7 +403,7 @@ export default function ShipComponents() {
       if (sortBy === 'price-desc') return b.price - a.price;
       if (sortBy === 'size')      return a.size - b.size;
       if (sortBy === 'grade')     return a.grade.localeCompare(b.grade);
-      if (sortBy === 'mainstat')  return b.stats[activeCategory.mainStat] - a.stats[activeCategory.mainStat];
+      if (sortBy === 'mainstat')  return (b.stats?.[activeCategory.mainStat] ?? 0) - (a.stats?.[activeCategory.mainStat] ?? 0);
       return 0;
     });
 
