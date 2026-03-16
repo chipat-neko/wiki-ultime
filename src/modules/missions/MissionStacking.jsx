@@ -17,7 +17,7 @@ export default function MissionStacking() {
   const [isOptimized, setIsOptimized] = useState(false);
   const [result, setResult] = useState(null);
 
-  const locations = STATIONS.filter(s => s.legal).map(s => ({ id: s.id, name: s.name }));
+  const locations = useMemo(() => STATIONS.filter(s => s.legal).map(s => ({ id: s.id, name: s.name })), []);
 
   const stackableTypeIds = useMemo(() => new Set(STACKABLE_MISSIONS.map(m => m.id)), []);
 
@@ -34,8 +34,7 @@ export default function MissionStacking() {
   }, [includeIllegal]);
 
   const handleOptimize = () => {
-    const scoredMissions = calcMissionStack(availableMissions, null, currentLocation);
-    const optimized = optimizeMissionGroup(scoredMissions, timeAvailable);
+    const optimized = optimizeMissionGroup(allMissionScores, timeAvailable);
     setResult(optimized);
     setIsOptimized(true);
   };

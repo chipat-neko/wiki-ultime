@@ -1319,6 +1319,48 @@ export const MISSION_TYPES_DATA = [
     stackable: false,
     patch: '4.2',
   },
+
+  // ─── MISSIONS NYX — Patch 4.6 ─────────────────────────────────────────────
+  {
+    id: 'nyx-peoples-alliance-contract',
+    name: 'Contrat People\'s Alliance — Approvisionnement Nyx',
+    type: 'Mission Faction',
+    category: 'transport',
+    difficulty: 'Moyen',
+    legal: true,
+    factions: ['peoples-alliance'],
+    reputation: 20,
+    description: 'Mission officielle du People\'s Alliance : acheminer du matériel médical et des outils depuis Stanton jusqu\'à Levski. Récompense en réputation et en crédits au débarquement.',
+    payout: { min: 45000, max: 110000 },
+    estimatedTime: 50,
+    requiredShip: { minCargo: 25, minCrew: 1 },
+    givers: ['Liaison People\'s Alliance', 'Kiosk Levski'],
+    objectives: ['Acheter les fournitures à Port Tressler', 'Jump vers Nyx', 'Livrer à Levski', 'Parler au gestionnaire de docks'],
+    risks: ['Trajet intersystème long', 'Possible inspection sauvage en route'],
+    tips: 'Réputation People\'s Alliance requise (≥ rang 5). Ouvre des missions plus lucratives et l\'accès aux quartiers intérieurs de Levski.',
+    stackable: true,
+    patch: '4.6',
+  },
+  {
+    id: 'nyx-engineering-repair',
+    name: 'Réparation d\'Urgence — Station Nyx',
+    type: 'Ingénierie',
+    category: 'engineering',
+    difficulty: 'Difficile',
+    legal: true,
+    factions: ['peoples-alliance', 'independent'],
+    reputation: 15,
+    description: 'Un module de station dans la Glaciem Ring subit des défaillances structurelles critiques. Mission d\'ingénierie en environnement hostile — combinaison EVA et outils de réparation requis.',
+    payout: { min: 95000, max: 220000 },
+    estimatedTime: 60,
+    requiredShip: { minCargo: 5, minCrew: 1 },
+    givers: ['Ingénieur en Chef Levski', 'Station Glaciem Ring'],
+    objectives: ['Rejoindre la station endommagée', 'Diagnostiquer les systèmes défaillants', 'Réparer en EVA', 'Valider la réparation avec le multi-outil'],
+    risks: ['EVA en zone astéroïde', 'Systèmes électriques instables', 'Fenêtre de réparation limitée'],
+    tips: 'Nécessite un multi-outil Engineer Mk.2 ou équivalent. Mission Dawn of Engineering — apporte 2× les points d\'expérience ingénierie.',
+    stackable: false,
+    patch: '4.6',
+  },
 ];
 
 // ─── SAMPLE MISSIONS ─────────────────────────────────────────────────────────
@@ -1468,6 +1510,8 @@ export const SAMPLE_MISSIONS = [
   { id: 'mission-118', typeId: 'delivery-standard', name: 'Livraison — Colis Mystère ARC-L1', description: 'Contenu inconnu. La récompense est supérieure à la normale... méfiez-vous.', from: 'arc-l1', to: 'grimhex', faction: 'criminal', payout: 28000, difficulty: 'Moyen', timeLimit: null, legal: true, estimatedTime: 15, giver: 'Expéditeur Anonyme', expires: Date.now() + 3 * 60 * 60 * 1000 },
   { id: 'mission-119', typeId: 'cargo-hauling', name: 'Cargo — Artillerie Shubin → Base Militaire', description: '200 SCU d\'artillerie lourde depuis les usines Shubin vers la base militaire HUR-L5.', from: 'hurston', to: 'hur-l5', faction: 'shubin', payout: 195000, difficulty: 'Moyen', timeLimit: null, legal: true, estimatedTime: 65, giver: 'Shubin Defense Contracts', expires: Date.now() + 24 * 60 * 60 * 1000 },
   { id: 'mission-120', typeId: 'investigation', name: 'Investigation — Disparitions en Série, Cellin', description: 'Douze mineurs ont disparu sur Cellin en deux semaines. Aucune trace.', location: 'cellin', faction: 'uee', payout: 88000, difficulty: 'Difficile', timeLimit: null, legal: true, estimatedTime: 55, giver: 'Advocacy Investigations', expires: Date.now() + 72 * 60 * 60 * 1000 },
+  { id: 'mission-121', typeId: 'nyx-peoples-alliance-contract', name: 'Contrat People\'s Alliance — Matériel Médical', description: 'Acheminer 25 SCU de fournitures médicales depuis Port Tressler jusqu\'à Levski.', from: 'port-tressler', to: 'levski', faction: 'peoples-alliance', payout: 78000, difficulty: 'Moyen', timeLimit: null, legal: true, estimatedTime: 50, giver: 'Liaison People\'s Alliance', expires: Date.now() + 24 * 60 * 60 * 1000 },
+  { id: 'mission-122', typeId: 'nyx-engineering-repair', name: 'Réparation Urgence — Module B7, Glaciem Ring', description: 'Défaillance structurelle critique sur le module B7 de la station de la Glaciem Ring. EVA et outils requis.', location: 'nyx', faction: 'peoples-alliance', payout: 165000, difficulty: 'Difficile', timeLimit: null, legal: true, estimatedTime: 60, giver: 'Ingénieur en Chef Levski', expires: Date.now() + 12 * 60 * 60 * 1000 },
 ];
 
 // ─── EXPORTS DÉRIVÉS ──────────────────────────────────────────────────────────

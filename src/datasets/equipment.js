@@ -1,5 +1,5 @@
 /**
- * Dataset Équipement FPS — Star Citizen Alpha 4.0
+ * Dataset Équipement FPS — Star Citizen Alpha 4.6
  * Données au niveau maximum de détail
  */
 
@@ -3437,6 +3437,80 @@ export const FPS_WEAPONS = [
     notes: 'L\'un des meilleurs DPS énergie du jeu. Excellent pour les armures légères et moyennes. Synérgise parfaitement avec armures Shadow Ops ou Luminary.',
     tags: ['énergie', 'fusil', 'volt', 'premium', 'patch-4.4'],
   },
+
+  // ── Nouvelles armes — Patch 4.6 ──────────────────────────────────────────
+  {
+    id: 'kastak-shredder',
+    name: 'Shredder',
+    manufacturer: 'kastak',
+    category: 'smg',
+    ammoType: 'ballistic',
+    damage: { physical: 155, energy: 0, distortion: 0 },
+    stats: {
+      rpm: 750,
+      magazineSize: 32,
+      reloadTime: 2.1,
+      range: 35,
+      velocity: 390,
+      dps: Math.round(155 * 750 / 60),
+    },
+    price: 16500,
+    legal: false,
+    availableAt: ['Levski', 'GrimHEX'],
+    attachments: ['optics', 'barrel', 'underbarrel'],
+    description: 'Mitraillette compacte Kastak Arms conçue pour les espaces confinés de Levski. Sa cadence de tir élevée en fait une arme idéale pour les confrontations à courte portée dans les couloirs de l\'astéroïde Delamar. Vendue uniquement sur le marché informel de Nyx. Introduite dans le patch 4.6.',
+    tier: 'standard',
+    notes: 'Arme illégale exclusive à Nyx. DPS balistique exceptionnel à courte portée. Idéale pour défense rapprochée dans Levski.',
+    tags: ['balistique', 'smg', 'kastak', 'nyx', 'illégal', 'patch-4.6'],
+  },
+  {
+    id: 'behring-s71',
+    name: 'S71 Longrifle',
+    manufacturer: 'behring',
+    category: 'sniper',
+    ammoType: 'ballistic',
+    damage: { physical: 620, energy: 0, distortion: 0 },
+    stats: {
+      rpm: 40,
+      magazineSize: 6,
+      reloadTime: 3.8,
+      range: 350,
+      velocity: 950,
+      dps: Math.round(620 * 40 / 60),
+    },
+    price: 38000,
+    legal: true,
+    availableAt: ['Levski', 'New Babbage', 'Area18'],
+    attachments: ['optics', 'barrel'],
+    description: 'Fusil de précision longue portée Behring, pensé pour les environnements ouverts des systèmes frontier comme Nyx. Sa portée effective de 350m et ses dégâts one-shot sur tête en font le fusil de précision le plus puissant du marché légal. Introduit dans le patch 4.6.',
+    tier: 'premium',
+    notes: 'One-shot tête sur la quasi-totalité des armures légères. Idéal pour défense outpost, sniping Nyx. Chargeur 6 balles — visez juste.',
+    tags: ['balistique', 'sniper', 'behring', 'premium', 'longue-portée', 'patch-4.6'],
+  },
+  {
+    id: 'preacher-seraph',
+    name: 'Seraph',
+    manufacturer: 'preacher',
+    category: 'pistol',
+    ammoType: 'energy',
+    damage: { physical: 0, energy: 82, distortion: 38 },
+    stats: {
+      rpm: 240,
+      magazineSize: 18,
+      reloadTime: 1.6,
+      range: 40,
+      velocity: 500,
+      dps: Math.round(82 * 240 / 60),
+    },
+    price: 8900,
+    legal: true,
+    availableAt: ['Levski', 'Lorville', 'Area18'],
+    attachments: ['optics', 'barrel'],
+    description: 'Pistolet énergétique de précision Preacher Armament. Le Seraph est conçu pour les opérateurs qui recherchent un sidearm discret avec un maximum d\'impact. Sa technologie de compression d\'impulsions délivre une puissance surprenante dans un format compact. Disponible à Levski depuis le patch 4.6.',
+    tier: 'premium',
+    notes: 'Meilleur DPS énergie du segment pistolet. Discret et précis. Synérgise avec armures ASD ou Shadow Ops.',
+    tags: ['énergie', 'pistolet', 'preacher', 'premium', 'patch-4.6'],
+  },
 ];
 
 // ─── Armures FPS ────────────────────────────────────────────────────────────
@@ -6350,6 +6424,9 @@ export const ARMOR_SETS = [
   // ── Nouveaux sets — Patch 4.2 à 4.5 ──────────────────────────────────────
   { id: 'stirling-exploration', imageUrl: '/images/equipment/stirling-exploration.jpg', name: 'Set Stirling Exploration (Odyssey)', tier: 'premium', armorType: 'light', slots: ['stirling-undersuit', 'stirling-helmet', 'stirling-core', 'stirling-arms', 'stirling-legs'], priceTotal: 145000, bonus: 'O2 Storage +200 | Température survie [-80°C / +120°C] | Scanner longue portée | EVA thrust +15% | Vision nocturne', description: 'Set d\'exploration longue durée d\'Odyssey. Conçu pour survivre aux environnements les plus hostiles : vide spatial, planètes gelées, zones irradiées. Le set de référence pour les explorateurs sérieux. Introduit dans le patch 4.2.', playstyle: 'Exploration EVA, planètes hostiles, spelunking, expéditions longues', totalResistance: { physical: 62, energy: 88, distortion: 72, biochemical: 118, stun: 55 } },
   { id: 'asd-geist', imageUrl: '/images/equipment/asd-geist.jpg', name: 'Set ASD Geist Stealth (ASD)', tier: 'elite', armorType: 'light', slots: ['geist-undersuit', 'geist-helmet', 'geist-core', 'geist-arms', 'geist-legs'], priceTotal: 312000, bonus: 'Signature IR quasi-nulle | Bruit de pas -75% | Brouilleur IFF actif | Camouflage adaptatif partiel | Pistolet holster intégré', description: 'Set furtif expérimental récupéré des laboratoires abandonnés ASD dans Pyro. La technologie de camouflage adaptatif partiel le rend quasi invisible aux systèmes de détection passifs. Extrêmement rare — ne se trouve que dans les complexes ASD et sur le marché noir. Introduit dans le patch 4.3.', playstyle: 'Infiltration pure, espionnage, assassinat, missions non-détection', totalResistance: { physical: 55, energy: 72, distortion: 98, biochemical: 62, stun: 44 }, illegal: true },
+  // ── Nouveaux sets — Patch 4.6 ──────────────────────────────────────────
+  { id: 'nyx-syndicate', imageUrl: '/images/equipment/nyx-syndicate.jpg', name: 'Set Nyx Syndicate (People\'s Alliance)', tier: 'standard', armorType: 'medium', slots: ['nyx-undersuit', 'nyx-helmet', 'nyx-core', 'nyx-arms', 'nyx-legs'], priceTotal: 118000, bonus: 'Accès Levski sans crime-stat | Réseaux Nyx débloqués | Résistance biochimique remarquable | Dissimulation cargaison', description: 'Set emblématique du People\'s Alliance of Levski. Porter cet équipement signale l\'appartenance à la communauté de Nyx et ouvre des opportunités commerciales et sociales inaccessibles aux visiteurs ordinaires. Disponible exclusivement à Levski depuis le patch 4.6.', playstyle: 'Commerce Nyx, missions People\'s Alliance, neutralité politique, exploration Delamar', totalResistance: { physical: 124, energy: 105, distortion: 88, biochemical: 148, stun: 72 }, illegal: false },
+  { id: 'engineer-mk2', imageUrl: '/images/equipment/engineer-mk2.jpg', name: 'Set Engineer Mk.2 (Greycat)', tier: 'premium', armorType: 'medium', slots: ['engineer-undersuit', 'engineer-helmet', 'engineer-core', 'engineer-arms', 'engineer-legs'], priceTotal: 158000, bonus: 'Carry 68 (record engineering) | Toolkit intégré (réparation +25%) | Résistance distorsion | Multi-outil extended | Diagnostic HUD', description: 'Set d\'ingénieur de deuxième génération Greycat, conçu en parallèle du lancement de Dawn of Engineering. Ses poches d\'outillage renforcées et son diagnostic HUD intégré en font le set de référence pour tous les ingénieurs actifs. Introduit dans le patch 4.6.', playstyle: 'Dawn of Engineering, réparations vaisseaux, maintenance stations, missions ingénierie', totalResistance: { physical: 118, energy: 95, distortion: 142, biochemical: 108, stun: 68 }, illegal: false },
 ];
 
 // ─── Catégories & Enums ─────────────────────────────────────────────────────

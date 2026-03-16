@@ -118,6 +118,27 @@ export async function rejectContribution(contributionId, reason = '') {
   if (error) throw error;
 }
 
+/**
+ * Vérifie les magic bytes du fichier pour confirmer qu'il s'agit bien
+ * d'une image légitime (empêche le renommage SVG→JPG pour contourner le filtre MIME).
+ */
+async function verifyImageMagicBytes(file) {
+  const buf = await file.slice(0, 12).arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // JPEG : FF D8 FF
+  if (hex.startsWith('ffd8ff')) return true;
+  // PNG : 89 50 4E 47 0D 0A 1A 0A
+  if (hex.startsWith('89504e470d0a1a0a')) return true;
+  // GIF87a / GIF89a : 47 49 46 38
+  if (hex.startsWith('47494638')) return true;
+  // WEBP : 52 49 46 46 ?? ?? ?? ?? 57 45 42 50
+  if (hex.startsWith('52494646') && hex.slice(16, 24) === '57454250') return true;
+
+  return false;
+}
+
 /** Upload une image de contribution vers Supabase Storage */
 export async function uploadContributionImage(userId, file) {
   if (!supabase) throw new Error('Supabase non configuré');
@@ -126,6 +147,10 @@ export async function uploadContributionImage(userId, file) {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type))
     throw new Error('Format non supporté. Utilisez JPG, PNG, GIF ou WEBP uniquement.');
   if (file.size > 8 * 1024 * 1024) throw new Error('L\'image ne doit pas dépasser 8 Mo.');
+  // Vérification des magic bytes — empêche le contournement par renommage de fichier
+  const isValidImage = await verifyImageMagicBytes(file);
+  if (!isValidImage)
+    throw new Error('Le contenu du fichier ne correspond pas à une image valide.');
   const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
   const path = `${userId}/${Date.now()}.${ext}`;
   const { data, error } = await supabase.storage

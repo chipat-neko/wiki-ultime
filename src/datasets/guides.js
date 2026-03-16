@@ -396,8 +396,8 @@ export const GUIDES = [
       },
     ],
     author: 'LegacyBounty_SC',
-    lastUpdated: '2024-07-15',
-    version: '4.0',
+    lastUpdated: '2026-03-16',
+    version: '4.6',
     helpful: 1723,
   },
   {
@@ -435,8 +435,8 @@ export const GUIDES = [
       },
     ],
     author: 'TechPilot_UEE',
-    lastUpdated: '2024-08-01',
-    version: '4.0',
+    lastUpdated: '2026-03-16',
+    version: '4.6',
     helpful: 1941,
   },
   {
@@ -768,8 +768,8 @@ export const GUIDES = [
       },
     ],
     author: 'GroundForce_SC',
-    lastUpdated: '2025-09-10',
-    version: '4.0',
+    lastUpdated: '2026-03-16',
+    version: '4.6',
     helpful: 1876,
   },
   {
@@ -1099,8 +1099,8 @@ export const GUIDES = [
       },
     ],
     author: 'ShadowRunner_SC',
-    lastUpdated: '2025-09-15',
-    version: '4.0',
+    lastUpdated: '2026-03-16',
+    version: '4.6',
     helpful: 2156,
   },
   {
@@ -1449,6 +1449,45 @@ export const GUIDES = [
     lastUpdated: '2025-08-12',
     version: '4.0',
     helpful: 1923,
+  },
+  {
+    id: 'guide-nyx',
+    title: 'Système Nyx — Levski & Delamar',
+    category: 'Exploration',
+    difficulty: 'Difficile',
+    readTime: 14,
+    description: 'Tout ce qu\'il faut savoir pour naviguer dans le système Nyx, découvrir Levski et survivre à Delamar.',
+    tags: ['nyx', 'levski', 'delamar', 'exploration', 'frontier', 'peoples-alliance', 'patch-4.6'],
+    content: [
+      {
+        section: 'Qu\'est-ce que Nyx ?',
+        text: 'Nyx est un système frontalier gravitant autour d\'une naine blanche mourante. Abandonné par l\'UEE, il est devenu le refuge de dissidents politiques, de marchands indépendants et de communautés auto-gérées fuyant le contrôle corporatiste. Contrairement à Pyro, Nyx est organisé — pas anarchique.',
+      },
+      {
+        section: 'Levski — Le Hub Principal',
+        text: 'Levski est une vaste installation creusée dans l\'astéroïde Delamar. Elle est gouvernée par le People\'s Alliance, une organisation anti-corporatiste pragmatique. On y trouve : hangar complet, magasins d\'équipement, médecin, bar (Courcio\'s Bar), missions exclusives et un marché informel discret. Aucun crime-stat pour le commerce illégal sur place.',
+      },
+      {
+        section: 'Comment accéder à Nyx',
+        text: 'Depuis Stanton, utilisez le jump point Stanton-Nyx (proche de la limite extérieure du système). Préparez votre vaisseau : fuel quantique plein, consommables, armure de voyage. Le saut lui-même est standard — l\'arrivée dans Nyx se fait dans l\'espace profond, à 2-3 minutes de QT de Delamar.',
+      },
+      {
+        section: 'Économie de Levski',
+        text: 'Levski propose des opportunités uniques : missions du People\'s Alliance (bien rémunérées, aucune vérification UEE), commerce de marchandises illégales sans crime-stat immédiat, vente d\'équipements introuvables en espace UEE (Set Nyx Syndicate, Kastak Shredder). Les prix des commodités légales sont légèrement plus élevés qu\'à Stanton.',
+      },
+      {
+        section: 'Menaces et sécurité',
+        text: 'Nyx n\'est pas une zone de non-droit absolu. Le People\'s Alliance maintient l\'ordre à Levski et ses environs immédiats. Les zones éloignées de Delamar et l\'espace profond de Nyx restent dangereux : pirates, bandits locaux et faune de Delamar. Évitez les zones non balisées sans équipe.',
+      },
+      {
+        section: 'Intégration dans 4.6',
+        text: 'Nyx a été enrichi dans le patch 4.6 avec de nouveaux vendeurs à Levski, des missions People\'s Alliance supplémentaires, et l\'intégration du système de réputation faction. Porter l\'équipement Nyx Syndicate donne accès à des interactions sociales exclusives avec les PNJ de Levski.',
+      },
+    ],
+    author: 'NyxPioneer_SC',
+    lastUpdated: '2026-03-16',
+    version: '4.6',
+    helpful: 847,
   },
 ];
 

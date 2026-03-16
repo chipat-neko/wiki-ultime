@@ -54,14 +54,29 @@ create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
 declare
   safe_username text;
+  base_username text;
+  counter       integer := 0;
 begin
   -- Sanitize le username : lettres, chiffres, underscore uniquement
-  safe_username := regexp_replace(
-    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
+  base_username := regexp_replace(
+    coalesce(
+      nullif(trim(new.raw_user_meta_data->>'username'), ''),
+      nullif(split_part(coalesce(new.email, ''), '@', 1), ''),
+      'user'
+    ),
     '[^a-zA-Z0-9_]', '_', 'g'
   );
-  -- Tronquer à 30 caractères
-  safe_username := left(safe_username, 30);
+  -- Tronquer à 25 caractères (laisse 5 pour le suffixe de déduplication)
+  base_username := left(coalesce(nullif(base_username, ''), 'user'), 25);
+  safe_username := base_username;
+
+  -- Résolution des doublons : ajoute un suffixe numérique si le username existe déjà
+  loop
+    exit when not exists (select 1 from public.profiles where username = safe_username);
+    counter := counter + 1;
+    safe_username := base_username || '_' || counter;
+    exit when counter > 999;  -- sécurité anti-boucle infinie
+  end loop;
 
   insert into public.profiles (id, username, email, status)
   values (new.id, safe_username, new.email, 'pending');
