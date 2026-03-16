@@ -3,12 +3,15 @@ import {
   POWER_PLANTS, SHIELDS, QUANTUM_DRIVES, COOLERS, MISSILES,
   COMPONENT_CATEGORIES, GRADE_CONFIG, MISSILE_TYPE_CONFIG, SHIELD_TYPE_CONFIG,
 } from '../../datasets/shipcomponents.js';
+import {
+  TRACTOR_BEAMS, TRACTOR_TYPE_CONFIG, TRACTOR_SIZES_ALL,
+} from '../../datasets/tractorBeams.js';
 import { formatCredits } from '../../utils/formatters.js';
 import clsx from 'clsx';
 import {
   Search, Zap, Shield, Navigation, Thermometer, Target,
   ChevronDown, ChevronUp, X, SlidersHorizontal, LayoutGrid, List,
-  TrendingUp, Package, Factory,
+  TrendingUp, Package, Factory, Magnet, AlertTriangle, Info,
 } from 'lucide-react';
 
 // ─── Icône par catégorie ───────────────────────────────────────────────────
@@ -335,6 +338,285 @@ function TableRow({ item, category, onSelect }) {
   );
 }
 
+// ─── Tracteur Beams View ──────────────────────────────────────────────────
+
+function StatBarSimple({ label, value, max, color = 'bg-cyan-500', unit = '', fmt }) {
+  const pct = Math.min(100, Math.round((value / max) * 100));
+  const display = fmt ? fmt(value) : value.toLocaleString('fr-FR');
+  return (
+    <div>
+      <div className="flex justify-between text-xs text-slate-500 mb-0.5">
+        <span>{label}</span>
+        <span className="text-slate-300">{display}{unit}</span>
+      </div>
+      <div className="h-1.5 bg-space-600 rounded-full overflow-hidden">
+        <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function TractorTypeTag({ type }) {
+  const cfg = TRACTOR_TYPE_CONFIG[type] || { label: type, color: 'text-slate-400', bg: 'bg-slate-800/30', border: 'border-slate-600/40' };
+  return (
+    <span className={clsx('inline-block px-2 py-0.5 text-xs rounded-full font-medium border', cfg.bg, cfg.color, cfg.border)}>
+      {cfg.label}
+    </span>
+  );
+}
+
+function TractorCard({ tb, onSelect }) {
+  const typeConfig = TRACTOR_TYPE_CONFIG[tb.type] || {};
+  const forceKN = Math.round(tb.force / 1000);
+  return (
+    <button
+      onClick={() => onSelect(tb)}
+      className="card p-4 border border-space-400/20 hover:border-space-300/40 text-left transition-all hover:shadow-lg group w-full"
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={clsx('w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0', typeConfig.bg || 'bg-space-700')}>
+            <Magnet className={clsx('w-4 h-4', typeConfig.color || 'text-slate-400')} />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-slate-200 text-sm truncate group-hover:text-white transition-colors">{tb.name}</p>
+            <p className="text-xs text-slate-500 truncate">{tb.manufacturer}</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <TractorTypeTag type={tb.type} />
+          <span className="text-xs text-slate-500 bg-space-700 px-1.5 py-0.5 rounded">S{tb.size}</span>
+        </div>
+      </div>
+
+      {/* Stats principales */}
+      <div className="space-y-1.5 mt-2">
+        <StatBarSimple
+          label="Force"
+          value={tb.force}
+          max={1200000}
+          color="bg-orange-500"
+          fmt={v => `${Math.round(v / 1000)} kN`}
+        />
+        <StatBarSimple
+          label="Portée"
+          value={tb.range}
+          max={90}
+          color="bg-cyan-500"
+          unit=" m"
+        />
+      </div>
+
+      {/* Prix */}
+      <div className="flex items-center justify-between mt-3 pt-2 border-t border-space-400/10">
+        <span className="text-xs text-slate-600">{formatCredits(tb.price)}</span>
+        <span className="text-xs text-slate-500">Angle {tb.angle}° · {tb.powerDraw} EU/s</span>
+      </div>
+    </button>
+  );
+}
+
+function TractorDetailPanel({ tb, onClose }) {
+  if (!tb) return null;
+  const typeConfig = TRACTOR_TYPE_CONFIG[tb.type] || {};
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-space-900 border-l border-space-400/20 h-full overflow-y-auto shadow-2xl">
+        <div className="sticky top-0 bg-space-900 border-b border-space-400/20 p-4 flex items-start justify-between gap-3 z-10">
+          <div className="flex items-center gap-3">
+            <div className={clsx('w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0', typeConfig.bg || 'bg-space-700')}>
+              <Magnet className={clsx('w-5 h-5', typeConfig.color || 'text-slate-400')} />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-100 leading-tight">{tb.name}</h2>
+              <p className="text-xs text-slate-500">{tb.manufacturer}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-space-700 transition-colors flex-shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="p-4 space-y-5">
+          <div className="flex flex-wrap gap-2">
+            <TractorTypeTag type={tb.type} />
+            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-space-700 border border-space-400/20 text-slate-300">Taille {tb.size}</span>
+            <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gold-900/20 border border-gold-500/20 text-gold-400">{formatCredits(tb.price)}</span>
+            {tb.inGame && (
+              <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-900/20 border border-green-700/30 text-green-400">In-Game</span>
+            )}
+          </div>
+          <p className="text-sm text-slate-400 leading-relaxed">{tb.description}</p>
+
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Statistiques</h3>
+            <div className="space-y-2.5">
+              <StatBarSimple label="Force" value={tb.force} max={1200000} color="bg-orange-500" fmt={v => `${Math.round(v / 1000)} kN`} />
+              <StatBarSimple label="Portée" value={tb.range} max={90} color="bg-cyan-500" unit=" m" />
+              <StatBarSimple label="Angle cône" value={tb.angle} max={35} color="bg-blue-500" unit="°" />
+              <StatBarSimple label="Conso. puissance" value={tb.powerDraw} max={180} color="bg-red-500" unit=" EU/s" />
+            </div>
+          </div>
+
+          {tb.compatible && tb.compatible.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Vaisseaux compatibles</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {tb.compatible.map(ship => (
+                  <span key={ship} className="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-space-700 text-slate-300 border border-space-400/20">{ship}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TractorBeamsView() {
+  const [typeFilter, setTypeFilter]   = useState('Tous');
+  const [sizeFilter, setSizeFilter]   = useState('all');
+  const [search, setSearch]           = useState('');
+  const [sortBy, setSortBy]           = useState('force');
+  const [viewMode, setViewMode]       = useState('grid');
+  const [selectedTB, setSelectedTB]   = useState(null);
+
+  const filtered = useMemo(() => {
+    let list = [...TRACTOR_BEAMS];
+    if (typeFilter !== 'Tous')    list = list.filter(t => t.type === typeFilter);
+    if (sizeFilter !== 'all')     list = list.filter(t => t.size === parseInt(sizeFilter));
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        t.manufacturer.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q)
+      );
+    }
+    list.sort((a, b) => {
+      if (sortBy === 'force')      return b.force - a.force;
+      if (sortBy === 'range')      return b.range - a.range;
+      if (sortBy === 'price')      return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'size')       return a.size - b.size;
+      return a.name.localeCompare(b.name);
+    });
+    return list;
+  }, [typeFilter, sizeFilter, search, sortBy]);
+
+  const types = ['Tous', 'Salvage', 'Cargo', 'Utility', 'Ship-mounted'];
+
+  return (
+    <div className="space-y-4">
+      {/* Info banner */}
+      <div className="p-3 rounded-xl border border-orange-500/20 bg-orange-900/10">
+        <div className="flex items-start gap-2">
+          <Magnet className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-orange-300">
+            <strong>Tracteur Beams</strong> — Faisceaux tracteurs pour salvage, cargo et utilitaires.
+            La force (kN) détermine la taille des objets déplaçables, la portée la distance maximale d'action.
+          </p>
+        </div>
+      </div>
+
+      {/* Contrôles */}
+      <div className="card p-4 space-y-3">
+        <div className="flex gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="input w-full pl-9"
+            />
+          </div>
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="input text-sm min-w-[140px]">
+            {types.map(t => <option key={t} value={t}>{t === 'Tous' ? 'Tous types' : TRACTOR_TYPE_CONFIG[t]?.label || t}</option>)}
+          </select>
+          <select value={sizeFilter} onChange={e => setSizeFilter(e.target.value)} className="input text-sm min-w-[120px]">
+            <option value="all">Toutes tailles</option>
+            {[1, 2, 3].map(s => <option key={s} value={s}>Taille {s}</option>)}
+          </select>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input text-sm min-w-[160px]">
+            <option value="force">Trier : Force ↓</option>
+            <option value="range">Trier : Portée ↓</option>
+            <option value="size">Trier : Taille</option>
+            <option value="price">Trier : Prix ↑</option>
+            <option value="price-desc">Trier : Prix ↓</option>
+          </select>
+          <div className="flex rounded-lg overflow-hidden border border-space-400/20">
+            <button onClick={() => setViewMode('grid')} className={clsx('p-2 transition-colors', viewMode === 'grid' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-space-700 text-slate-500 hover:text-slate-300')} title="Vue grille"><LayoutGrid className="w-4 h-4" /></button>
+            <button onClick={() => setViewMode('table')} className={clsx('p-2 transition-colors', viewMode === 'table' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-space-700 text-slate-500 hover:text-slate-300')} title="Vue tableau"><List className="w-4 h-4" /></button>
+          </div>
+        </div>
+      </div>
+
+      {/* Résultats */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm text-slate-400">{filtered.length} tracteur beam{filtered.length > 1 ? 's' : ''}</span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="card p-10 text-center">
+          <Magnet className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+          <p className="text-slate-400">Aucun tracteur beam trouvé</p>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map(tb => <TractorCard key={tb.id} tb={tb} onSelect={setSelectedTB} />)}
+        </div>
+      ) : (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-space-400/20 bg-space-800/50">
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nom</th>
+                  <th className="px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Fabricant</th>
+                  <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                  <th className="px-3 py-2.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Taille</th>
+                  <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Force (kN)</th>
+                  <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Portée (m)</th>
+                  <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Angle (°)</th>
+                  <th className="px-3 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Prix</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(tb => {
+                  const typeConfig = TRACTOR_TYPE_CONFIG[tb.type] || {};
+                  return (
+                    <tr key={tb.id} className="border-b border-space-400/10 hover:bg-space-700/30 cursor-pointer transition-colors" onClick={() => setSelectedTB(tb)}>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <Magnet className={clsx('w-3.5 h-3.5 flex-shrink-0', typeConfig.color || 'text-slate-400')} />
+                          <span className="text-sm font-medium text-slate-200">{tb.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5"><span className="text-xs text-slate-500">{tb.manufacturer}</span></td>
+                      <td className="px-3 py-2.5 text-center"><TractorTypeTag type={tb.type} /></td>
+                      <td className="px-3 py-2.5 text-center"><span className="text-xs bg-space-700 text-slate-300 px-1.5 py-0.5 rounded">S{tb.size}</span></td>
+                      <td className="px-3 py-2.5 text-right"><span className="text-sm font-semibold text-orange-400">{Math.round(tb.force / 1000)}</span></td>
+                      <td className="px-3 py-2.5 text-right"><span className="text-sm font-semibold text-cyan-400">{tb.range}</span></td>
+                      <td className="px-3 py-2.5 text-right"><span className="text-sm text-slate-300">{tb.angle}</span></td>
+                      <td className="px-3 py-2.5 text-right"><span className="text-xs text-slate-500">{formatCredits(tb.price)}</span></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Panneau détail */}
+      {selectedTB && <TractorDetailPanel tb={selectedTB} onClose={() => setSelectedTB(null)} />}
+    </div>
+  );
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────
 export default function ShipComponents() {
   const [activeCatId, setActiveCatId]     = useState('power');
@@ -348,23 +630,27 @@ export default function ShipComponents() {
   const [selectedItem, setSelectedItem]   = useState(null);
   const [showFilters, setShowFilters]     = useState(false);
 
+  const isTractorTab = activeCatId === 'tractor';
+
   const activeCategory = useMemo(
-    () => COMPONENT_CATEGORIES.find(c => c.id === activeCatId),
-    [activeCatId]
+    () => isTractorTab ? null : COMPONENT_CATEGORIES.find(c => c.id === activeCatId),
+    [activeCatId, isTractorTab]
   );
 
   // Fabricants disponibles pour la catégorie active
   const availableManufacturers = useMemo(() => {
+    if (isTractorTab || !activeCategory) return [];
     const mfrs = [...new Set(activeCategory.data.map(i => i.manufacturer))].sort();
     return mfrs;
-  }, [activeCategory]);
+  }, [activeCategory, isTractorTab]);
 
   // Types disponibles (missiles / shields)
   const availableTypes = useMemo(() => {
+    if (isTractorTab) return [];
     if (activeCatId === 'missiles') return ['IR', 'EM', 'CS'];
     if (activeCatId === 'shields')  return ['FR', 'EM', 'CV', 'MT'];
     return [];
-  }, [activeCatId]);
+  }, [activeCatId, isTractorTab]);
 
   // Reset filters on category change
   const handleCategoryChange = (catId) => {
@@ -379,6 +665,7 @@ export default function ShipComponents() {
   };
 
   const filtered = useMemo(() => {
+    if (isTractorTab || !activeCategory) return [];
     let list = [...activeCategory.data];
 
     if (sizeFilter !== 'all')         list = list.filter(i => i.size === parseInt(sizeFilter));
@@ -416,7 +703,7 @@ export default function ShipComponents() {
     COMPONENT_CATEGORIES.flatMap(c => c.data.map(i => i.manufacturer))
   ).size;
 
-  const activeFiltersCount = [
+  const activeFiltersCount = isTractorTab ? 0 : [
     sizeFilter !== 'all',
     gradeFilter !== 'all',
     manufacturerFilter !== 'all',
@@ -475,17 +762,38 @@ export default function ShipComponents() {
             </button>
           );
         })}
+        {/* Onglet Tracteur Beams */}
+        <button
+          onClick={() => handleCategoryChange('tractor')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all',
+            isTractorTab
+              ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+              : 'bg-space-700/50 border-space-400/20 text-slate-400 hover:border-space-300/30 hover:text-slate-200'
+          )}
+        >
+          <Magnet className="w-4 h-4" />
+          <span>Tracteur Beams</span>
+          <span className={clsx('text-xs px-1.5 py-0.5 rounded-full', isTractorTab ? 'bg-white/10' : 'bg-space-600')}>
+            {TRACTOR_BEAMS.length}
+          </span>
+        </button>
       </div>
 
       {/* ── Description catégorie ────────────────────────────────────── */}
-      <div className={clsx('p-3 rounded-xl border', activeCategory.bgColor, activeCategory.borderColor)}>
-        <p className={clsx('text-sm font-medium', activeCategory.color)}>
-          {activeCategory.label} — {activeCategory.description}
-        </p>
-      </div>
+      {!isTractorTab && activeCategory && (
+        <div className={clsx('p-3 rounded-xl border', activeCategory.bgColor, activeCategory.borderColor)}>
+          <p className={clsx('text-sm font-medium', activeCategory.color)}>
+            {activeCategory.label} — {activeCategory.description}
+          </p>
+        </div>
+      )}
 
-      {/* ── Barre de contrôles ──────────────────────────────────────── */}
-      <div className="card p-4 space-y-3">
+      {/* ── Tracteur Beams Tab ──────────────────────────────────────── */}
+      {isTractorTab && <TractorBeamsView />}
+
+      {/* ── Barre de contrôles (composants standards) ───────────────── */}
+      {!isTractorTab && activeCategory && <div className="card p-4 space-y-3" key="controls-bar">
         {/* Recherche + boutons */}
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -620,10 +928,10 @@ export default function ShipComponents() {
             )}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* ── Résultats ───────────────────────────────────────────────── */}
-      <div>
+      {!isTractorTab && activeCategory && <div>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-slate-400">
             {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
@@ -691,10 +999,10 @@ export default function ShipComponents() {
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* ── Panneau latéral détail ───────────────────────────────────── */}
-      {selectedItem && (
+      {!isTractorTab && selectedItem && (
         <DetailPanel
           item={selectedItem}
           category={activeCategory}

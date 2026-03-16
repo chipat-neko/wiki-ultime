@@ -156,6 +156,12 @@ export default function MissionPlanner() {
     });
   }, [selectedCategory, selectedFaction, selectedDifficulty, showIllegal]);
 
+  const activeMissions = useMemo(() => {
+    const shuffled = [...SAMPLE_MISSIONS].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 12);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const allDifficulties = ['Facile', 'Moyen', 'Difficile', 'Très Difficile', 'Extrême'];
   const avgPayout = SAMPLE_MISSIONS.reduce((s, m) => s + m.payout, 0) / SAMPLE_MISSIONS.length;
 
@@ -270,7 +276,7 @@ export default function MissionPlanner() {
         <div>
           <h2 className="section-title mb-4">Missions Actives</h2>
           <div className="space-y-3 stagger-children">
-            {SAMPLE_MISSIONS.slice(0, 12).map(mission => (
+            {activeMissions.map(mission => (
               <ActiveMissionCard key={mission.id} mission={mission} />
             ))}
           </div>

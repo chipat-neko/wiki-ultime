@@ -21,6 +21,7 @@ import {
   TrendingUp, ArrowRight, Package, Calculator, Route,
   Star, Filter, RefreshCw, BarChart3, Shield, AlertTriangle,
   MapPin, Zap, ChevronDown, ChevronUp, Wifi, WifiOff, ExternalLink,
+  Search, Award,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -41,19 +42,21 @@ const PRICED_STATIONS = Object.keys(STATION_PRICES).map(id => {
 // Composant : carte d'une route commerciale calculée
 // ----------------------------------------------------------------
 function TradeRouteCard({ route, onSave }) {
-  const { commodity, buyStation, sellStation, quantity, profit, profitPerScu, margin, profitPerHour, travelMin } = route;
+  const { commodity, buyStation, sellStation, quantity, profit, profitPerScu, margin, profitPerHour, travelMin, buyPrice } = route;
+  const roi = buyPrice > 0 ? (profitPerScu / buyPrice) * 100 : 0;
 
   return (
     <div className="card p-4 hover:border-cyan-500/20 transition-all group">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-slate-200">{commodity.name}</h3>
             {commodity.illegal && (
               <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-danger-500/20 text-danger-400 border border-danger-500/30">
                 ILLÉGAL
               </span>
             )}
+            <RoiBadge roi={roi} />
           </div>
           <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 flex-wrap">
             <MapPin className="w-3 h-3 flex-shrink-0" />
@@ -98,10 +101,33 @@ function TradeRouteCard({ route, onSave }) {
 }
 
 // ----------------------------------------------------------------
+// Helper : badge ROI coloré
+// ----------------------------------------------------------------
+function RoiBadge({ roi }) {
+  if (!roi || roi <= 0) return null;
+  const color = roi >= 50
+    ? 'bg-success-500/15 text-success-400 border-success-500/30'
+    : roi >= 20
+      ? 'bg-warning-500/15 text-warning-400 border-warning-500/30'
+      : 'bg-danger-500/15 text-danger-400 border-danger-500/30';
+  return (
+    <span className={clsx('px-1.5 py-0.5 rounded text-xs font-medium border', color)}>
+      ROI {roi.toFixed(1)}%
+    </span>
+  );
+}
+
+// ----------------------------------------------------------------
 // Composant : carte d'une Top Route pré-établie
 // ----------------------------------------------------------------
-function TopRouteCard({ route, cargoSCU, onSave }) {
+function TopRouteCard({ route, cargoSCU, capital }) {
   const profit = route.profitPerSCU * cargoSCU;
+  const roi = route.buyPrice > 0 ? ((route.sellPrice - route.buyPrice) / route.buyPrice) * 100 : 0;
+  const budgetNum = Number(capital) || 0;
+  const nbLoops = (budgetNum > 0 && route.buyPrice > 0)
+    ? Math.max(1, Math.floor(budgetNum / (route.buyPrice * cargoSCU)))
+    : null;
+  const totalEstimated = nbLoops ? profit * nbLoops : null;
 
   return (
     <div className={clsx(
@@ -126,6 +152,7 @@ function TopRouteCard({ route, cargoSCU, onSave }) {
             )}>
               {route.risk}
             </span>
+            <RoiBadge roi={roi} />
           </div>
           <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 flex-wrap">
             <MapPin className="w-3 h-3 flex-shrink-0" />
@@ -156,8 +183,20 @@ function TopRouteCard({ route, cargoSCU, onSave }) {
         </div>
       </div>
 
+      {/* Stats boucles / profit total si capital renseigné */}
+      {nbLoops !== null && (
+        <div className="flex items-center gap-3 text-xs text-slate-400 border-t border-space-600/20 pt-2 mt-1 flex-wrap">
+          <span>
+            <span className="text-slate-300 font-medium">{nbLoops}</span> boucle{nbLoops > 1 ? 's' : ''} avec capital
+          </span>
+          <span className="text-gold-400 font-semibold">
+            Profit total : {formatCredits(totalEstimated, true)}
+          </span>
+        </div>
+      )}
+
       {route.notes && (
-        <p className="text-xs text-slate-500 italic border-t border-space-600/30 pt-2">{route.notes}</p>
+        <p className="text-xs text-slate-500 italic border-t border-space-600/30 pt-2 mt-2">{route.notes}</p>
       )}
     </div>
   );
@@ -178,8 +217,15 @@ export default function TradePlanner() {
   const [sortField, setSortField] = useState('profit');
   const [travelTime, setTravelTime] = useState(20);
   const [filterCategory, setFilterCategory] = useState('');
-  const [activeTab, setActiveTab] = useState('routes'); // 'routes' | 'top' | 'chart' | 'sct'
+  const [activeTab, setActiveTab] = useState('routes'); // 'routes' | 'top' | 'chart' | 'sct' | 'buyer'
   const [useLivePrices, setUseLivePrices] = useState(false);
+
+  // ---- État onglet Meilleur Acheteur ----
+  const [buyerCommodity, setBuyerCommodity] = useState('');
+  const [buyerFromStation, setBuyerFromStation] = useState('');
+  const [buyerQuantity, setBuyerQuantity] = useState(100);
+  const [buyerLegalOnly, setBuyerLegalOnly] = useState(true);
+  const [buyerResults, setBuyerResults] = useState(null);
 
   // ---- Données live UEX Corp ----
   const { commodities: liveCommodities, isLive, loading: liveLoading, error: liveError, refresh: refreshLive } = useLiveCommodities();
@@ -293,6 +339,45 @@ export default function TradePlanner() {
       ...route,
     });
     notify('Route commerciale sauvegardée !', 'success');
+  };
+
+  // ---- Liste commodités vendables (prix vente > 0 dans au moins une station) ----
+  const sellableCommodities = useMemo(() => {
+    const sellableIds = new Set();
+    Object.values(STATION_PRICES).forEach(prices => {
+      Object.entries(prices).forEach(([cId, arr]) => {
+        if (arr[1] > 0) sellableIds.add(cId);
+      });
+    });
+    return COMMODITIES.filter(c => sellableIds.has(c.id));
+  }, []);
+
+  // ---- Calcul Meilleur Acheteur ----
+  const handleFindBestBuyer = () => {
+    if (!buyerCommodity) return;
+    const meta = COMMODITY_META[buyerCommodity];
+    const isIllegal = meta?.legalStatus === 'illegal';
+    if (buyerLegalOnly && isIllegal) {
+      setBuyerResults([]);
+      return;
+    }
+    const qty = Math.max(1, Number(buyerQuantity));
+    const buyPriceAtOrigin = buyerFromStation ? getBuyPrice(buyerFromStation, buyerCommodity) : 0;
+
+    const results = Object.entries(STATION_PRICES)
+      .filter(([, prices]) => prices[buyerCommodity]?.[1] > 0)
+      .map(([stId, prices]) => {
+        const station = STATIONS_BY_ID[stId] || { id: stId, name: stId, system: 'Inconnu' };
+        const sellPrice = prices[buyerCommodity][1];
+        const totalProfit = sellPrice * qty;
+        const roi = (buyPriceAtOrigin > 0)
+          ? ((sellPrice - buyPriceAtOrigin) / buyPriceAtOrigin) * 100
+          : null;
+        return { station, sellPrice, totalProfit, roi, stationId: stId };
+      })
+      .sort((a, b) => b.sellPrice - a.sellPrice);
+
+    setBuyerResults(results);
   };
 
   const systems = [...new Set(LEGAL_STATIONS.map(s => s.system))].sort();
@@ -447,6 +532,7 @@ export default function TradePlanner() {
         {[
           { id: 'routes', label: 'Routes Calculées', icon: BarChart3 },
           { id: 'top', label: `Top ${filteredTopRoutes.length} Routes`, icon: TrendingUp },
+          { id: 'buyer', label: 'Meilleur Acheteur', icon: Award },
           { id: 'chart', label: 'Graphique', icon: Zap },
           { id: 'sct', label: 'SC Trade Tools', icon: ExternalLink },
         ].map(tab => (
@@ -516,9 +602,169 @@ export default function TradePlanner() {
           )}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 stagger-children">
             {filteredTopRoutes.map(route => (
-              <TopRouteCard key={route.id} route={route} cargoSCU={cargoCapacity} />
+              <TopRouteCard key={route.id} route={route} cargoSCU={cargoCapacity} capital={budget} />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ---- Onglet : Meilleur Acheteur ---- */}
+      {activeTab === 'buyer' && (
+        <div className="space-y-5">
+          <div className="card p-5">
+            <h2 className="section-title mb-4 flex items-center gap-2">
+              <Award className="w-4 h-4 text-gold-400" />
+              Trouver le Meilleur Acheteur
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              {/* Commodité */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Je veux vendre…</label>
+                <select
+                  value={buyerCommodity}
+                  onChange={e => { setBuyerCommodity(e.target.value); setBuyerResults(null); }}
+                  className="select"
+                >
+                  <option value="">— Choisir une commodité —</option>
+                  {sellableCommodities.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}{c.illegal ? ' ⚠️' : ''}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Station de départ */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Depuis… (opt.)</label>
+                <select
+                  value={buyerFromStation}
+                  onChange={e => { setBuyerFromStation(e.target.value); setBuyerResults(null); }}
+                  className="select"
+                >
+                  <option value="">— Station de départ —</option>
+                  {PRICED_STATIONS.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.system})</option>
+                  ))}
+                </select>
+              </div>
+              {/* Quantité */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Quantité (SCU)</label>
+                <input
+                  type="number"
+                  value={buyerQuantity}
+                  onChange={e => setBuyerQuantity(Math.max(1, Math.min(576, Number(e.target.value))))}
+                  className="input"
+                  min={1}
+                  max={576}
+                />
+              </div>
+              {/* Toggle légal */}
+              <div className="flex flex-col gap-1.5 justify-end">
+                <label className="flex items-center gap-2 cursor-pointer pb-1">
+                  <input
+                    type="checkbox"
+                    checked={buyerLegalOnly}
+                    onChange={e => setBuyerLegalOnly(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-space-500 peer-checked:bg-success-600 rounded-full transition-colors border border-space-400/40 relative">
+                    <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                  </div>
+                  <Shield className="w-3.5 h-3.5 text-success-400" />
+                  <span className="text-sm text-slate-400">Légal seulement</span>
+                </label>
+                <button
+                  onClick={handleFindBestBuyer}
+                  disabled={!buyerCommodity}
+                  className="btn-primary gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  Trouver
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Résultats */}
+          {buyerResults === null && (
+            <div className="card p-10 text-center">
+              <Award className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400">Sélectionnez une commodité et cliquez sur "Trouver" pour voir les stations qui paient le mieux.</p>
+            </div>
+          )}
+
+          {buyerResults !== null && buyerResults.length === 0 && (
+            <div className="card p-8 text-center">
+              <AlertTriangle className="w-10 h-10 text-warning-400 mx-auto mb-3" />
+              <p className="text-slate-400">Aucune station n'achète cette commodité avec les filtres actuels.</p>
+            </div>
+          )}
+
+          {buyerResults !== null && buyerResults.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-500 px-1">
+                {buyerResults.length} station{buyerResults.length > 1 ? 's' : ''} achète{buyerResults.length === 1 ? '' : 'nt'} cette commodité — triées par prix décroissant
+              </p>
+              {buyerResults.map((result, i) => {
+                const isTop = i === 0;
+                return (
+                  <div key={result.stationId} className={clsx(
+                    'card p-4 transition-all',
+                    isTop ? 'border-gold-400/40 bg-gold-500/5 hover:border-gold-400/60' : 'hover:border-cyan-500/20',
+                  )}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-slate-200">{result.station.name}</span>
+                          {isTop && (
+                            <span className="px-2 py-0.5 rounded text-xs font-bold bg-gold-500/20 text-gold-400 border border-gold-400/30">
+                              MEILLEUR PRIX
+                            </span>
+                          )}
+                          {result.station.security && (
+                            <span className={clsx(
+                              'px-1.5 py-0.5 rounded text-xs border',
+                              result.station.security === 'Haute' && 'bg-success-500/10 text-success-400 border-success-500/20',
+                              result.station.security === 'Moyenne' && 'bg-warning-500/10 text-warning-400 border-warning-500/20',
+                              result.station.security === 'Faible' || result.station.security === 'Nulle' ? 'bg-danger-500/10 text-danger-400 border-danger-500/20' : '',
+                            )}>
+                              Sécu {result.station.security || '?'}
+                            </span>
+                          )}
+                          {result.roi !== null && <RoiBadge roi={result.roi} />}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 flex-wrap">
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          <span>{result.station.system || 'Inconnu'}</span>
+                          {result.station.body && <span>• {result.station.body}</span>}
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 space-y-0.5">
+                        <div className={clsx('text-xl font-bold', isTop ? 'text-gold-400' : 'text-success-400')}>
+                          {formatCredits(result.sellPrice)}/SCU
+                        </div>
+                        <div className="text-sm text-slate-300 font-semibold">
+                          {formatCredits(result.totalProfit, true)} total
+                        </div>
+                        <div className="text-xs text-slate-500">{buyerQuantity} SCU</div>
+                      </div>
+                    </div>
+                    {result.roi !== null && (
+                      <div className="mt-2 pt-2 border-t border-space-600/20 text-xs text-slate-500">
+                        Achat à <span className="text-slate-300">{result.station.name}</span> depuis{' '}
+                        <span className="text-slate-300">{STATIONS_BY_ID[buyerFromStation]?.name || buyerFromStation}</span> :{' '}
+                        ROI <span className={clsx('font-semibold', result.roi >= 50 ? 'text-success-400' : result.roi >= 20 ? 'text-warning-400' : 'text-danger-400')}>
+                          {result.roi.toFixed(1)}%
+                        </span>
+                        {' '}• Profit net : <span className="text-success-400 font-semibold">
+                          {formatCredits((result.sellPrice - getBuyPrice(buyerFromStation, buyerCommodity)) * buyerQuantity, true)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

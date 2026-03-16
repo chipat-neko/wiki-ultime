@@ -271,6 +271,41 @@ export default function ReputationTracker() {
           Cet outil vous aide à suivre votre progression personnelle.
         </p>
       </div>
+
+      {/* Contractor rank 4.7 */}
+      <div className="card p-4">
+        <h2 className="section-title mb-1 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-cyan-400" />
+          Rang Contractant — Alpha 4.7
+        </h2>
+        <p className="text-xs text-slate-500 mb-3">
+          Nouveau système de rangs mission (FactionReputation) — le rang <span className="text-amber-400 font-medium">Applicant</span> a été supprimé, 7 rangs au lieu de 8.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {[
+            { rank: 0, name: 'Neutral',            xp: 0,      color: 'text-slate-400',   bg: 'bg-space-700/50'    },
+            { rank: 1, name: 'Jr. Contractor',     xp: 800,    color: 'text-slate-300',   bg: 'bg-space-700/40'    },
+            { rank: 2, name: 'Contractor',         xp: 2200,   color: 'text-cyan-400',    bg: 'bg-cyan-500/10'     },
+            { rank: 3, name: 'Sr. Contractor',     xp: 5800,   color: 'text-cyan-300',    bg: 'bg-cyan-500/15'     },
+            { rank: 4, name: 'Veteran Contractor', xp: 15000,  color: 'text-success-400', bg: 'bg-success-500/10'  },
+            { rank: 5, name: 'Head Contractor',    xp: 38000,  color: 'text-amber-400',   bg: 'bg-amber-500/10'    },
+            { rank: 6, name: 'Elite Contractor',   xp: 95250,  color: 'text-gold-400',    bg: 'bg-gold-500/10'     },
+          ].map(r => (
+            <div key={r.rank} className={clsx('p-3 rounded-lg flex items-center gap-3', r.bg)}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center bg-space-600 text-xs font-bold text-slate-400 flex-shrink-0">
+                {r.rank}
+              </div>
+              <div className="min-w-0">
+                <div className={clsx('font-semibold text-sm truncate', r.color)}>{r.name}</div>
+                <div className="text-xs text-slate-600">{r.xp === 0 ? 'Départ' : `${r.xp.toLocaleString('fr-FR')} XP`}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-slate-600 mt-3">
+          Source : données PTU 4.7. En 4.6, le rang 1 était "Applicant" (750 XP) — supprimé en 4.7.
+        </p>
+      </div>
     </div>
   );
 }

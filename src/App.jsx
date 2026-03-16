@@ -19,6 +19,7 @@ const CargoOptimizer = React.lazy(() => import('./modules/trade/CargoOptimizer.j
 const TradeCalculator = React.lazy(() => import('./modules/trade/TradeCalculator.jsx'));
 const RouteOptimizer = React.lazy(() => import('./modules/route/RouteOptimizer.jsx'));
 const MissionPlanner    = React.lazy(() => import('./modules/missions/MissionPlanner.jsx'));
+const MissionBrowser    = React.lazy(() => import('./modules/missions/MissionBrowser.jsx'));
 const MissionStacking   = React.lazy(() => import('./modules/missions/MissionStacking.jsx'));
 const MissionDetail     = React.lazy(() => import('./modules/missions/MissionDetail.jsx'));
 const MissionTracker    = React.lazy(() => import('./modules/missions/MissionTracker.jsx'));
@@ -53,6 +54,25 @@ const ResetPassword = React.lazy(() => import('./modules/auth/ResetPassword.jsx'
 const VerifyEmail = React.lazy(() => import('./modules/auth/VerifyEmail.jsx'));
 const Wikelo = React.lazy(() => import('./modules/wikelo/Wikelo.jsx'));
 const EngineeringModule = React.lazy(() => import('./modules/engineering/Engineering.jsx'));
+const LoadoutBuilder = React.lazy(() => import('./modules/loadout/LoadoutBuilder.jsx'));
+const ItemFinder = React.lazy(() => import('./modules/items/ItemFinder.jsx'));
+const CrimeStat = React.lazy(() => import('./modules/mechanics/CrimeStat.jsx'));
+const MedicalMechanics = React.lazy(() => import('./modules/mechanics/MedicalMechanics.jsx'));
+const BountyHunting = React.lazy(() => import('./modules/mechanics/BountyHunting.jsx'));
+const QTDrives = React.lazy(() => import('./modules/components/QTDrives.jsx'));
+const NPCDatabase = React.lazy(() => import('./modules/npcs/NPCDatabase.jsx'));
+const RefineryCalculator = React.lazy(() => import('./modules/mining/RefineryCalculator.jsx'));
+const ProfitComparator = React.lazy(() => import('./modules/trade/ProfitComparator.jsx'));
+const CommodityTracker = React.lazy(() => import('./modules/trade/CommodityTracker.jsx'));
+const InsuranceCalculator = React.lazy(() => import('./modules/ships/InsuranceCalculator.jsx'));
+const FPSLoadoutBuilder = React.lazy(() => import('./modules/equipment/FPSLoadoutBuilder.jsx'));
+const SpawnGuide = React.lazy(() => import('./modules/systems/SpawnGuide.jsx'));
+const ArmorComparator = React.lazy(() => import('./modules/equipment/ArmorComparator.jsx'));
+const DPSCalculator = React.lazy(() => import('./modules/ships/DPSCalculator.jsx'));
+const CharacterTracker = React.lazy(() => import('./modules/community/CharacterTracker.jsx'));
+const ShipSystems = React.lazy(() => import('./modules/ships/ShipSystems.jsx'));
+const PiracyGuide = React.lazy(() => import('./modules/mechanics/PiracyGuide.jsx'));
+const Galactapedia = React.lazy(() => import('./modules/lore/Galactapedia.jsx'));
 
 import LoadingSpinner from './ui/components/LoadingSpinner.jsx';
 
@@ -88,6 +108,7 @@ function App() {
 
             {/* Missions */}
             <Route path="/missions"             element={<MissionPlanner />} />
+            <Route path="/missions/base"        element={<MissionBrowser />} />
             <Route path="/missions/empilement"  element={<MissionStacking />} />
             <Route path="/missions/tracker"     element={<MissionTracker />} />
             <Route path="/missions/calculateur" element={<MissionCalculator />} />
@@ -144,6 +165,59 @@ function App() {
 
             {/* Engineering */}
             <Route path="/engineering" element={<EngineeringModule />} />
+
+            {/* Loadout Builder */}
+            <Route path="/loadout" element={<LoadoutBuilder />} />
+
+            {/* Objets */}
+            <Route path="/items" element={<ItemFinder />} />
+
+            {/* Mécaniques */}
+            <Route path="/crimestat" element={<CrimeStat />} />
+            <Route path="/medical" element={<MedicalMechanics />} />
+            <Route path="/bounty" element={<BountyHunting />} />
+
+            {/* QT Drives */}
+            <Route path="/qt-drives" element={<QTDrives />} />
+
+            {/* NPC Database */}
+            <Route path="/npcs" element={<NPCDatabase />} />
+
+            {/* Raffinerie */}
+            <Route path="/raffinerie" element={<RefineryCalculator />} />
+
+            {/* Profits */}
+            <Route path="/profits" element={<ProfitComparator />} />
+
+            {/* Commodités */}
+            <Route path="/commodites" element={<CommodityTracker />} />
+
+            {/* Assurance */}
+            <Route path="/assurance" element={<InsuranceCalculator />} />
+
+            {/* FPS Loadout */}
+            <Route path="/fps-loadout" element={<FPSLoadoutBuilder />} />
+
+            {/* Spawn & Hôpitaux */}
+            <Route path="/spawn" element={<SpawnGuide />} />
+
+            {/* Comparateur Armures */}
+            <Route path="/armures/comparer" element={<ArmorComparator />} />
+
+            {/* Calculateur DPS */}
+            <Route path="/dps-calc" element={<DPSCalculator />} />
+
+            {/* Tracker Personnage */}
+            <Route path="/personnage" element={<CharacterTracker />} />
+
+            {/* Systèmes Vaisseau */}
+            <Route path="/systemes-vaisseau" element={<ShipSystems />} />
+
+            {/* Piraterie */}
+            <Route path="/piraterie" element={<PiracyGuide />} />
+
+            {/* Galactapédie */}
+            <Route path="/lore" element={<Galactapedia />} />
 
             {/* Parametres */}
             <Route path="/parametres" element={<Settings />} />

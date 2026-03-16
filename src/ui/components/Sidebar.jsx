@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, Link } from 'react-router-dom';
 import { useAppState, useAppActions } from '../../core/StateManager.jsx';
 import { useAuth, getLevelInfo } from '../../core/AuthContext.jsx';
@@ -43,7 +43,13 @@ import {
   User,
   LogIn,
   PlusCircle,
+  Heart,
+  AlertTriangle,
+  FlaskConical,
 } from 'lucide-react';
+
+const SIDEBAR_SECTIONS_KEY = 'sc_sidebar_sections';
+const MISSION_STACK_KEY = 'sc_mission_stack';
 
 const NAV_SECTIONS = [
   {
@@ -55,83 +61,98 @@ const NAV_SECTIONS = [
   {
     title: 'Vaisseaux & Flotte',
     items: [
-      { path: '/vaisseaux', label: 'Base de Vaisseaux', icon: Rocket },
-      { path: '/vaisseaux/comparer', label: 'Comparateur', icon: ArrowLeftRight },
-      { path: '/fabricants', label: 'Fabricants', icon: Factory },
-      { path: '/flotte', label: 'Gestionnaire de Flotte', icon: Anchor },
-      { path: '/flotte/analyse', label: 'Analyse de Flotte', icon: Zap },
-    ],
-  },
-  {
-    title: 'Commerce',
-    items: [
-      { path: '/commerce', label: 'Planificateur', icon: TrendingUp },
-      { path: '/commerce/cargo', label: 'Optimiseur Cargo', icon: Package },
-      { path: '/commerce/calculateur', label: 'Calculateur', icon: Calculator },
-    ],
-  },
-  {
-    title: 'Navigation',
-    items: [
-      { path: '/routes', label: 'Optimiseur de Routes', icon: Route },
+      { path: '/vaisseaux',         label: 'Base de Vaisseaux',      icon: Rocket        },
+      { path: '/vaisseaux/comparer', label: 'Comparateur',           icon: ArrowLeftRight },
+      { path: '/flotte',            label: 'Gestionnaire de Flotte', icon: Anchor        },
+      { path: '/flotte/analyse',    label: 'Analyse de Flotte',      icon: Zap           },
+      { path: '/fabricants',        label: 'Fabricants',             icon: Factory       },
+      { path: '/composants',        label: 'Composants Vaisseaux',   icon: Cpu           },
+      { path: '/armes-vaisseaux',   label: 'Armes de Vaisseaux',     icon: Target        },
+      { path: '/loadout',           label: 'Constructeur de Loadout', icon: Crosshair, isNew: true },
+      { path: '/qt-drives',         label: 'Propulseurs QT',          icon: Zap,        isNew: true },
+      { path: '/assurance',         label: 'Assurance & Réclamation', icon: Shield,     isNew: true },
+      { path: '/dps-calc',          label: 'Calculateur DPS',         icon: Zap,        isNew: true },
+      { path: '/systemes-vaisseau', label: 'Systèmes Vaisseau',        icon: Cpu,        isNew: true },
     ],
   },
   {
     title: 'Missions',
     items: [
-      { path: '/missions',             label: 'Planificateur',   icon: Target        },
-      { path: '/missions/empilement',  label: "IA d'Empilement", icon: Layers        },
-      { path: '/missions/tracker',     label: 'Suivi Missions',  icon: ClipboardList },
-      { path: '/missions/calculateur', label: 'Calculateur',     icon: Calculator    },
+      { path: '/missions/base',        label: 'Catalogue de Missions', icon: Server        },
+      { path: '/missions',             label: 'Planificateur',         icon: Target        },
+      { path: '/missions/empilement',  label: "IA d'Empilement",       icon: Layers,       stackBadge: true },
+      { path: '/missions/tracker',     label: 'Suivi Missions',        icon: ClipboardList },
+      { path: '/missions/calculateur', label: 'Calculateur',           icon: Calculator    },
     ],
   },
   {
-    title: 'Univers',
+    title: 'Commerce & Trade',
     items: [
-      { path: '/systemes',          label: 'Systèmes Stellaires', icon: Globe       },
-      { path: '/systemes/planetes', label: 'Planètes & Lunes',    icon: Navigation  },
-      { path: '/systemes/stations', label: 'Stations & Villes',   icon: Building    },
-      { path: '/locations',         label: 'Locations & POI',      icon: Mountain    },
-      { path: '/factions',          label: 'Factions',             icon: Shield      },
+      { path: '/commerce',            label: 'Planificateur',      icon: TrendingUp },
+      { path: '/commerce/cargo',      label: 'Optimiseur Cargo',   icon: Package    },
+      { path: '/commerce/calculateur', label: 'Calculateur',       icon: Calculator },
+      { path: '/routes',              label: 'Optimiseur de Routes',    icon: Route      },
+      { path: '/profits',             label: 'Comparateur Rentabilité', icon: TrendingUp, isNew: true },
+      { path: '/commodites',          label: 'Suivi des Commodités',    icon: Package,    isNew: true },
     ],
   },
   {
-    title: 'Guides',
+    title: 'Exploration & Univers',
     items: [
-      { path: '/guides', label: 'Guides de Jeu', icon: BookOpen },
-      { path: '/minage', label: 'Guide de Minage', icon: Gem },
-      { path: '/salvage', label: 'Guide Salvage', icon: Recycle },
-      { path: '/artisanat', label: 'Artisanat (Wikelo)', icon: Hammer },
-      { path: '/engineering', label: 'Engineering', icon: Zap },
+      { path: '/systemes',          label: 'Systèmes Stellaires', icon: Globe      },
+      { path: '/systemes/planetes', label: 'Planètes & Lunes',    icon: Navigation },
+      { path: '/systemes/stations', label: 'Stations & Villes',   icon: Building   },
+      { path: '/locations',         label: 'Locations & POI',     icon: Mountain   },
+      { path: '/factions',          label: 'Factions',            icon: Shield     },
+      { path: '/npcs',              label: 'PNJ & Marchands',     icon: Users,      isNew: true },
+    ],
+  },
+  {
+    title: 'Activités',
+    items: [
+      { path: '/minage',      label: 'Minage',              icon: Gem     },
+      { path: '/salvage',     label: 'Salvage',             icon: Recycle },
+      { path: '/artisanat',   label: 'Artisanat',           icon: Hammer, isNew: true },
+      { path: '/engineering', label: 'Engineering',         icon: Wrench, isNew: true },
+      { path: '/vehicules',   label: 'Véhicules Terrestres', icon: Car         },
+      { path: '/raffinerie',  label: 'Calculateur Raffinerie', icon: FlaskConical, isNew: true },
+    ],
+  },
+  {
+    title: 'Équipement FPS',
+    items: [
+      { path: '/equipement',  label: 'Armes & Armures',       icon: Crosshair },
+      { path: '/items',       label: 'Trouveur d\'Objets',    icon: Package,  isNew: true },
+      { path: '/fps-loadout',     label: 'Builder Équipement FPS', icon: Shield,  isNew: true },
+      { path: '/armures/comparer', label: 'Comparateur Armures',    icon: Shield,  isNew: true },
+    ],
+  },
+  {
+    title: 'Mécaniques de Jeu',
+    items: [
+      { path: '/crimestat', label: 'CrimeStat',         icon: AlertTriangle, isNew: true },
+      { path: '/medical',   label: 'Médical & Santé',  icon: Heart,         isNew: true },
+      { path: '/bounty',    label: 'Chasse à la Prime', icon: Crosshair,    isNew: true },
+      { path: '/spawn',     label: 'Spawn & Hôpitaux',  icon: Heart,        isNew: true },
+      { path: '/piraterie', label: 'Piraterie & Outlaw', icon: AlertTriangle, isNew: true },
+    ],
+  },
+  {
+    title: 'Guides & Ressources',
+    items: [
+      { path: '/guides', label: 'Guides de Jeu',  icon: BookOpen },
+      { path: '/outils', label: 'Outils de Jeu',  icon: Wrench   },
+      { path: '/lore',   label: 'Galactapédie',   icon: BookOpen, isNew: true },
     ],
   },
   {
     title: 'Communauté',
     items: [
-      { path: '/favoris', label: 'Favoris', icon: Star },
-      { path: '/reputation', label: 'Réputation', icon: Award },
-      { path: '/historique', label: 'Historique', icon: Clock },
-    ],
-  },
-  {
-    title: 'Équipement',
-    items: [
-      { path: '/equipement',     label: 'Armes & Armures FPS',  icon: Crosshair },
-      { path: '/armes-vaisseaux', label: 'Armes de Vaisseaux',   icon: Target    },
-      { path: '/vehicules',      label: 'Véhicules Terrestres',  icon: Car       },
-      { path: '/composants',     label: 'Composants Vaisseaux',  icon: Cpu       },
-    ],
-  },
-  {
-    title: 'Événements',
-    items: [
-      { path: '/evenements', label: 'Événements In-Game', icon: Bell },
-    ],
-  },
-  {
-    title: 'Outils',
-    items: [
-      { path: '/outils', label: 'Outils de Jeu', icon: Wrench },
+      { path: '/favoris',    label: 'Favoris',           icon: Star        },
+      { path: '/reputation', label: 'Réputation',        icon: Award       },
+      { path: '/historique', label: 'Historique',        icon: Clock       },
+      { path: '/evenements', label: 'Événements In-Game', icon: Bell       },
+      { path: '/personnage', label: 'Tracker Personnage', icon: User,       isNew: true },
     ],
   },
   {
@@ -141,6 +162,22 @@ const NAV_SECTIONS = [
     ],
   },
 ];
+
+function getDefaultSections() {
+  return NAV_SECTIONS.reduce((acc, s) => ({ ...acc, [s.title]: true }), {});
+}
+
+function loadSavedSections() {
+  try {
+    const raw = localStorage.getItem(SIDEBAR_SECTIONS_KEY);
+    if (!raw) return getDefaultSections();
+    const parsed = JSON.parse(raw);
+    // Merge avec les defaults pour ne pas perdre de nouvelles sections
+    return { ...getDefaultSections(), ...parsed };
+  } catch {
+    return getDefaultSections();
+  }
+}
 
 function UserWidget({ isCollapsed }) {
   const { user, profile, isAdmin, isMod } = useAuth();
@@ -207,15 +244,38 @@ function UserWidget({ isCollapsed }) {
 export default function Sidebar() {
   const { ui } = useAppState();
   const { toggleSidebar, collapseSidebar } = useAppActions();
-  const [expandedSections, setExpandedSections] = useState(
-    NAV_SECTIONS.reduce((acc, s) => ({ ...acc, [s.title]: true }), {})
-  );
+  const [expandedSections, setExpandedSections] = useState(loadSavedSections);
+  const [missionStackCount, setMissionStackCount] = useState(0);
   const location = useLocation();
   const isCollapsed = ui.sidebarCollapsed;
 
+  // Lire le count de missions dans le stack depuis localStorage
+  useEffect(() => {
+    function readStackCount() {
+      try {
+        const stack = JSON.parse(localStorage.getItem(MISSION_STACK_KEY) || '[]');
+        setMissionStackCount(Array.isArray(stack) ? stack.length : 0);
+      } catch {
+        setMissionStackCount(0);
+      }
+    }
+    readStackCount();
+    // Polling léger pour détecter les changements depuis d'autres composants
+    const interval = setInterval(readStackCount, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const toggleSection = (title) => {
     if (!isCollapsed) {
-      setExpandedSections(prev => ({ ...prev, [title]: !prev[title] }));
+      setExpandedSections(prev => {
+        const next = { ...prev, [title]: !prev[title] };
+        try {
+          localStorage.setItem(SIDEBAR_SECTIONS_KEY, JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
     }
   };
 
@@ -255,7 +315,7 @@ export default function Sidebar() {
               <div className="text-sm font-bold font-display text-white leading-tight truncate">
                 SC COMPANION
               </div>
-              <div className="text-xs text-slate-500">v1.0.0 • Alpha 4.6</div>
+              <div className="text-xs text-slate-500">v1.0.0 • Alpha 4.7</div>
             </div>
           )}
         </div>
@@ -270,7 +330,13 @@ export default function Sidebar() {
                   onClick={() => toggleSection(section.title)}
                   className="w-full flex items-center justify-between px-4 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 transition-colors"
                 >
-                  {section.title}
+                  <span>{section.title}</span>
+                  <ChevronRight
+                    className={clsx(
+                      'w-3 h-3 transition-transform duration-200',
+                      expandedSections[section.title] && 'rotate-90'
+                    )}
+                  />
                 </button>
               )}
 
@@ -281,6 +347,7 @@ export default function Sidebar() {
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path ||
                       (item.path !== '/tableau-de-bord' && location.pathname.startsWith(item.path));
+                    const showStackBadge = item.stackBadge && missionStackCount > 0;
 
                     return (
                       <li key={item.path}>
@@ -304,9 +371,29 @@ export default function Sidebar() {
                             )}
                           />
                           {!isCollapsed && (
-                            <span className="text-sm font-medium truncate">{item.label}</span>
+                            <>
+                              <span className="text-sm font-medium truncate flex-1">{item.label}</span>
+                              {/* Badge NEW */}
+                              {item.isNew && (
+                                <span className="flex-shrink-0 text-xs font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 leading-none">
+                                  NEW
+                                </span>
+                              )}
+                              {/* Badge stack missions */}
+                              {showStackBadge && (
+                                <span className="flex-shrink-0 min-w-[18px] text-center text-xs font-bold px-1 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 leading-none">
+                                  {missionStackCount}
+                                </span>
+                              )}
+                            </>
                           )}
-                          {isActive && !isCollapsed && (
+                          {/* Badge stack missions en mode collapsed */}
+                          {isCollapsed && showStackBadge && (
+                            <span className="absolute top-0.5 right-0.5 min-w-[14px] text-center text-xs font-bold px-0.5 rounded-full bg-orange-500 text-white leading-none text-[10px]">
+                              {missionStackCount}
+                            </span>
+                          )}
+                          {isActive && !isCollapsed && !item.isNew && !showStackBadge && (
                             <div className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
                           )}
                         </NavLink>

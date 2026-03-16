@@ -1,9 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useAppActions } from '../../core/StateManager.jsx';
-import { STATIONS, LEGAL_STATIONS } from '../../datasets/stations.js';
+import { STATIONS, LEGAL_STATIONS, STATIONS_BY_ID } from '../../datasets/stations.js';
 import { COMMODITIES, LEGAL_COMMODITIES } from '../../datasets/commodities.js';
 import { STAR_SYSTEMS_DATA } from '../../datasets/systems.js';
-import { TOP_TRADE_ROUTES } from '../../datasets/tradeprices.js';
+import {
+  TOP_TRADE_ROUTES,
+  STATION_PRICES,
+  COMMODITY_META,
+  getBuyPrice,
+  getSellPrice,
+} from '../../datasets/tradeprices.js';
 import { findOptimalRoute, calcQTravelTime } from '../../utils/calculations.js';
 import { formatCredits, formatNumber, formatDuration } from '../../utils/formatters.js';
 import { generateId } from '../../utils/helpers.js';
@@ -11,7 +17,7 @@ import clsx from 'clsx';
 import {
   Route, ArrowRight, Plus, Trash2, Save, Zap, Clock, Package,
   TrendingUp, AlertTriangle, Globe, Flame, Shield, ChevronDown, ChevronUp,
-  Navigation, Star, Filter,
+  Navigation, Star, Filter, MapPin, Search,
 } from 'lucide-react';
 
 // ─── Données Jump Points & Distances inter-système ─────────────────────────
@@ -66,6 +72,22 @@ const RISK_COLORS = {
   'Élevé':       'text-warning-400',
   'Très élevé':  'text-danger-400',
 };
+
+// ─── Helper ROI badge ────────────────────────────────────────────────────────
+
+function RoiBadge({ roi }) {
+  if (!roi || roi <= 0) return null;
+  const color = roi >= 50
+    ? 'bg-success-500/15 text-success-400 border-success-500/30'
+    : roi >= 20
+      ? 'bg-warning-500/15 text-warning-400 border-warning-500/30'
+      : 'bg-danger-500/15 text-danger-400 border-danger-500/30';
+  return (
+    <span className={clsx('px-1.5 py-0.5 rounded text-xs font-medium border', color)}>
+      ROI {roi.toFixed(1)}%
+    </span>
+  );
+}
 
 // ─── Composants ─────────────────────────────────────────────────────────────
 
@@ -127,9 +149,16 @@ function JumpPointCard({ jp }) {
   );
 }
 
-function TradeRouteCard({ route }) {
+function TradeRouteCard({ route, cargoSCU, capital }) {
   const [expanded, setExpanded] = useState(false);
   const riskColor = RISK_COLORS[route.risk] || 'text-slate-400';
+  const roi = route.buyPrice > 0 ? ((route.sellPrice - route.buyPrice) / route.buyPrice) * 100 : 0;
+  const budgetNum = Number(capital) || 0;
+  const nbLoops = (budgetNum > 0 && route.buyPrice > 0 && cargoSCU > 0)
+    ? Math.max(1, Math.floor(budgetNum / (route.buyPrice * cargoSCU)))
+    : null;
+  const totalEstimated = nbLoops ? route.profitPerSCU * cargoSCU * nbLoops : null;
+
   return (
     <div className={clsx(
       'p-3 rounded-lg border transition-all',
@@ -142,6 +171,7 @@ function TradeRouteCard({ route }) {
             {!route.legal && (
               <span className="badge bg-danger-500/15 text-danger-400 border-danger-500/20 text-xs">Illégal</span>
             )}
+            <RoiBadge roi={roi} />
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500">
             <span className="truncate">{route.fromName}</span>
@@ -165,6 +195,18 @@ function TradeRouteCard({ route }) {
         <span className="text-slate-500">({formatCredits(route.profitPerRun, true)} / {route.cargoRef} SCU)</span>
         <span className={clsx('font-medium', riskColor)}>Risque: {route.risk}</span>
       </div>
+
+      {/* Stats boucles si capital renseigné */}
+      {nbLoops !== null && (
+        <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-slate-400">
+          <span>
+            <span className="text-slate-300 font-medium">{nbLoops}</span> boucle{nbLoops > 1 ? 's' : ''} ({cargoSCU} SCU)
+          </span>
+          <span className="text-gold-400 font-semibold">
+            Total : {formatCredits(totalEstimated, true)}
+          </span>
+        </div>
+      )}
 
       {expanded && (
         <div className="mt-2 pt-2 border-t border-space-400/20 space-y-1 text-xs text-slate-400">
@@ -198,9 +240,69 @@ export default function RouteOptimizer() {
   const [routeName, setRouteName] = useState('');
 
   // Trade routes filters
-  const [tradeTab, setTradeTab] = useState('builder'); // 'builder' | 'known-routes' | 'jump-points'
+  const [tradeTab, setTradeTab] = useState('builder'); // 'builder' | 'known-routes' | 'en-route' | 'jump-points'
   const [legalOnlyFilter, setLegalOnlyFilter] = useState(false);
   const [avoidPyroFilter, setAvoidPyroFilter] = useState(false);
+
+  // ---- État onglet En Route ----
+  const [enRouteFrom, setEnRouteFrom] = useState('');
+  const [enRouteTo, setEnRouteTo] = useState('');
+  const [enRouteCargo, setEnRouteCargo] = useState(100);
+  const [enRouteCapital, setEnRouteCapital] = useState(100000);
+  const [enRouteLegal, setEnRouteLegal] = useState(true);
+  const [enRouteResults, setEnRouteResults] = useState(null);
+
+  // ---- Stations avec prix connus ----
+  const pricedStations = useMemo(() => Object.keys(STATION_PRICES).map(id => {
+    const st = STATIONS_BY_ID?.[id] || STATIONS.find(s => s.id === id);
+    return { id, name: st?.name ?? id, system: st?.system ?? 'Inconnu' };
+  }), []);
+
+  // ---- Calcul En Route ----
+  const handleEnRoute = () => {
+    if (!enRouteFrom || !enRouteTo) return;
+    const cargo = Math.max(1, Number(enRouteCargo));
+    const capital = Math.max(0, Number(enRouteCapital));
+
+    const fromPrices = STATION_PRICES[enRouteFrom] || {};
+    const results = Object.entries(fromPrices)
+      .filter(([, arr]) => arr[0] > 0)
+      .map(([cId, arr]) => {
+        const buyPrice = arr[0];
+        const sellPrice = getSellPrice(enRouteTo, cId);
+        const meta = COMMODITY_META[cId];
+        const isIllegal = meta?.legalStatus === 'illegal';
+        if (enRouteLegal && isIllegal) return null;
+        const profitPerSCU = sellPrice - buyPrice;
+        const roi = buyPrice > 0 ? (profitPerSCU / buyPrice) * 100 : 0;
+        const qty = (capital > 0 && buyPrice > 0)
+          ? Math.min(cargo, Math.floor(capital / buyPrice))
+          : cargo;
+        const totalProfit = profitPerSCU * qty;
+        const nbLoops = (capital > 0 && buyPrice > 0)
+          ? Math.max(1, Math.floor(capital / (buyPrice * cargo)))
+          : null;
+        const totalLoopsProfit = nbLoops ? profitPerSCU * cargo * nbLoops : null;
+        const commodity = COMMODITIES.find(c => c.id === cId);
+        return {
+          commodityId: cId,
+          commodityName: commodity?.name ?? cId,
+          buyPrice,
+          sellPrice,
+          profitPerSCU,
+          roi,
+          qty,
+          totalProfit,
+          nbLoops,
+          totalLoopsProfit,
+          isIllegal,
+        };
+      })
+      .filter(r => r !== null && r.profitPerSCU > 0)
+      .sort((a, b) => b.profitPerSCU - a.profitPerSCU);
+
+    setEnRouteResults(results);
+  };
 
   const systems = useMemo(() => [...new Set(LEGAL_STATIONS.map(s => s.system))].sort(), []);
   const availableStations = useMemo(
@@ -325,9 +427,10 @@ export default function RouteOptimizer() {
       {/* Onglets principaux */}
       <div className="flex flex-wrap gap-2">
         {[
-          { key: 'builder',      label: 'Constructeur', icon: Route },
+          { key: 'builder',      label: 'Constructeur',  icon: Route },
           { key: 'known-routes', label: 'Routes Connues', icon: TrendingUp },
-          { key: 'jump-points',  label: 'Jump Points',   icon: Navigation },
+          { key: 'en-route',     label: 'En Route',       icon: MapPin },
+          { key: 'jump-points',  label: 'Jump Points',    icon: Navigation },
         ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -576,7 +679,7 @@ export default function RouteOptimizer() {
           {/* Liste routes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {filteredTradeRoutes.map(route => (
-              <TradeRouteCard key={route.id} route={route} />
+              <TradeRouteCard key={route.id} route={route} cargoSCU={cargoCapacity} capital={enRouteCapital} />
             ))}
           </div>
 
@@ -584,6 +687,200 @@ export default function RouteOptimizer() {
             <div className="card p-10 text-center">
               <TrendingUp className="w-10 h-10 text-slate-600 mx-auto mb-3" />
               <p className="text-slate-400">Aucune route correspond aux filtres actifs.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ Onglet En Route ═══ */}
+      {tradeTab === 'en-route' && (
+        <div className="space-y-5">
+          {/* Formulaire */}
+          <div className="card p-5">
+            <h2 className="section-title mb-4 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-cyan-400" />
+              Optimisation En Route
+            </h2>
+            <p className="text-xs text-slate-500 mb-4">
+              Trouvez la meilleure commodité à acheter à votre station de départ pour la revendre à destination.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Départ</label>
+                <select value={enRouteFrom} onChange={e => { setEnRouteFrom(e.target.value); setEnRouteResults(null); }} className="select">
+                  <option value="">— Station de départ —</option>
+                  {pricedStations.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.system})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Destination finale</label>
+                <select value={enRouteTo} onChange={e => { setEnRouteTo(e.target.value); setEnRouteResults(null); }} className="select">
+                  <option value="">— Station d'arrivée —</option>
+                  {pricedStations.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.system})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Capacité Cargo (SCU)</label>
+                <input
+                  type="number"
+                  value={enRouteCargo}
+                  onChange={e => setEnRouteCargo(Math.max(1, Number(e.target.value)))}
+                  className="input"
+                  min={1}
+                  max={10000}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-slate-500 uppercase tracking-wide">Capital (aUEC)</label>
+                <input
+                  type="number"
+                  value={enRouteCapital}
+                  onChange={e => setEnRouteCapital(Math.max(0, Number(e.target.value)))}
+                  placeholder="100000"
+                  className="input"
+                  min={0}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 justify-end">
+                <label className="flex items-center gap-2 cursor-pointer pb-1">
+                  <input
+                    type="checkbox"
+                    checked={enRouteLegal}
+                    onChange={e => setEnRouteLegal(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-space-500 peer-checked:bg-success-600 rounded-full transition-colors border border-space-400/40 relative">
+                    <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                  </div>
+                  <Shield className="w-3.5 h-3.5 text-success-400" />
+                  <span className="text-sm text-slate-400">Légal seulement</span>
+                </label>
+                <button
+                  onClick={handleEnRoute}
+                  disabled={!enRouteFrom || !enRouteTo}
+                  className="btn-primary gap-2"
+                >
+                  <Zap className="w-4 h-4" />
+                  Optimiser
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* État initial */}
+          {enRouteResults === null && (
+            <div className="card p-10 text-center">
+              <MapPin className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400">Sélectionnez un départ et une destination, puis cliquez sur "Optimiser".</p>
+            </div>
+          )}
+
+          {/* Aucun résultat */}
+          {enRouteResults !== null && enRouteResults.length === 0 && (
+            <div className="space-y-3">
+              <div className="card p-6 text-center border-warning-500/20">
+                <AlertTriangle className="w-10 h-10 text-warning-400 mx-auto mb-3" />
+                <p className="text-slate-300 font-medium">Aucune route profitable directement</p>
+                <p className="text-slate-500 text-sm mt-1">
+                  Il n'y a pas de commodité achetable à{' '}
+                  <span className="text-slate-300">{pricedStations.find(s => s.id === enRouteFrom)?.name}</span>{' '}
+                  et vendable à{' '}
+                  <span className="text-slate-300">{pricedStations.find(s => s.id === enRouteTo)?.name}</span> avec profit.
+                </p>
+              </div>
+              <div className="card p-4 border-cyan-500/20 bg-cyan-500/5">
+                <p className="text-xs text-cyan-400 font-semibold mb-2">Suggestion — Meilleures Routes Alternatives</p>
+                <p className="text-xs text-slate-400">
+                  Consultez l'onglet "Routes Connues" pour trouver des routes rentables au départ de stations proches.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Résultats */}
+          {enRouteResults !== null && enRouteResults.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-xs text-slate-500">
+                  {enRouteResults.length} commodité{enRouteResults.length > 1 ? 's' : ''} profitable{enRouteResults.length > 1 ? 's' : ''} —{' '}
+                  <span className="text-slate-400">{pricedStations.find(s => s.id === enRouteFrom)?.name}</span>
+                  {' '}<ArrowRight className="inline w-3 h-3" />{' '}
+                  <span className="text-slate-400">{pricedStations.find(s => s.id === enRouteTo)?.name}</span>
+                </p>
+                <span className="text-xs text-slate-500">{enRouteCargo} SCU</span>
+              </div>
+
+              {enRouteResults.map((r, i) => {
+                const isTop = i === 0;
+                return (
+                  <div key={r.commodityId} className={clsx(
+                    'card p-4 transition-all',
+                    isTop ? 'border-cyan-400/40 bg-cyan-500/5 hover:border-cyan-400/60' : 'hover:border-cyan-500/20',
+                  )}>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-slate-200">{r.commodityName}</span>
+                          {isTop && (
+                            <span className="px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                              MEILLEURE OPTION
+                            </span>
+                          )}
+                          {r.isIllegal && (
+                            <span className="badge bg-danger-500/15 text-danger-400 border-danger-500/20 text-xs">Illégal</span>
+                          )}
+                          <RoiBadge roi={r.roi} />
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500">
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          <span>{pricedStations.find(s => s.id === enRouteFrom)?.name}</span>
+                          <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                          <span>{pricedStations.find(s => s.id === enRouteTo)?.name}</span>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className={clsx('text-xl font-bold', isTop ? 'text-cyan-400' : 'text-success-400')}>
+                          +{formatCredits(r.profitPerSCU)}/SCU
+                        </div>
+                        <div className="text-sm text-slate-300 font-semibold">
+                          {formatCredits(r.totalProfit, true)}
+                        </div>
+                        <div className="text-xs text-slate-500">{r.qty} SCU</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-center mb-2">
+                      <div className="p-2 rounded-lg bg-space-900/60">
+                        <div className="text-sm font-semibold text-cyan-400">{formatCredits(r.buyPrice)}</div>
+                        <div className="text-xs text-slate-600">Achat/SCU</div>
+                      </div>
+                      <div className="p-2 rounded-lg bg-space-900/60">
+                        <div className="text-sm font-semibold text-success-400">{formatCredits(r.sellPrice)}</div>
+                        <div className="text-xs text-slate-600">Vente/SCU</div>
+                      </div>
+                      <div className="p-2 rounded-lg bg-space-900/60">
+                        <div className="text-sm font-semibold text-gold-400">+{formatCredits(r.profitPerSCU)}</div>
+                        <div className="text-xs text-slate-600">Profit/SCU</div>
+                      </div>
+                    </div>
+
+                    {r.nbLoops !== null && (
+                      <div className="flex flex-wrap gap-3 text-xs text-slate-400 border-t border-space-600/20 pt-2">
+                        <span>
+                          <span className="text-slate-300 font-medium">{r.nbLoops}</span> boucle{r.nbLoops > 1 ? 's' : ''} avec capital
+                        </span>
+                        <span className="text-gold-400 font-semibold">
+                          Profit total : {formatCredits(r.totalLoopsProfit, true)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

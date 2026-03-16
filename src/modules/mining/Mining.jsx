@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import clsx from 'clsx';
-import { Gem, Globe, Filter, ChevronDown, ChevronUp, AlertTriangle, Leaf, Info, ShoppingCart, Wrench, FlaskConical, Zap, Package, Rocket, Calculator } from 'lucide-react';
+import { Gem, Globe, Filter, ChevronDown, ChevronUp, AlertTriangle, Leaf, Info, ShoppingCart, Wrench, FlaskConical, Zap, Package, Rocket, Calculator, MapPin, Star } from 'lucide-react';
 import {
   MINERALS,
   MINING_BODIES,
@@ -14,6 +14,7 @@ import {
   MINING_CONSUMABLES,
   MINING_MODULES,
   MINING_SHIPS,
+  MINING_DEPOSITS,
 } from '../../datasets/miningData.js';
 import { COMMODITIES } from '../../datasets/commodities.js';
 
@@ -31,6 +32,7 @@ const RARITIES = ['Tous', 'common', 'uncommon', 'rare', 'legendary'];
 const VIEWS = [
   { id: 'mineral',   label: 'Par Minéral',         icon: Gem          },
   { id: 'body',      label: 'Par Corps Céleste',    icon: Globe        },
+  { id: 'deposits',  label: 'Dépôts',               icon: MapPin       },
   { id: 'harvest',   label: 'Harvestables',         icon: Leaf         },
   { id: 'equipment', label: 'Lasers & Équipement',  icon: Zap          },
   { id: 'ships',     label: 'Vaisseaux Mineurs',    icon: Rocket       },
@@ -1123,6 +1125,271 @@ function ShipsView() {
   );
 }
 
+// ─── View: Deposits ───────────────────────────────────────────────────────────
+
+const RISK_STYLES = {
+  'Faible':   { color: 'text-green-400',  bg: 'bg-green-900/30',  border: 'border-green-700/40'  },
+  'Modéré':   { color: 'text-yellow-400', bg: 'bg-yellow-900/30', border: 'border-yellow-700/40' },
+  'Élevé':    { color: 'text-red-400',    bg: 'bg-red-900/30',    border: 'border-red-700/40'    },
+  'Extrême':  { color: 'text-purple-400', bg: 'bg-purple-900/30', border: 'border-purple-700/40' },
+};
+
+const DEPOSIT_METHOD_STYLES = {
+  'Vaisseau': { color: 'text-cyan-400',   bg: 'bg-cyan-900/30',   border: 'border-cyan-700/40'   },
+  'ROC':      { color: 'text-orange-400', bg: 'bg-orange-900/30', border: 'border-orange-700/40' },
+  'Main':     { color: 'text-green-400',  bg: 'bg-green-900/30',  border: 'border-green-700/40'  },
+};
+
+function QualityStars({ quality }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={clsx('w-3 h-3', i < quality ? 'text-yellow-400 fill-yellow-400' : 'text-slate-700')}
+        />
+      ))}
+    </span>
+  );
+}
+
+function DepositCard({ deposit }) {
+  const [open, setOpen] = useState(false);
+  const risk = RISK_STYLES[deposit.riskLevel] || RISK_STYLES['Faible'];
+  const method = DEPOSIT_METHOD_STYLES[deposit.method] || DEPOSIT_METHOD_STYLES['Vaisseau'];
+  const topMineral = deposit.minerals.reduce((best, m) => m.concentration > best.concentration ? m : best, deposit.minerals[0]);
+  const topMineralData = topMineral ? MINERALS[topMineral.id] : null;
+
+  return (
+    <div className={clsx('card overflow-hidden border', topMineralData ? topMineralData.border : 'border-space-400/20')}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={clsx('w-9 h-9 rounded-lg border flex items-center justify-center flex-shrink-0', topMineralData ? topMineralData.bg : 'bg-space-700', topMineralData ? topMineralData.border : 'border-space-400/20')}>
+            <MapPin className={clsx('w-4 h-4', topMineralData ? topMineralData.color : 'text-slate-400')} />
+          </div>
+          <div className="text-left min-w-0">
+            <div className="font-semibold text-white text-sm truncate">{deposit.bodyName}</div>
+            <div className="text-xs text-slate-500 truncate">{deposit.zone}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          {/* Badges */}
+          <div className="hidden sm:flex items-center gap-1.5">
+            <span className={clsx('inline-block px-2 py-0.5 text-xs rounded-full font-medium border', method.bg, method.color, method.border)}>
+              {deposit.method}
+            </span>
+            <span className={clsx('inline-block px-2 py-0.5 text-xs rounded-full font-medium border', risk.bg, risk.color, risk.border)}>
+              {deposit.riskLevel}
+            </span>
+            <span className={clsx(
+              'text-xs px-1.5 py-0.5 rounded-full font-medium',
+              deposit.system === 'Pyro' ? 'text-orange-400 bg-orange-900/30' : 'text-cyan-400 bg-cyan-900/30'
+            )}>
+              {deposit.system}
+            </span>
+          </div>
+          {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-space-400/20 p-4 space-y-4">
+          {/* Mobile badges */}
+          <div className="flex sm:hidden flex-wrap gap-1.5">
+            <span className={clsx('inline-block px-2 py-0.5 text-xs rounded-full font-medium border', method.bg, method.color, method.border)}>{deposit.method}</span>
+            <span className={clsx('inline-block px-2 py-0.5 text-xs rounded-full font-medium border', risk.bg, risk.color, risk.border)}>{deposit.riskLevel}</span>
+            <span className={clsx('text-xs px-1.5 py-0.5 rounded-full font-medium', deposit.system === 'Pyro' ? 'text-orange-400 bg-orange-900/30' : 'text-cyan-400 bg-cyan-900/30')}>{deposit.system}</span>
+          </div>
+
+          {/* Minerals */}
+          <div>
+            <div className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">Composition minérale</div>
+            <div className="space-y-2">
+              {deposit.minerals.map(m => {
+                const mineralData = MINERALS[m.id];
+                if (!mineralData) return null;
+                const pct = Math.round(m.concentration * 100);
+                return (
+                  <div key={m.id} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className={clsx('font-semibold', mineralData.color)}>{mineralData.name}</span>
+                        <QualityStars quality={m.quality} />
+                      </div>
+                      <span className="text-slate-400 font-medium">{pct}%</span>
+                    </div>
+                    <div className="h-1.5 bg-space-700 rounded-full overflow-hidden">
+                      <div
+                        className={clsx('h-full rounded-full transition-all', {
+                          'bg-cyan-500':   pct >= 45,
+                          'bg-blue-500':   pct >= 30 && pct < 45,
+                          'bg-yellow-500': pct >= 15 && pct < 30,
+                          'bg-slate-500':  pct < 15,
+                        })}
+                        style={{ width: `${Math.min(100, pct * 2)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Danger warning */}
+          {deposit.danger && (
+            <div className="flex items-start gap-2 text-xs text-red-300 bg-red-900/20 rounded-lg p-3 border border-red-700/30">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+              {deposit.danger}
+            </div>
+          )}
+
+          {/* CrimeStat warning */}
+          {deposit.crimeStat && (
+            <div className="flex items-center gap-2 text-xs text-orange-300 bg-orange-900/20 rounded-lg px-3 py-2 border border-orange-700/30">
+              <AlertTriangle className="w-3 h-3 text-orange-400" />
+              Zone à CrimeStat — activité criminelle élevée
+            </div>
+          )}
+
+          {/* Notes */}
+          {deposit.notes && (
+            <div className="flex items-start gap-2 text-xs text-slate-400 bg-space-700/40 rounded-lg p-3 border border-space-400/20">
+              <Info className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0 mt-0.5" />
+              {deposit.notes}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DepositsView({ systemFilter }) {
+  const [bodyFilter, setBodyFilter]       = useState('Tous');
+  const [mineralFilter, setMineralFilter] = useState('Tous');
+  const [methodFilter, setMethodFilter]   = useState('Tous');
+  const [riskFilter, setRiskFilter]       = useState('Tous');
+
+  // Options de filtres dynamiques
+  const bodies  = useMemo(() => ['Tous', ...new Set(MINING_DEPOSITS.map(d => d.bodyName))], []);
+  const minerals = useMemo(() => ['Tous', ...new Set(MINING_DEPOSITS.flatMap(d => d.minerals.map(m => m.id)))], []);
+  const methods = ['Tous', 'Vaisseau', 'ROC', 'Main'];
+  const risks   = ['Tous', 'Faible', 'Modéré', 'Élevé', 'Extrême'];
+
+  const filtered = useMemo(() => {
+    let list = [...MINING_DEPOSITS];
+    if (systemFilter !== 'Tous')  list = list.filter(d => d.system === systemFilter);
+    if (bodyFilter !== 'Tous')    list = list.filter(d => d.bodyName === bodyFilter);
+    if (methodFilter !== 'Tous')  list = list.filter(d => d.method === methodFilter);
+    if (riskFilter !== 'Tous')    list = list.filter(d => d.riskLevel === riskFilter);
+    if (mineralFilter !== 'Tous') list = list.filter(d => d.minerals.some(m => m.id === mineralFilter));
+
+    // Si filtre minéral, trier par concentration décroissante de ce minéral
+    if (mineralFilter !== 'Tous') {
+      list.sort((a, b) => {
+        const ca = a.minerals.find(m => m.id === mineralFilter)?.concentration || 0;
+        const cb = b.minerals.find(m => m.id === mineralFilter)?.concentration || 0;
+        return cb - ca;
+      });
+    }
+    return list;
+  }, [systemFilter, bodyFilter, mineralFilter, methodFilter, riskFilter]);
+
+  return (
+    <div className="space-y-4">
+      {/* Filtres */}
+      <div className="card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-semibold text-slate-300">Filtres Dépôts</span>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {/* Corps céleste */}
+          <div className="flex flex-col gap-1 min-w-[160px]">
+            <label className="text-xs text-slate-500 uppercase tracking-wide">Corps céleste</label>
+            <select value={bodyFilter} onChange={e => setBodyFilter(e.target.value)} className="input text-xs">
+              {bodies.map(b => <option key={b} value={b}>{b === 'Tous' ? 'Tous les corps' : b}</option>)}
+            </select>
+          </div>
+          {/* Minéral principal */}
+          <div className="flex flex-col gap-1 min-w-[140px]">
+            <label className="text-xs text-slate-500 uppercase tracking-wide">Minéral</label>
+            <select value={mineralFilter} onChange={e => setMineralFilter(e.target.value)} className="input text-xs">
+              {minerals.map(m => {
+                const md = MINERALS[m];
+                return <option key={m} value={m}>{m === 'Tous' ? 'Tous les minéraux' : md?.name || m}</option>;
+              })}
+            </select>
+          </div>
+          {/* Méthode */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-slate-500 uppercase tracking-wide">Méthode</label>
+            <div className="flex gap-1">
+              {methods.map(m => {
+                const style = DEPOSIT_METHOD_STYLES[m];
+                return (
+                  <button key={m} onClick={() => setMethodFilter(m)} className={clsx(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all border',
+                    methodFilter === m
+                      ? style ? `${style.bg} ${style.color} ${style.border}` : 'bg-white/10 text-white border-white/20'
+                      : 'bg-space-700/50 text-slate-400 hover:text-slate-200 border-space-400/20'
+                  )}>
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* Risque */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-slate-500 uppercase tracking-wide">Risque</label>
+            <div className="flex gap-1 flex-wrap">
+              {risks.map(r => {
+                const style = RISK_STYLES[r];
+                return (
+                  <button key={r} onClick={() => setRiskFilter(r)} className={clsx(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all border',
+                    riskFilter === r
+                      ? style ? `${style.bg} ${style.color} ${style.border}` : 'bg-white/10 text-white border-white/20'
+                      : 'bg-space-700/50 text-slate-400 hover:text-slate-200 border-space-400/20'
+                  )}>
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Compteur */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-400">
+          {filtered.length} dépôt{filtered.length > 1 ? 's' : ''}
+          {mineralFilter !== 'Tous' && (
+            <span className="text-slate-600 ml-1">· trié par concentration de {MINERALS[mineralFilter]?.name}</span>
+          )}
+        </span>
+      </div>
+
+      {/* Liste */}
+      {filtered.length === 0 ? (
+        <div className="card p-10 text-center text-slate-400">
+          <MapPin className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+          Aucun dépôt trouvé avec ces filtres.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(d => <DepositCard key={d.id} deposit={d} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Mining() {
@@ -1223,7 +1490,7 @@ export default function Mining() {
           </div>
 
           {/* Method (only for mineral + body views) */}
-          {view !== 'harvest' && (
+          {view !== 'harvest' && view !== 'deposits' && (
             <div className="flex flex-col gap-1">
               <label className="text-xs text-slate-500 font-medium uppercase tracking-wide">Méthode</label>
               <div className="flex gap-1">
@@ -1280,6 +1547,9 @@ export default function Mining() {
       )}
       {view === 'body' && (
         <BodyView systemFilter={systemFilter} />
+      )}
+      {view === 'deposits' && (
+        <DepositsView systemFilter={systemFilter} />
       )}
       {view === 'harvest' && (
         <HarvestView systemFilter={systemFilter} />

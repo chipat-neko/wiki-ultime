@@ -62,3 +62,9 @@ coverage/
 *.seed
 *.pid.lock
 .cache/
+
+# ─── Données locales externes ────────────────────────────────
+site_scmdb/
+
+# ─── Claude Code settings locaux ─────────────────────────────
+.claude/settings.local.json

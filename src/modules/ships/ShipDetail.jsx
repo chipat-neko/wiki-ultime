@@ -4,6 +4,7 @@ import { useAppActions, useFavorites } from '../../core/StateManager.jsx';
 import { useShipImages } from '../../core/ShipImagesContext.jsx';
 import { resolveShipImage } from '../../services/ShipImageService.js';
 import { SHIPS_BY_ID } from '../../datasets/ships.js';
+import { getShipExtended } from '../../datasets/shipExtendedData.js';
 import { getBuyLocations, isPledgeOnly } from '../../datasets/buyLocations.js';
 import { formatCredits, formatCargo, formatSpeed, formatNumber } from '../../utils/formatters.js';
 import { StatWidget } from '../../ui/components/InfoCard.jsx';
@@ -13,7 +14,7 @@ import clsx from 'clsx';
 import {
   ArrowLeft, Star, Plus, ExternalLink, Rocket, Shield,
   Zap, Package, Users, Target, ChevronRight, Info, MapPin, ShoppingCart, GitCompare,
-  RefreshCw, Database,
+  RefreshCw, Database, Clock, Maximize2, RotateCcw, DollarSign,
 } from 'lucide-react';
 
 function SpecBar({ label, value, max, unit, color = 'bg-cyan-500' }) {
@@ -210,6 +211,7 @@ export default function ShipDetail() {
   const { favorites, addFavorite, removeFavorite } = useFavorites();
 
   const ship = SHIPS_BY_ID[id];
+  const extended = ship ? getShipExtended(id) : null;
   const isFavorite = (favorites.ships || []).some(f => f.id === id);
   const [imgError, setImgError] = useState(false);
   const apiImages = useShipImages();
@@ -470,6 +472,116 @@ export default function ShipDetail() {
           )}
         </div>
       </div>
+
+      {/* Achat & Réclamation */}
+      {extended && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Achat & Réclamation */}
+          <div className="card p-5">
+            <h2 className="section-title mb-5 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-cyan-400" />
+              Achat & Réclamation
+            </h2>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-5">
+              <StatWidget
+                label="Prix Pledge"
+                value={ship.pledgePrice > 0 ? `$${ship.pledgePrice}` : 'N/A'}
+                unit={ship.pledgePrice > 0 ? 'USD' : ''}
+                color="text-gold-400"
+              />
+              <StatWidget
+                label="Réclamation standard"
+                value={`${Math.floor(extended.claimTime / 60)}m ${extended.claimTime % 60}s`}
+                color="text-cyan-400"
+              />
+              <StatWidget
+                label="Réclamation expédiée"
+                value={`${Math.floor(extended.expediteTime / 60)}m ${extended.expediteTime % 60}s`}
+                color="text-blue-400"
+              />
+              <StatWidget
+                label="Coût expédition"
+                value={formatCredits(extended.expediteCost, true)}
+                color="text-yellow-400"
+              />
+            </div>
+            {extended.loanerShip && SHIPS_BY_ID[extended.loanerShip] && (
+              <div className="mt-3 p-3 rounded-lg bg-space-900/60 border border-space-600/30">
+                <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">Vaisseau Prêté (Loaner)</div>
+                <button
+                  onClick={() => navigate(`/vaisseaux/${extended.loanerShip}`)}
+                  className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  <Rocket className="w-4 h-4" />
+                  <span className="font-medium">{SHIPS_BY_ID[extended.loanerShip].name}</span>
+                  <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                </button>
+              </div>
+            )}
+            {!extended.loanerShip && (
+              <div className="mt-3 p-3 rounded-lg bg-space-900/60 border border-space-600/30">
+                <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Vaisseau Prêté</div>
+                <div className="text-sm text-slate-400">Aucun loaner — disponible directement</div>
+              </div>
+            )}
+            {ship.pledgePrice > 0 && (
+              <a
+                href={`https://robertsspaceindustries.com/pledge/ships`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary btn-sm gap-2 mt-4 w-full justify-center"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Voir sur RSI Store (${ship.pledgePrice} USD)
+              </a>
+            )}
+          </div>
+
+          {/* Dimensions & Vol */}
+          <div className="card p-5">
+            <h2 className="section-title mb-5 flex items-center gap-2">
+              <Maximize2 className="w-4 h-4 text-cyan-400" />
+              Dimensions & Caractéristiques de Vol
+            </h2>
+            {extended.dimensions && (
+              <div className="mb-5">
+                <div className="text-xs text-slate-500 uppercase tracking-wide mb-3">Dimensions</div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  <StatWidget label="Longueur" value={extended.dimensions.length} unit="m" color="text-slate-200" />
+                  <StatWidget label="Largeur" value={extended.dimensions.width} unit="m" color="text-slate-200" />
+                  <StatWidget label="Hauteur" value={extended.dimensions.height} unit="m" color="text-slate-200" />
+                  <StatWidget
+                    label="Masse"
+                    value={extended.dimensions.mass >= 1000000
+                      ? `${(extended.dimensions.mass / 1000000).toFixed(2)} kt`
+                      : extended.dimensions.mass >= 1000
+                        ? `${(extended.dimensions.mass / 1000).toFixed(1)} t`
+                        : `${extended.dimensions.mass} kg`
+                    }
+                    color="text-slate-300"
+                  />
+                </div>
+              </div>
+            )}
+            {extended.flightStats && (
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wide mb-3">Stats de Rotation</div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  <StatWidget label="Roulis" value={extended.flightStats.rollRate} unit="°/s" color="text-purple-400" />
+                  <StatWidget label="Tangage" value={extended.flightStats.pitchRate} unit="°/s" color="text-blue-400" />
+                  <StatWidget label="Lacet" value={extended.flightStats.yawRate} unit="°/s" color="text-cyan-400" />
+                  <div className="p-2 rounded-lg bg-space-900/60">
+                    <div className={`text-sm font-semibold ${extended.flightStats.vtolEnabled ? 'text-green-400' : 'text-slate-600'}`}>
+                      {extended.flightStats.vtolEnabled ? 'Activé' : 'Non'}
+                    </div>
+                    <div className="text-xs text-slate-600 mt-0.5">VTOL</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Données Live Fleetyards + SC Wiki */}
       <LiveDataPanel shipName={ship.name} />
