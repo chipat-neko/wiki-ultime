@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar.jsx';
 import Header from '../components/Header.jsx';
 import NotificationStack from '../components/NotificationStack.jsx';
 import { useAppActions } from '../../core/StateManager.jsx';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 import { SearchEngine, SEARCH_INDICES, INDEX_CONFIGS } from '../../core/SearchEngine.js';
 import { SHIPS, SHIPS_BY_ID } from '../../datasets/ships.js';
 import { COMMODITIES } from '../../datasets/commodities.js';
@@ -56,6 +57,7 @@ const ROUTE_LABELS = {
 export default function MainLayout({ children }) {
   const location = useLocation();
   const { addToHistory } = useAppActions();
+  usePageTitle();
 
   // Initialize search indices on mount
   useEffect(() => {

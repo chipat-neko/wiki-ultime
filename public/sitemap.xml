@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://wiki-ultime.vercel.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/tableau-de-bord</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+
+  <!-- Vaisseaux & Flotte -->
+  <url><loc>https://wiki-ultime.vercel.app/vaisseaux</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/vaisseaux/comparer</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/flotte</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/flotte/analyse</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/composants</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/armes-vaisseaux</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/loadout</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/qt-drives</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/assurance</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/dps-calc</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/systemes-vaisseau</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Commerce & Trade -->
+  <url><loc>https://wiki-ultime.vercel.app/commerce</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/commerce/cargo</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/commerce/calculateur</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/profits</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/commodites</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/routes</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+
+  <!-- Missions -->
+  <url><loc>https://wiki-ultime.vercel.app/missions</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/missions/base</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/missions/empilement</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/missions/tracker</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/missions/calculateur</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+
+  <!-- Exploration & Univers -->
+  <url><loc>https://wiki-ultime.vercel.app/systemes</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/systemes/planetes</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/systemes/stations</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/locations</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/fabricants</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/factions</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/npcs</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/spawn</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Activités -->
+  <url><loc>https://wiki-ultime.vercel.app/minage</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/raffinerie</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/salvage</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/artisanat</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/engineering</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Équipement FPS -->
+  <url><loc>https://wiki-ultime.vercel.app/equipement</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/items</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/fps-loadout</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/armures/comparer</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+
+  <!-- Mécaniques -->
+  <url><loc>https://wiki-ultime.vercel.app/crimestat</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/medical</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/bounty</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/piraterie</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Guides & Communauté -->
+  <url><loc>https://wiki-ultime.vercel.app/guides</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/lore</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/vehicules</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/evenements</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/outils</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/reputation</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://wiki-ultime.vercel.app/personnage</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>

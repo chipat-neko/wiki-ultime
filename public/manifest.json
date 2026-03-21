@@ -1,0 +1,20 @@
+{
+  "name": "SC Companion — Wiki Star Citizen FR",
+  "short_name": "SC Companion",
+  "description": "Wiki communautaire français de Star Citizen. Vaisseaux, commerce, missions, guides et outils gameplay.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070d1a",
+  "theme_color": "#06b6d4",
+  "orientation": "any",
+  "categories": ["games", "utilities"],
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

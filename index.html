@@ -3,15 +3,75 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Star Citizen Companion - Outil communautaire complet pour Star Citizen. Base de données de vaisseaux, gestionnaire de flotte, planificateur de missions, optimiseur de cargo et plus." />
-    <meta name="keywords" content="Star Citizen, vaisseaux, flotte, commerce, missions, guide, wiki, UEE" />
-    <meta name="theme-color" content="#070d1a" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="Star Citizen Companion" />
-    <meta property="og:description" content="Outil communautaire complet pour Star Citizen" />
+    <!-- SEO Primary -->
+    <title>SC Companion — Wiki Star Citizen FR | Vaisseaux, Commerce, Missions, Guides</title>
+    <meta name="description" content="SC Companion — Le wiki communautaire français de Star Citizen. Base de données 150+ vaisseaux, calculateur DPS, commerce en temps réel, guides missions, carte des systèmes Stanton & Pyro. Alpha 4.6." />
+    <meta name="keywords" content="Star Citizen, wiki, français, vaisseaux, ships, database, commerce, trade, missions, guide, Stanton, Pyro, Alpha 4.6, UEE, fleet manager, DPS calculator, mining, salvage, bounty hunting, CrimeStat, loadout builder" />
+    <meta name="theme-color" content="#070d1a" />
+    <meta name="author" content="SC Companion Community" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <link rel="canonical" href="https://wiki-ultime.vercel.app/" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph (Discord, Facebook, Reddit) -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SC Companion" />
+    <meta property="og:title" content="SC Companion — Wiki Star Citizen FR" />
+    <meta property="og:description" content="Le wiki communautaire français de Star Citizen. 150+ vaisseaux, commerce temps réel, guides missions, calculateurs DPS/mining/trade. Alpha 4.6." />
+    <meta property="og:url" content="https://wiki-ultime.vercel.app/" />
+    <meta property="og:image" content="https://wiki-ultime.vercel.app/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_FR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SC Companion — Wiki Star Citizen FR" />
+    <meta name="twitter:description" content="Wiki communautaire FR de Star Citizen. 150+ vaisseaux, commerce temps réel, guides, calculateurs. Alpha 4.6." />
+    <meta name="twitter:image" content="https://wiki-ultime.vercel.app/og-image.svg" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SC Companion",
+      "alternateName": "Star Citizen Companion",
+      "description": "Wiki communautaire français de Star Citizen — Base de données de vaisseaux, commerce, missions, guides et outils gameplay pour Alpha 4.6",
+      "url": "https://wiki-ultime.vercel.app",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "fr",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "about": {
+        "@type": "VideoGame",
+        "name": "Star Citizen",
+        "gamePlatform": "PC",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Cloud Imperium Games"
+        }
+      },
+      "featureList": [
+        "Base de données 150+ vaisseaux",
+        "Calculateur DPS",
+        "Commerce temps réel",
+        "Gestionnaire de flotte",
+        "Planificateur de missions",
+        "Carte systèmes Stanton & Pyro",
+        "Guides gameplay",
+        "Calculateur mining & raffinerie"
+      ]
+    }
+    </script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,10 +80,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-
-    <title>Star Citizen Companion</title>
   </head>
   <body class="bg-space-950 text-slate-100 antialiased">
+    <noscript>
+      <div style="padding:2rem;text-align:center;color:#e2e8f0;font-family:Inter,sans-serif">
+        <h1>SC Companion — Wiki Star Citizen FR</h1>
+        <p>Ce site nécessite JavaScript pour fonctionner. Activez JavaScript dans votre navigateur pour accéder à la base de données de vaisseaux, aux outils de commerce, et aux guides Star Citizen.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

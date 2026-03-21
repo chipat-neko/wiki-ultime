@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#070d1a"/>
+      <stop offset="100%" stop-color="#0c1829"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Stars -->
+  <circle cx="100" cy="80" r="1.5" fill="#ffffff" opacity="0.6"/>
+  <circle cx="250" cy="150" r="1" fill="#ffffff" opacity="0.4"/>
+  <circle cx="400" cy="60" r="1.5" fill="#ffffff" opacity="0.5"/>
+  <circle cx="550" cy="120" r="1" fill="#ffffff" opacity="0.3"/>
+  <circle cx="700" cy="50" r="2" fill="#ffffff" opacity="0.6"/>
+  <circle cx="850" cy="100" r="1" fill="#ffffff" opacity="0.4"/>
+  <circle cx="1000" cy="70" r="1.5" fill="#ffffff" opacity="0.5"/>
+  <circle cx="1100" cy="140" r="1" fill="#ffffff" opacity="0.3"/>
+  <circle cx="150" cy="500" r="1" fill="#ffffff" opacity="0.4"/>
+  <circle cx="350" cy="550" r="1.5" fill="#ffffff" opacity="0.3"/>
+  <circle cx="900" cy="520" r="1" fill="#ffffff" opacity="0.5"/>
+  <circle cx="1050" cy="480" r="1.5" fill="#ffffff" opacity="0.4"/>
+
+  <!-- Decorative circles -->
+  <circle cx="600" cy="315" r="200" stroke="#06b6d4" stroke-width="0.5" fill="none" opacity="0.15"/>
+  <circle cx="600" cy="315" r="280" stroke="#06b6d4" stroke-width="0.3" fill="none" opacity="0.08"/>
+
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+
+  <!-- Logo circle -->
+  <circle cx="600" cy="180" r="45" stroke="#06b6d4" stroke-width="2" fill="none"/>
+  <circle cx="600" cy="180" r="12" fill="#06b6d4"/>
+  <line x1="600" y1="130" x2="600" y2="150" stroke="#06b6d4" stroke-width="2"/>
+  <line x1="600" y1="210" x2="600" y2="230" stroke="#06b6d4" stroke-width="2"/>
+  <line x1="550" y1="180" x2="570" y2="180" stroke="#06b6d4" stroke-width="2"/>
+  <line x1="630" y1="180" x2="650" y2="180" stroke="#06b6d4" stroke-width="2"/>
+
+  <!-- Title -->
+  <text x="600" y="300" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="800" fill="#ffffff" letter-spacing="2">SC Companion</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="355" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="400" fill="#06b6d4">Wiki Star Citizen FR</text>
+
+  <!-- Features -->
+  <text x="600" y="420" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#94a3b8">150+ Vaisseaux  ·  Commerce Live  ·  Guides  ·  Calculateurs  ·  Mining</text>
+
+  <!-- Alpha badge -->
+  <rect x="525" y="460" width="150" height="34" rx="17" fill="#06b6d4" opacity="0.15" stroke="#06b6d4" stroke-width="1"/>
+  <text x="600" y="483" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#06b6d4">Alpha 4.6</text>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="626" width="1200" height="4" fill="url(#accent)"/>
+
+  <!-- URL -->
+  <text x="600" y="570" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#64748b">wiki-ultime.vercel.app</text>
+</svg>

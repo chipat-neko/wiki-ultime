@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /connexion
+Disallow: /inscription
+Disallow: /reset-password
+Disallow: /verify-email
+
+Sitemap: https://wiki-ultime.vercel.app/sitemap.xml
+
+# SC Companion — Wiki communautaire Star Citizen FR
+# https://wiki-ultime.vercel.app
