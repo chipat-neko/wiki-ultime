@@ -1,6 +1,30 @@
 {
   "rewrites": [
     {
+      "source": "/images/(.*)",
+      "destination": "/images/$1"
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "/favicon.svg"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap.xml"
+    },
+    {
+      "source": "/og-image.svg",
+      "destination": "/og-image.svg"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
