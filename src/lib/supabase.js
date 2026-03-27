@@ -85,7 +85,7 @@ export async function getContributions(statusFilter = null) {
   if (!supabase) return [];
   let query = supabase
     .from('contributions')
-    .select('id, user_id, type, title, description, content, status, reviewer_note, stars_awarded, created_at, reviewed_at, profiles(username, stars, level)')
+    .select('id, user_id, type, title, description, content, status, reviewer_note, stars_awarded, created_at, reviewed_at, profiles!contributions_user_id_fkey(username, stars, level)')
     .order('created_at', { ascending: false })
     .limit(200);
   if (statusFilter) query = query.eq('status', statusFilter);
