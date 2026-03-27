@@ -10,6 +10,8 @@ import {
   ArrowUpDown, CheckCircle2, Users, Wrench,
 } from 'lucide-react';
 import clsx from 'clsx';
+import PatchBadge from '../../ui/components/PatchBadge.jsx';
+import { usePatchCategory } from '../../hooks/usePatchInfo.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -89,7 +91,7 @@ function WeaponAvatar({ weapon }) {
   );
 }
 
-function WeaponCard({ weapon }) {
+function WeaponCard({ weapon, patchInfo }) {
   const [expanded, setExpanded] = useState(false);
   const dps = weapon.stats.dps || Math.round(weapon.stats.dmgBody * weapon.stats.rpm / 60);
   const dmgMax = weapon.category === 'sniper' ? 500 : weapon.category === 'shotgun' ? 250 : 100;
@@ -110,6 +112,7 @@ function WeaponCard({ weapon }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-semibold text-slate-200">{weapon.name}</span>
+            {patchInfo && <PatchBadge type={patchInfo.type} version={patchInfo.version} />}
             <span className={clsx('badge text-xs', TIER_BADGES[weapon.tier] || '')}>{TIER_LABELS[weapon.tier]}</span>
             <span className={clsx('badge text-xs', AMMO_BADGES[weapon.ammoType])}>{AMMO_LABELS[weapon.ammoType]}</span>
             {!weapon.legal && <span className="badge badge-red text-xs">Illégal</span>}
@@ -272,7 +275,7 @@ function ArmorAvatar({ armor }) {
   );
 }
 
-function ArmorCard({ armor }) {
+function ArmorCard({ armor, patchInfo }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -290,6 +293,7 @@ function ArmorCard({ armor }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-semibold text-slate-200">{armor.name}</span>
+            {patchInfo && <PatchBadge type={patchInfo.type} version={patchInfo.version} />}
             <span className={clsx('badge text-xs', TIER_BADGES[armor.tier] || '')}>{TIER_LABELS[armor.tier]}</span>
             <span className={clsx('badge text-xs', ARMOR_BADGES[armor.armorType])}>{ARMOR_LABELS[armor.armorType]}</span>
             {!armor.legal && <span className="badge badge-red text-xs">Illégal</span>}
@@ -557,6 +561,7 @@ function AttachmentCard({ att }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Equipment() {
+  const fpsPatches = usePatchCategory('fps');
   const [activeTab, setActiveTab] = useState('weapons');
   const [search, setSearch]       = useState('');
   const [filterCat, setFilterCat] = useState('');
@@ -785,13 +790,13 @@ export default function Equipment() {
       {activeTab === 'weapons' && (
         filteredWeapons.length === 0
           ? <div className="card p-12 text-center"><Target className="w-10 h-10 text-slate-600 mx-auto mb-3" /><p className="text-slate-400">Aucune arme ne correspond</p></div>
-          : <div className="space-y-2">{filteredWeapons.map(w => <WeaponCard key={w.id} weapon={w} />)}</div>
+          : <div className="space-y-2">{filteredWeapons.map(w => <WeaponCard key={w.id} weapon={w} patchInfo={fpsPatches[w.id]} />)}</div>
       )}
 
       {activeTab === 'armor' && (
         filteredArmor.length === 0
           ? <div className="card p-12 text-center"><Shield className="w-10 h-10 text-slate-600 mx-auto mb-3" /><p className="text-slate-400">Aucune armure ne correspond</p></div>
-          : <div className="space-y-2">{filteredArmor.map(a => <ArmorCard key={a.id} armor={a} />)}</div>
+          : <div className="space-y-2">{filteredArmor.map(a => <ArmorCard key={a.id} armor={a} patchInfo={fpsPatches[a.id]} />)}</div>
       )}
 
       {activeTab === 'sets' && (

@@ -10,6 +10,8 @@ import {
   AlertTriangle, Star, Search, Filter, Users, Package,
   Pickaxe, Info, ExternalLink, X,
 } from 'lucide-react';
+import PatchBadge from '../../ui/components/PatchBadge.jsx';
+import { usePatchCategory } from '../../hooks/usePatchInfo.js';
 
 // ─── Constantes visuelles ─────────────────────────────────────
 const STATUS_STYLES = {
@@ -87,7 +89,7 @@ function MinableBar({ rating }) {
 }
 
 // ─── SystemCard ──────────────────────────────────────────────
-function SystemCard({ system, selected, onClick }) {
+function SystemCard({ system, selected, onClick, patchInfo }) {
   const planets = (system.bodies || []).filter(b => b.type !== 'Étoile' && b.type !== 'Étoile Mourante' && b.type !== 'Naine Blanche');
   const totalMoons = planets.reduce((n, p) => n + (p.moons?.length || 0), 0);
   const landingZones = [
@@ -119,8 +121,9 @@ function SystemCard({ system, selected, onClick }) {
             <StarDot color={system.starColor || '#888'} size={18} />
           </div>
           <div>
-            <h2 className="text-base font-bold font-display text-white group-hover:text-cyan-400 transition-colors leading-tight">
+            <h2 className="text-base font-bold font-display text-white group-hover:text-cyan-400 transition-colors leading-tight flex items-center gap-1.5">
               {system.name}
+              {patchInfo && <PatchBadge type={patchInfo.type} version={patchInfo.version} />}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">{system.starType}</p>
           </div>
@@ -564,6 +567,7 @@ function SystemDetail({ system, onClose }) {
 // ─── Composant principal ─────────────────────────────────────
 export default function StarSystems() {
   const navigate = useNavigate();
+  const locationPatches = usePatchCategory('locations');
   const [selectedSystem, setSelectedSystem] = useState(null);
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(true);
@@ -688,6 +692,7 @@ export default function StarSystems() {
                   system={system}
                   selected={selectedSystem?.id === system.id}
                   onClick={handleSelect}
+                  patchInfo={locationPatches[system.id]}
                 />
               ))}
             </div>

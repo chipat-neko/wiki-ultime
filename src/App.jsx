@@ -73,6 +73,7 @@ const CharacterTracker = React.lazy(() => import('./modules/community/CharacterT
 const ShipSystems = React.lazy(() => import('./modules/ships/ShipSystems.jsx'));
 const PiracyGuide = React.lazy(() => import('./modules/mechanics/PiracyGuide.jsx'));
 const Galactapedia = React.lazy(() => import('./modules/lore/Galactapedia.jsx'));
+const Patchnotes = React.lazy(() => import('./modules/patchnotes/Patchnotes.jsx'));
 
 import LoadingSpinner from './ui/components/LoadingSpinner.jsx';
 
@@ -218,6 +219,9 @@ function App() {
 
             {/* Galactapédie */}
             <Route path="/lore" element={<Galactapedia />} />
+
+            {/* Patchnotes */}
+            <Route path="/patchnotes" element={<Patchnotes />} />
 
             {/* Parametres */}
             <Route path="/parametres" element={<Settings />} />

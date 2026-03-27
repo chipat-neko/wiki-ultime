@@ -11,6 +11,8 @@ import {
   Users, Package, Shield, Zap, ArrowLeftRight,
   ChevronDown, ChevronUp, X, RotateCcw, ArrowUpDown,
 } from 'lucide-react';
+import PatchBadge from '../../ui/components/PatchBadge.jsx';
+import { usePatchCategory } from '../../hooks/usePatchInfo.js';
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 const PAGE_SIZE = 24;
@@ -136,7 +138,7 @@ function ShipImageBanner({ imageUrl, name, inGame }) {
 }
 
 // ─── ShipCard (vue grille) ────────────────────────────────────────────────────
-function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav }) {
+function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav, patchInfo }) {
   const cat = ROLE_CATEGORIES.find(c => c.key === ship.roleCategory);
   return (
     <div
@@ -147,8 +149,9 @@ function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav }) {
       <div className="p-3 flex flex-col gap-2.5 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="font-bold text-slate-100 group-hover:text-cyan-400 transition-colors truncate text-sm leading-tight">
-              {ship.name}
+            <h3 className="font-bold text-slate-100 group-hover:text-cyan-400 transition-colors text-sm leading-tight flex items-center gap-1.5">
+              <span className="truncate">{ship.name}</span>
+              {patchInfo && <PatchBadge type={patchInfo.type} version={patchInfo.version} />}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5 truncate">{ship.manufacturer}</p>
           </div>
@@ -312,6 +315,7 @@ export default function ShipsDatabase() {
   const navigate      = useNavigate();
   const { addShipToFleet, notify } = useAppActions();
   const { favorites, addFavorite, removeFavorite } = useFavorites();
+  const shipPatches = usePatchCategory('ships');
 
   // Vue
   const [viewMode, setViewMode]       = useState('grid');
@@ -761,6 +765,7 @@ export default function ShipsDatabase() {
               onAddToFleet={handleAddToFleet}
               isFav={isFav(ship)}
               onToggleFav={handleToggleFav}
+              patchInfo={shipPatches[ship.id]}
             />
           ))}
         </div>

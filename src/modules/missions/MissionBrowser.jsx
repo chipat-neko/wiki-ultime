@@ -8,6 +8,8 @@ import { formatCredits, formatRelativeTime } from '../../utils/formatters.js';
 import { useAppActions } from '../../core/StateManager.jsx';
 import { loadStack, saveStack } from './MissionStacking.jsx';
 import clsx from 'clsx';
+import PatchBadge from '../../ui/components/PatchBadge.jsx';
+import { usePatchCategory } from '../../hooks/usePatchInfo.js';
 import {
   Search, Filter, X, ChevronDown, ChevronUp,
   Target, Package, Gem, Compass, Shield, AlertTriangle,
@@ -551,7 +553,7 @@ function InfoRow({ icon: Icon, label, value }) {
 }
 
 // ── MissionCard ────────────────────────────────────────────────────────────
-function MissionCard({ mission, onSelect, onAddToStack }) {
+function MissionCard({ mission, onSelect, onAddToStack, patchInfo }) {
   const Icon    = CATEGORY_ICONS[mission._category] || Target;
   const faction = FACTION_MAP[mission.faction];
 
@@ -574,7 +576,10 @@ function MissionCard({ mission, onSelect, onAddToStack }) {
           <Icon className={clsx('w-4 h-4', mission.legal ? 'text-cyan-400' : 'text-red-400')} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-slate-200 line-clamp-2 leading-tight group-hover:text-white transition-colors">{mission.name}</h3>
+          <h3 className="text-sm font-semibold text-slate-200 line-clamp-2 leading-tight group-hover:text-white transition-colors flex items-center gap-1.5 flex-wrap">
+            {mission.name}
+            {patchInfo && <PatchBadge type={patchInfo.type} version={patchInfo.version} />}
+          </h3>
           <p className="text-xs text-slate-500 mt-0.5 truncate">{mission._typeLabel}</p>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -654,7 +659,7 @@ function MissionCard({ mission, onSelect, onAddToStack }) {
 }
 
 // ── MissionRow (list view) ─────────────────────────────────────────────────
-function MissionRow({ mission, onSelect, onAddToStack }) {
+function MissionRow({ mission, onSelect, onAddToStack, patchInfo }) {
   const Icon    = CATEGORY_ICONS[mission._category] || Target;
   const faction = FACTION_MAP[mission.faction];
 
@@ -670,6 +675,7 @@ function MissionRow({ mission, onSelect, onAddToStack }) {
         <div className="flex items-center gap-2">
           <Icon className="w-3.5 h-3.5 text-cyan-400/60 flex-shrink-0" />
           <span className="truncate">{mission.name}</span>
+          {patchInfo && <PatchBadge type={patchInfo.type} version={patchInfo.version} />}
           {mission._isEvent && <span className="badge badge-purple ml-1">Évt</span>}
         </div>
       </td>
@@ -742,6 +748,7 @@ function Chip({ active, onClick, children, danger }) {
 export default function MissionBrowser() {
   const { notify }         = useAppActions();
   const navigate           = useNavigate();
+  const missionPatches     = usePatchCategory('missions');
   const [search,       setSearch]       = useState('');
   const [system,       setSystem]       = useState('');
   const [category,     setCategory]     = useState('');
@@ -1213,7 +1220,7 @@ export default function MissionBrowser() {
       {paginated.length > 0 && view === 'grid' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-children">
           {paginated.map(m => (
-            <MissionCard key={m.id} mission={m} onSelect={(m, y) => setSelected({ mission: m, clickY: y })} onAddToStack={handleAddToStack} />
+            <MissionCard key={m.id} mission={m} onSelect={(m, y) => setSelected({ mission: m, clickY: y })} onAddToStack={handleAddToStack} patchInfo={missionPatches[m.id]} />
           ))}
         </div>
       )}
@@ -1239,7 +1246,7 @@ export default function MissionBrowser() {
               </thead>
               <tbody>
                 {paginated.map(m => (
-                  <MissionRow key={m.id} mission={m} onSelect={(m, y) => setSelected({ mission: m, clickY: y })} onAddToStack={handleAddToStack} />
+                  <MissionRow key={m.id} mission={m} onSelect={(m, y) => setSelected({ mission: m, clickY: y })} onAddToStack={handleAddToStack} patchInfo={missionPatches[m.id]} />
                 ))}
               </tbody>
             </table>

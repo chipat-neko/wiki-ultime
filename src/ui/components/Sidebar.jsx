@@ -140,9 +140,10 @@ const NAV_SECTIONS = [
   {
     title: 'Guides & Ressources',
     items: [
-      { path: '/guides', label: 'Guides de Jeu',  icon: BookOpen },
-      { path: '/outils', label: 'Outils de Jeu',  icon: Wrench   },
-      { path: '/lore',   label: 'Galactapédie',   icon: BookOpen, isNew: true },
+      { path: '/guides',      label: 'Guides de Jeu',  icon: BookOpen },
+      { path: '/outils',      label: 'Outils de Jeu',  icon: Wrench   },
+      { path: '/lore',        label: 'Galactapédie',   icon: BookOpen, isNew: true },
+      { path: '/patchnotes',  label: 'Patchnotes',     icon: Bell,     isNew: true },
     ],
   },
   {
