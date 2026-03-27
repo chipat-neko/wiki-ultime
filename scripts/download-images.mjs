@@ -331,27 +331,47 @@ const FACTIONS_MAP = {
 // ============================================================
 
 const MINERALS_MAP = {
-  // Minéraux Stanton
+  // Minéraux communs (base metals)
+  'aluminium':                  { wiki: 'Aluminium_(mineral)',            url: null },
+  'copper':                     { wiki: 'Copper_(mineral)',               url: null },
+  'iron':                       { wiki: 'Iron_(mineral)',                 url: null },
+  'silicon':                    { wiki: 'Silicon_(mineral)',              url: null },
+  'quartz':                     { wiki: 'Quartz_(mineral)',              url: null },
+  'corundum':                   { wiki: 'Corundum_(mineral)',            url: null },
+  'tungsten':                   { wiki: 'Tungsten_(mineral)',            url: null },
   'beryl':                      { wiki: 'Beryl',                          url: null },
   'hephaestanite':              { wiki: 'Hephaestanite',                  url: null },
   'borase':                     { wiki: 'Borase',                         url: null },
-  'gold':                       { wiki: 'Gold',                           url: null },
+  'tin':                        { wiki: 'Tin_(mineral)',                  url: null },
+  'inert':                      { wiki: 'Inert_Materials',               url: null },
+  // Minéraux uncommon
+  'titanium':                   { wiki: 'Titanium_(mineral)',            url: null },
+  'diamond':                    { wiki: 'Diamond_(mineral)',             url: null },
+  'gold':                       { wiki: 'Gold_(mineral)',                url: null },
+  'cobalt':                     { wiki: 'Cobalt_(mineral)',              url: null },
   'laranite':                   { wiki: 'Laranite',                       url: null },
   'agricium':                   { wiki: 'Agricium',                       url: null },
+  // Minéraux rares
   'taranite':                   { wiki: 'Taranite',                       url: null },
   'bexalite':                   { wiki: 'Bexalite',                       url: null },
   'quantanium':                 { wiki: 'Quantanium',                     url: null },
-  // Minéraux Pyro
+  // Hand mining / ROC
   'hadanite':                   { wiki: 'Hadanite',                       url: null },
   'aphorite':                   { wiki: 'Aphorite',                       url: null },
   'dolivine':                   { wiki: 'Dolivine',                       url: null },
+  'beradon':                    { wiki: 'Beradom',                        url: null },
   'janalite':                   { wiki: 'Janalite',                       url: null },
+  'glacosite':                  { wiki: 'Glacosite',                      url: null },
+  'feynmaline':                 { wiki: 'Feynmaline',                     url: null },
+  'carinite':                   { wiki: 'Carinite',                       url: null },
+  'carinite-pure':              { wiki: 'Carinite',                       url: null },
+  'saldynium':                  { wiki: 'Saldynium',                      url: null },
+  'jaclium':                    { wiki: 'Jaclium',                        url: null },
+  // Pyro exclusifs
   'stileron':                   { wiki: 'Stileron',                       url: null },
   'riccite':                    { wiki: 'Riccite',                        url: null },
-  'tin':                        { wiki: 'Tin',                            url: null },
-  'feynmaline':                 { wiki: 'Feynmaline',                     url: null },
-  'glacosite':                  { wiki: 'Glacosite',                      url: null },
-  'beradon':                    { wiki: 'Beradon',                        url: null },
+  'raw-ice':                    { wiki: 'Raw_Ice',                        url: null },
+  // Nyx
   'lindinium':                  { wiki: 'Lindinium',                      url: null },
   'savrilium':                  { wiki: 'Savrilium',                      url: null },
   'torite':                     { wiki: 'Torite',                         url: null },

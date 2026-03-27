@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import clsx from 'clsx';
-import { Gem, Globe, Filter, ChevronDown, ChevronUp, AlertTriangle, Leaf, Info, ShoppingCart, Wrench, FlaskConical, Zap, Package, Rocket, Calculator, MapPin, Star } from 'lucide-react';
+import { Gem, Globe, Filter, ChevronDown, ChevronUp, AlertTriangle, Leaf, Info, ShoppingCart, Wrench, FlaskConical, Zap, Package, Rocket, Calculator, MapPin, Star, Search, X } from 'lucide-react';
 import {
   MINERALS,
   MINING_BODIES,
@@ -90,11 +90,13 @@ function DangerBadge({ danger }) {
 
 // ─── View: By Mineral ────────────────────────────────────────────────────────
 
-function MineralView({ systemFilter, methodFilter, rarityFilter }) {
+function MineralView({ systemFilter, methodFilter, rarityFilter, search }) {
   const [selected, setSelected] = useState(null);
+  const q = search?.toLowerCase() || '';
 
   const minerals = useMemo(() => {
     return getMineralsSorted().filter(m => {
+      if (q && !m.name.toLowerCase().includes(q) && !m.id.toLowerCase().includes(q)) return false;
       if (rarityFilter !== 'Tous' && m.rarity !== rarityFilter) return false;
       if (methodFilter !== 'Tous' || systemFilter !== 'Tous') {
         const locs = findMineralLocations(m.id);
@@ -107,7 +109,7 @@ function MineralView({ systemFilter, methodFilter, rarityFilter }) {
       }
       return true;
     });
-  }, [systemFilter, methodFilter, rarityFilter]);
+  }, [systemFilter, methodFilter, rarityFilter, q]);
 
   return (
     <div className="space-y-3">
@@ -196,12 +198,24 @@ function MineralView({ systemFilter, methodFilter, rarityFilter }) {
 
 // ─── View: By Body ────────────────────────────────────────────────────────────
 
-function BodyView({ systemFilter }) {
+function BodyView({ systemFilter, search }) {
   const [selected, setSelected] = useState(null);
+  const q = search?.toLowerCase() || '';
 
   const bodies = useMemo(() => {
-    return MINING_BODIES.filter(b => systemFilter === 'Tous' || b.system === systemFilter);
-  }, [systemFilter]);
+    return MINING_BODIES.filter(b => {
+      if (systemFilter !== 'Tous' && b.system !== systemFilter) return false;
+      if (q) {
+        const nameMatch = b.name.toLowerCase().includes(q) || (b.parent && b.parent.toLowerCase().includes(q));
+        const mineralMatch = [...b.ship, ...b.roc, ...b.hand].some(id => {
+          const m = MINERALS[id];
+          return m && (m.name.toLowerCase().includes(q) || id.toLowerCase().includes(q));
+        });
+        if (!nameMatch && !mineralMatch) return false;
+      }
+      return true;
+    });
+  }, [systemFilter, q]);
 
   // Group by system
   const grouped = useMemo(() => {
@@ -337,13 +351,23 @@ function BodyView({ systemFilter }) {
 
 // ─── View: Harvestables ───────────────────────────────────────────────────────
 
-function HarvestView({ systemFilter }) {
+function HarvestView({ systemFilter, search }) {
+  const q = search?.toLowerCase() || '';
   const bodies = useMemo(() => {
-    return MINING_BODIES.filter(b =>
-      b.harvestables.length > 0 &&
-      (systemFilter === 'Tous' || b.system === systemFilter)
-    );
-  }, [systemFilter]);
+    return MINING_BODIES.filter(b => {
+      if (b.harvestables.length === 0) return false;
+      if (systemFilter !== 'Tous' && b.system !== systemFilter) return false;
+      if (q) {
+        const nameMatch = b.name.toLowerCase().includes(q) || (b.parent && b.parent.toLowerCase().includes(q));
+        const harvMatch = b.harvestables.some(hId => {
+          const h = HARVESTABLES[hId];
+          return h && h.name.toLowerCase().includes(q);
+        });
+        if (!nameMatch && !harvMatch) return false;
+      }
+      return true;
+    });
+  }, [systemFilter, q]);
 
   // Build per-harvestable data
   const harvestableMap = useMemo(() => {
@@ -416,10 +440,15 @@ function HarvestView({ systemFilter }) {
 
 // ─── View: Sell Locations ─────────────────────────────────────────────────────
 
-function SellView({ systemFilter }) {
+function SellView({ systemFilter, search }) {
+  const q = search?.toLowerCase() || '';
   const buyers = useMemo(() => {
-    return ORE_BUYERS.filter(b => systemFilter === 'Tous' || b.system === systemFilter);
-  }, [systemFilter]);
+    return ORE_BUYERS.filter(b => {
+      if (systemFilter !== 'Tous' && b.system !== systemFilter) return false;
+      if (q && !b.name.toLowerCase().includes(q) && !b.location.toLowerCase().includes(q) && !b.system.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [systemFilter, q]);
 
   const grouped = useMemo(() => {
     const g = {};
@@ -519,13 +548,15 @@ function SellView({ systemFilter }) {
 
 // ─── Refining View ────────────────────────────────────────────────────────────
 
-function RefiningView() {
+function RefiningView({ search }) {
   const [scuInput, setScuInput] = useState(32);
+  const q = search?.toLowerCase() || '';
 
   const refinableComms = useMemo(() =>
     COMMODITIES.filter(c => c.minable && c.refiningOutput != null)
+      .filter(c => !q || c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
       .sort((a, b) => b.sellPrice.avg - a.sellPrice.avg),
-    []
+    [q]
   );
 
   return (
@@ -795,13 +826,15 @@ function ModuleCard({ mod }) {
   );
 }
 
-function EquipmentView() {
+function EquipmentView({ search }) {
   const [sizeFilter, setSizeFilter]   = useState('Tous');
   const [mountFilter, setMountFilter] = useState('Tous');
   const [sortBy, setSortBy]           = useState('power');
+  const q = search?.toLowerCase() || '';
 
   const filteredLasers = useMemo(() => {
     let list = [...MINING_LASERS];
+    if (q) list = list.filter(l => l.name.toLowerCase().includes(q) || l.manufacturer.toLowerCase().includes(q));
     if (sizeFilter === 'S1')    list = list.filter(l => l.size === 1);
     if (sizeFilter === 'S2')    list = list.filter(l => l.size === 2);
     if (sizeFilter === 'ROC/Main') list = list.filter(l => l.size === 0);
@@ -811,7 +844,7 @@ function EquipmentView() {
     if (sortBy === 'price')      list.sort((a, b) => a.price - b.price);
     if (sortBy === 'stability')  list.sort((a, b) => a.stats.instability - b.stats.instability);
     return list;
-  }, [sizeFilter, mountFilter, sortBy]);
+  }, [sizeFilter, mountFilter, sortBy, q]);
 
   return (
     <div className="space-y-6">
@@ -901,7 +934,7 @@ function EquipmentView() {
           <h2 className="text-base font-bold text-white">Consommables</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {MINING_CONSUMABLES.map(cons => <ConsumableCard key={cons.id} cons={cons} />)}
+          {MINING_CONSUMABLES.filter(c => !q || c.name.toLowerCase().includes(q)).map(cons => <ConsumableCard key={cons.id} cons={cons} />)}
         </div>
       </div>
 
@@ -912,7 +945,7 @@ function EquipmentView() {
           <h2 className="text-base font-bold text-white">Modules vaisseau</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {MINING_MODULES.map(mod => <ModuleCard key={mod.id} mod={mod} />)}
+          {MINING_MODULES.filter(m => !q || m.name.toLowerCase().includes(q)).map(mod => <ModuleCard key={mod.id} mod={mod} />)}
         </div>
       </div>
     </div>
@@ -1098,14 +1131,20 @@ function MiningShipCard({ ship }) {
   );
 }
 
-function ShipsView() {
+function ShipsView({ search }) {
+  const q = search?.toLowerCase() || '';
+  const filteredShips = useMemo(() => {
+    if (!q) return MINING_SHIPS;
+    return MINING_SHIPS.filter(s => s.name.toLowerCase().includes(q) || s.manufacturer.toLowerCase().includes(q));
+  }, [q]);
+
   return (
     <div className="space-y-6">
       <div className="card p-4 border border-cyan-700/30 bg-cyan-900/10">
         <div className="flex items-start gap-3">
           <Rocket className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-cyan-300 mb-1">Choisir son vaisseau minier</p>
+            <p className="text-sm font-semibold text-cyan-300 mb-1">Choisir son vaisseau mineur</p>
             <p className="text-xs text-slate-400 leading-relaxed">
               Le <strong className="text-white">Prospector</strong> est idéal pour débuter en solo — un laser S1, 32 SCU.
               Le <strong className="text-white">MOLE</strong> est réservé aux équipages — 3 lasers S2, 96 SCU, ROI maximal à 3-4 joueurs.
@@ -1117,7 +1156,7 @@ function ShipsView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {MINING_SHIPS.map(ship => (
+        {filteredShips.map(ship => (
           <MiningShipCard key={ship.id} ship={ship} />
         ))}
       </div>
@@ -1267,11 +1306,12 @@ function DepositCard({ deposit }) {
   );
 }
 
-function DepositsView({ systemFilter }) {
+function DepositsView({ systemFilter, search }) {
   const [bodyFilter, setBodyFilter]       = useState('Tous');
   const [mineralFilter, setMineralFilter] = useState('Tous');
   const [methodFilter, setMethodFilter]   = useState('Tous');
   const [riskFilter, setRiskFilter]       = useState('Tous');
+  const q = search?.toLowerCase() || '';
 
   // Options de filtres dynamiques
   const bodies  = useMemo(() => ['Tous', ...new Set(MINING_DEPOSITS.map(d => d.bodyName))], []);
@@ -1281,6 +1321,10 @@ function DepositsView({ systemFilter }) {
 
   const filtered = useMemo(() => {
     let list = [...MINING_DEPOSITS];
+    if (q) list = list.filter(d =>
+      d.bodyName.toLowerCase().includes(q) ||
+      d.minerals.some(m => m.id.toLowerCase().includes(q) || (MINERALS[m.id] && MINERALS[m.id].name.toLowerCase().includes(q)))
+    );
     if (systemFilter !== 'Tous')  list = list.filter(d => d.system === systemFilter);
     if (bodyFilter !== 'Tous')    list = list.filter(d => d.bodyName === bodyFilter);
     if (methodFilter !== 'Tous')  list = list.filter(d => d.method === methodFilter);
@@ -1296,7 +1340,7 @@ function DepositsView({ systemFilter }) {
       });
     }
     return list;
-  }, [systemFilter, bodyFilter, mineralFilter, methodFilter, riskFilter]);
+  }, [systemFilter, bodyFilter, mineralFilter, methodFilter, riskFilter, q]);
 
   return (
     <div className="space-y-4">
@@ -1397,6 +1441,7 @@ export default function Mining() {
   const [systemFilter, setSystem] = useState('Tous');
   const [methodFilter, setMethod] = useState('Tous');
   const [rarityFilter, setRarity] = useState('Tous');
+  const [search, setSearch]       = useState('');
 
   // Stats
   const totalBodies    = MINING_BODIES.length;
@@ -1463,6 +1508,27 @@ export default function Mining() {
           <Filter className="w-4 h-4 text-cyan-400" />
           <span className="text-sm font-semibold text-slate-300">Filtres</span>
         </div>
+
+        {/* Search bar */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher un minéral, lieu, vaisseau, laser..."
+            className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-3">
           {/* System */}
           <div className="flex flex-col gap-1">
@@ -1543,28 +1609,29 @@ export default function Mining() {
           systemFilter={systemFilter}
           methodFilter={methodFilter}
           rarityFilter={rarityFilter}
+          search={search}
         />
       )}
       {view === 'body' && (
-        <BodyView systemFilter={systemFilter} />
+        <BodyView systemFilter={systemFilter} search={search} />
       )}
       {view === 'deposits' && (
-        <DepositsView systemFilter={systemFilter} />
+        <DepositsView systemFilter={systemFilter} search={search} />
       )}
       {view === 'harvest' && (
-        <HarvestView systemFilter={systemFilter} />
+        <HarvestView systemFilter={systemFilter} search={search} />
       )}
       {view === 'sell' && (
-        <SellView systemFilter={systemFilter} />
+        <SellView systemFilter={systemFilter} search={search} />
       )}
       {view === 'refining' && (
-        <RefiningView />
+        <RefiningView search={search} />
       )}
       {view === 'equipment' && (
-        <EquipmentView />
+        <EquipmentView search={search} />
       )}
       {view === 'ships' && (
-        <ShipsView />
+        <ShipsView search={search} />
       )}
     </div>
   );
