@@ -175,7 +175,7 @@ export async function getCommunityPosts({ category = null, page = 1, sortBy = 'r
 
   let query = supabase
     .from('community_posts')
-    .select('id, user_id, category, title, description, image_url, likes_count, created_at, profiles!community_posts_user_id_fkey(username, avatar_url, level)', { count: 'exact' });
+    .select('id, user_id, category, title, description, image_url, likes_count, created_at, profiles(username, avatar_url, level)', { count: 'exact' });
 
   if (category) query = query.eq('category', category);
 
