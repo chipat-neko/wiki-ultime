@@ -35,6 +35,7 @@ const PAGE_TITLES = {
   '/minage': 'Guide Mining — Lasers, Minéraux, Vaisseaux',
   '/salvage': 'Guide Salvage',
   '/artisanat': 'Artisanat — Wikelo NPC',
+  '/crafting': 'Crafting — 1044 Blueprints',
   '/engineering': 'Engineering — Dawn of Engineering',
   '/loadout': 'Loadout Builder Vaisseau',
   '/items': 'Chercheur d\'Objets',
@@ -56,6 +57,8 @@ const PAGE_TITLES = {
   '/piraterie': 'Guide Piraterie',
   '/lore': 'Galactapédie — Lore Star Citizen',
   '/parametres': 'Paramètres',
+  '/blog': 'Blog Communautaire',
+  '/builds': 'Builds Communautaires — Loadouts Partagés',
 };
 
 const BASE_TITLE = 'SC Companion';

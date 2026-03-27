@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import {
   Target, Star, Shield, Zap, Info, ChevronDown, ChevronUp,
   Users, DollarSign, Crosshair, Map, BookOpen, AlertTriangle,
-  TrendingUp, Clock, Award,
+  TrendingUp, Clock, Award, Search, X,
 } from 'lucide-react';
 
 /* ─── Données ─── */
@@ -391,6 +391,16 @@ function EquipmentCard({ tier }) {
 
 export default function BountyHunting() {
   const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+
+  const q = search.toLowerCase();
+  const match = (/** @type {string[]} */ ...fields) => !q || fields.some(f => f && f.toLowerCase().includes(q));
+
+  const filteredCerts = CERTIFICATIONS.filter(c => match(c.name, c.targets, c.contracts, ...c.perks));
+  const filteredBountyTypes = BOUNTY_TYPES.filter(b => match(b.type, b.target, b.difficulty, b.location, b.notes));
+  const filteredEquipment = EQUIPMENT_TIERS.filter(t => match(t.tier, t.ship, t.tip, ...t.weapons, ...t.armor));
+  const filteredRepSources = REP_SOURCES.filter(r => match(r.source, r.notes));
+  const filteredTactics = TACTICS.filter(t => match(t.title, t.text));
 
   const NAV_ITEMS = [
     { id: 'intro', label: 'Introduction' },
@@ -429,6 +439,14 @@ export default function BountyHunting() {
             {item.label}
           </a>
         ))}
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un rang, une prime, un équipement..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Section 1 : Introduction */}
@@ -475,7 +493,7 @@ export default function BountyHunting() {
           Cliquez sur un rang pour afficher les détails, cibles disponibles et avantages.
         </p>
         <div className="space-y-3">
-          {CERTIFICATIONS.map(cert => (
+          {filteredCerts.map(cert => (
             <RankCard key={cert.rank} cert={cert} />
           ))}
         </div>
@@ -503,7 +521,7 @@ export default function BountyHunting() {
                 </tr>
               </thead>
               <tbody>
-                {BOUNTY_TYPES.map((b, i) => (
+                {filteredBountyTypes.map((b, i) => (
                   <tr key={i}>
                     <td className="font-medium text-slate-200">
                       <div>{b.type}</div>
@@ -556,7 +574,7 @@ export default function BountyHunting() {
           Équipement Recommandé par Tier
         </h2>
         <div className="space-y-3">
-          {EQUIPMENT_TIERS.map((tier, i) => (
+          {filteredEquipment.map((tier, i) => (
             <EquipmentCard key={i} tier={tier} />
           ))}
         </div>
@@ -583,7 +601,7 @@ export default function BountyHunting() {
                 </tr>
               </thead>
               <tbody>
-                {REP_SOURCES.map((row, i) => (
+                {filteredRepSources.map((row, i) => (
                   <tr key={i}>
                     <td className="font-medium text-slate-200">{row.source}</td>
                     <td>
@@ -614,7 +632,7 @@ export default function BountyHunting() {
           Tactiques et Conseils
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {TACTICS.map((tactic, i) => (
+          {filteredTactics.map((tactic, i) => (
             <TipBox key={i} {...tactic} />
           ))}
         </div>

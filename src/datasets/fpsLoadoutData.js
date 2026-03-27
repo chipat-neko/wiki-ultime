@@ -854,6 +854,20 @@ export const LOADOUT_GADGETS = [
 
 // ─── BUILDS MÉTA ─────────────────────────────────────────────────────────────
 
+// ─── BUDGET TIERS FPS ────────────────────────────────────────────────────────
+
+export const FPS_BUDGET_TIERS = [
+  { id: 'starter',   label: 'Starter',    max: 15_000,   color: 'text-green-400',  bg: 'bg-green-900/30',  border: 'border-green-500/40', badge: 'badge-green' },
+  { id: 'midrange',  label: 'Mid-Range',  max: 40_000,   color: 'text-blue-400',   bg: 'bg-blue-900/30',   border: 'border-blue-500/40',  badge: 'badge-blue' },
+  { id: 'highend',   label: 'High-End',   max: 80_000,   color: 'text-purple-400', bg: 'bg-purple-900/30', border: 'border-purple-500/40', badge: 'badge-purple' },
+  { id: 'endgame',   label: 'Endgame',    max: Infinity,  color: 'text-amber-400',  bg: 'bg-amber-900/30',  border: 'border-amber-500/40', badge: 'badge-gold' },
+];
+
+export function getFPSBudgetTier(price) {
+  if (!price || price <= 0) return FPS_BUDGET_TIERS[0];
+  return FPS_BUDGET_TIERS.find(t => price <= t.max) || FPS_BUDGET_TIERS[FPS_BUDGET_TIERS.length - 1];
+}
+
 export const FPS_META_BUILDS = [
   {
     id: 'assassin',

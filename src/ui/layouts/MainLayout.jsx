@@ -47,11 +47,14 @@ const ROUTE_LABELS = {
   '/locations':             'Locations & POI',
   '/evenements':            'Événements',
   '/artisanat':             'Artisanat',
+  '/crafting':              'Crafting',
   '/engineering':           'Engineering',
   '/salvage':               'Salvage',
   '/armes-vaisseaux':       'Armes de Vaisseaux',
   '/outils':                'Outils',
   '/parametres':            'Paramètres',
+  '/blog':                  'Blog Communautaire',
+  '/builds':                'Builds Communautaires',
 };
 
 export default function MainLayout({ children }) {
@@ -225,6 +228,7 @@ export default function MainLayout({ children }) {
                     <li><Link to="/vehicules" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">Véhicules Sol</Link></li>
                     <li><Link to="/salvage" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">Salvage</Link></li>
                     <li><Link to="/artisanat" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">Artisanat</Link></li>
+                    <li><Link to="/crafting" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">Crafting</Link></li>
                     <li><Link to="/engineering" className="text-xs text-slate-600 hover:text-cyan-400 transition-colors">Engineering</Link></li>
                   </ul>
                 </div>
@@ -285,6 +289,18 @@ export default function MainLayout({ children }) {
                   Star Citizen®, Roberts Space Industries® and Cloud Imperium® are registered trademarks of Cloud Imperium Rights LLC.
                 </p>
               </div>
+
+              {/* Ko-fi support */}
+              <a
+                href="https://ko-fi.com/chipat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 ml-auto mt-2 sm:mt-0 px-4 py-2 rounded-lg bg-[#FF5E5B]/10 border border-[#FF5E5B]/30 hover:bg-[#FF5E5B]/20 transition-all group"
+              >
+                <span className="text-xs font-medium text-[#FF5E5B] group-hover:text-white transition-colors">
+                  ☕ Offrez-moi un café
+                </span>
+              </a>
             </div>
             </div>
           </footer>

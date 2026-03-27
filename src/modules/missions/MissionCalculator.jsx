@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import {
   Calculator, TrendingUp, Clock, Zap, Target,
   Package, Compass, Star, Shield, AlertTriangle,
-  Info, ChevronDown, Users, User, UserCheck,
+  Info, ChevronDown, Users, User, UserCheck, Search, X,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -188,6 +188,7 @@ export default function MissionCalculator() {
   // Calculateur sprint
   const [sprintGoal, setSprintGoal]     = useState('1000000');
   const [sprintHours, setSprintHours]   = useState('4');
+  const [search, setSearch] = useState('');
 
   const [params, setParams] = useState({
     repBonus:       0,
@@ -246,6 +247,12 @@ export default function MissionCalculator() {
 
   const bestSprint = sprintResults[0] || null;
 
+  const filteredMissions = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return MISSION_TYPES_DATA;
+    return MISSION_TYPES_DATA.filter(m => m.name.toLowerCase().includes(q));
+  }, [search]);
+
   const updateParam = (key, val) => setParams(p => ({ ...p, [key]: val }));
 
   return (
@@ -254,6 +261,14 @@ export default function MissionCalculator() {
       <div>
         <h1 className="page-title">Calculateur de Missions</h1>
         <p className="page-subtitle">Estimez vos revenus horaires selon le type de mission, la taille du groupe et vos paramètres.</p>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une mission ou un profil par nom..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* === CONFIGURATION === */}
@@ -271,7 +286,7 @@ export default function MissionCalculator() {
               onChange={e => setSelectedId(e.target.value)}
               className="select"
             >
-              {MISSION_TYPES_DATA.map(m => (
+              {filteredMissions.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.name} — {m.difficulty} — {formatCredits(Math.round((m.payout.min + m.payout.max) / 2), true)}
                 </option>
@@ -618,7 +633,14 @@ export default function MissionCalculator() {
         </button>
         {showProfiles && (
           <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {PLAYER_PROFILES.map(profile => {
+            {PLAYER_PROFILES.filter(profile => {
+              const q = search.toLowerCase().trim();
+              if (!q) return true;
+              return profile.label.toLowerCase().includes(q) || profile.missions.some(({ id }) => {
+                const m = MISSION_TYPES_DATA.find(x => x.id === id);
+                return m && m.name.toLowerCase().includes(q);
+              });
+            }).map(profile => {
               const ProfileIcon = profile.icon;
               return (
                 <div

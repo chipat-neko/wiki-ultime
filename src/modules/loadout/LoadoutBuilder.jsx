@@ -4,19 +4,24 @@
  * Route : /loadout
  */
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   Crosshair, Rocket, Shield, Zap, Flame, Package,
   Copy, Check, RotateCcw, ChevronDown, ChevronUp,
   X, Target, Wind, Gauge, AlertTriangle, Info,
-  Star, Compass, Eye, EyeOff, Skull,
+  Star, Compass, Eye, EyeOff, Skull, Share2, Users,
 } from 'lucide-react';
 import { SHIPS } from '../../datasets/ships.js';
+import { supabase } from '../../lib/supabase.js';
+import ShareBuildModal from '../builds/ShareBuildModal.jsx';
 import { SHIP_WEAPONS } from '../../datasets/shipweapons.js';
 import { POWER_PLANTS, SHIELDS, QUANTUM_DRIVES, COOLERS, MISSILES } from '../../datasets/shipcomponents.js';
 import {
   LOADOUT_CONFIGS,
+  BUDGET_TIERS,
+  getBudgetTier,
+  formatBudgetPrice,
   parseWeaponSlots,
   parseMissileSlots,
   getComponentSizes,
@@ -32,6 +37,7 @@ import {
 const TABS = [
   { id: 'builder', label: 'Constructeur', icon: Crosshair },
   { id: 'meta',    label: 'Builds Méta',  icon: Star },
+  { id: 'community', label: 'Communauté', icon: Users },
 ];
 
 const META_ICONS = {
@@ -499,6 +505,13 @@ function SharePanel({ shipId, loadout }) {
 // ONGLET BUILDS MÉTA
 // ─────────────────────────────────────────────────────────────────────────────
 function MetaBuildsTab({ onLoad }) {
+  const [budgetFilter, setBudgetFilter] = useState('all');
+
+  const filtered = useMemo(() => {
+    if (budgetFilter === 'all') return LOADOUT_CONFIGS;
+    return LOADOUT_CONFIGS.filter(cfg => getBudgetTier(cfg.estimatedPrice).id === budgetFilter);
+  }, [budgetFilter]);
+
   return (
     <div className="space-y-4">
       <div className="card p-4 flex items-start gap-3 border-cyan-500/20">
@@ -508,35 +521,65 @@ function MetaBuildsTab({ onLoad }) {
           Cliquez sur un build pour le charger dans le constructeur.
         </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {LOADOUT_CONFIGS.map(cfg => {
-          const MetaIcon = META_ICONS[cfg.icon] || Star;
-          const ship = SHIPS.find(s => s.id === cfg.shipId);
-          return (
-            <div key={cfg.id} className="card p-4 flex flex-col gap-3 hover:border-cyan-500/30 transition-all">
-              <div className="flex items-center gap-2">
-                <MetaIcon className="w-5 h-5 text-cyan-400 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-slate-200 text-sm">{cfg.name}</h3>
-                  {ship && <div className="text-[11px] text-slate-500">{ship.name} — {ship.manufacturer}</div>}
-                </div>
-                <span className={clsx('badge ml-auto', cfg.color)}>{cfg.name}</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed flex-1">{cfg.description}</p>
-              <div className="flex flex-wrap gap-1">
-                {cfg.tags.map(t => <span key={t} className="badge badge-slate text-[10px]">{t}</span>)}
-              </div>
-              <button
-                onClick={() => onLoad(cfg)}
-                className="btn btn-secondary btn-sm w-full mt-auto"
-              >
-                <Crosshair className="w-3.5 h-3.5" />
-                Charger ce build
-              </button>
-            </div>
-          );
-        })}
+
+      {/* Filtres budget */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setBudgetFilter('all')}
+          className={clsx('badge cursor-pointer transition-all', budgetFilter === 'all' ? 'badge-cyan' : 'badge-slate hover:border-slate-500')}
+        >
+          Tous
+        </button>
+        {BUDGET_TIERS.map(tier => (
+          <button
+            key={tier.id}
+            onClick={() => setBudgetFilter(tier.id)}
+            className={clsx('badge cursor-pointer transition-all', budgetFilter === tier.id ? tier.badge : 'badge-slate hover:border-slate-500')}
+          >
+            {tier.label} {tier.max < Infinity ? `≤${formatBudgetPrice(tier.max)}` : ''}
+          </button>
+        ))}
       </div>
+
+      {filtered.length === 0 ? (
+        <div className="card p-8 text-center text-slate-500">
+          <p className="text-sm">Aucun build dans cette gamme de budget.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {filtered.map(cfg => {
+            const MetaIcon = META_ICONS[cfg.icon] || Star;
+            const ship = SHIPS.find(s => s.id === cfg.shipId);
+            const tier = getBudgetTier(cfg.estimatedPrice);
+            return (
+              <div key={cfg.id} className="card p-4 flex flex-col gap-3 hover:border-cyan-500/30 transition-all">
+                <div className="flex items-center gap-2">
+                  <MetaIcon className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-slate-200 text-sm">{cfg.name}</h3>
+                    {ship && <div className="text-[11px] text-slate-500">{ship.name} — {ship.manufacturer}</div>}
+                  </div>
+                  <span className={clsx('badge ml-auto', cfg.color)}>{cfg.name}</span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed flex-1">{cfg.description}</p>
+                <div className="flex flex-wrap gap-1 items-center">
+                  {cfg.tags.map(t => <span key={t} className="badge badge-slate text-[10px]">{t}</span>)}
+                  <span className={clsx('badge text-[10px] ml-auto', tier.badge)}>
+                    ~{formatBudgetPrice(cfg.estimatedPrice)} aUEC
+                  </span>
+                </div>
+                <button
+                  onClick={() => onLoad(cfg)}
+                  className="btn btn-secondary btn-sm w-full mt-auto"
+                >
+                  <Crosshair className="w-3.5 h-3.5" />
+                  Charger ce build
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -812,15 +855,34 @@ export default function LoadoutBuilder() {
   const [selectedShipId, setSelectedShipId] = useState(null);
   const [loadout, setLoadout] = useState(EMPTY_LOADOUT);
 
-  // ── Chargement depuis URL (?build=xxx) ─────────────────────────────────────
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Auth
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setCurrentUser(s?.user ?? null));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // ── Chargement depuis URL (?build=xxx ou ?shared=xxx) ──────────────────────
   useEffect(() => {
     const buildParam = searchParams.get('build');
+    const sharedParam = searchParams.get('shared');
     if (buildParam) {
       const decoded = decodeBuild(buildParam);
       if (decoded) {
         setSelectedShipId(decoded.shipId);
         setLoadout(decoded.loadout);
       }
+    } else if (sharedParam) {
+      try {
+        const data = JSON.parse(atob(sharedParam));
+        const shipParam = searchParams.get('ship');
+        if (shipParam) setSelectedShipId(shipParam);
+        if (data.weapons) setLoadout(data);
+      } catch {}
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -931,11 +993,22 @@ export default function LoadoutBuilder() {
         <MetaBuildsTab onLoad={handleLoadMeta} />
       )}
 
+      {/* ── Onglet Communauté ── */}
+      {activeTab === 'community' && (
+        <SharedBuildsEmbed type="ship" />
+      )}
+
       {/* ── Onglet Constructeur ── */}
       {activeTab === 'builder' && (
         <>
-          {/* Bouton reset */}
+          {/* Bouton reset + partage */}
           <div className="flex items-center justify-end gap-2">
+            {currentUser && selectedShipId && (
+              <button onClick={() => setShowShareModal(true)} className="btn btn-ghost btn-sm gap-1.5 text-cyan-400">
+                <Share2 className="w-3.5 h-3.5" />
+                Partager
+              </button>
+            )}
             <button onClick={handleReset} className="btn btn-ghost btn-sm gap-1.5">
               <RotateCcw className="w-3.5 h-3.5" />
               Réinitialiser
@@ -994,6 +1067,35 @@ export default function LoadoutBuilder() {
           </div>
         </>
       )}
+
+      {/* Share Modal */}
+      <ShareBuildModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        buildType="ship"
+        shipId={selectedShipId}
+        buildData={loadout}
+        totalPrice={0}
+        userId={currentUser?.id}
+      />
+    </div>
+  );
+}
+
+// ── Embed simplifié pour l'onglet communauté ──
+function SharedBuildsEmbed({ type }) {
+  const navigate = useNavigate();
+  return (
+    <div className="card p-6 text-center space-y-4">
+      <Users className="w-10 h-10 text-cyan-400 mx-auto opacity-50" />
+      <div>
+        <h3 className="text-sm font-semibold text-slate-200">Builds de la communauté</h3>
+        <p className="text-xs text-slate-500 mt-1">Découvrez les builds partagés par les autres joueurs</p>
+      </div>
+      <button onClick={() => navigate(`/builds?type=${type}`)} className="btn btn-primary btn-sm">
+        <Users className="w-4 h-4" />
+        Voir tous les builds {type === 'ship' ? 'vaisseau' : 'FPS'}
+      </button>
     </div>
   );
 }

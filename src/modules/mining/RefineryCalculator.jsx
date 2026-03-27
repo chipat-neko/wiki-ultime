@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import {
   FlaskConical, Gem, MapPin, ChevronUp, ChevronDown,
   Clock, TrendingUp, TrendingDown, Coins, Package,
-  Star, Award, Zap, Info, BarChart3, Building2,
+  Star, Award, Zap, Info, BarChart3, Building2, Search, X,
 } from 'lucide-react';
 import {
   REFINERY_METHODS,
@@ -467,12 +467,15 @@ function MethodComparisonTable() {
 
 // ─── Section 3: Mineral Cards Grid ────────────────────────────────────────────
 
-function MineralCardsGrid() {
+function MineralCardsGrid({ search = '' }) {
   const [sortKey, setSortKey] = useState('baseValue');
 
   const sorted = useMemo(() => {
-    return [...MINERALS_REFINERY].sort((a, b) => b[sortKey] - a[sortKey]);
-  }, [sortKey]);
+    const q = search.toLowerCase().trim();
+    let list = MINERALS_REFINERY;
+    if (q) list = list.filter(m => m.name.toLowerCase().includes(q));
+    return [...list].sort((a, b) => b[sortKey] - a[sortKey]);
+  }, [sortKey, search]);
 
   return (
     <div className="space-y-4">
@@ -641,6 +644,7 @@ function StationGuide() {
 
 export default function RefineryCalculator() {
   const [activeSection, setActiveSection] = useState('calculator');
+  const [search, setSearch] = useState('');
 
   const NAV = [
     { id: 'calculator',  label: 'Calculateur',         icon: FlaskConical },
@@ -664,6 +668,14 @@ export default function RefineryCalculator() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un minerai ou une commodite par nom..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Navigation tabs */}
@@ -718,7 +730,7 @@ export default function RefineryCalculator() {
               Comparaison des 12 minéraux
             </h2>
           </div>
-          <MineralCardsGrid />
+          <MineralCardsGrid search={search} />
         </div>
       )}
 

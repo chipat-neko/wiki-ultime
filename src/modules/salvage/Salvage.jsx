@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SALVAGE_SHIPS, SALVAGE_MATERIALS, SALVAGE_MECHANICS, SALVAGE_TOOLS, SALVAGE_BUYOUTS } from '../../datasets/salvage.js';
 import clsx from 'clsx';
 import {
   Layers, Wrench, Package, Cpu, Rocket, Star,
   AlertTriangle, CheckCircle, MapPin, DollarSign, Users,
-  ChevronDown, ChevronUp, ArrowRight, Recycle,
+  ChevronDown, ChevronUp, ArrowRight, Recycle, Search, X,
 } from 'lucide-react';
 
 const MECHANIC_ICONS = { Layers, Wrench, Package, Cpu };
@@ -133,6 +133,31 @@ function MechanicCard({ mechanic }) {
 
 export default function Salvage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [search, setSearch] = useState('');
+
+  const filteredShips = useMemo(() => {
+    if (!search) return SALVAGE_SHIPS;
+    const q = search.toLowerCase();
+    return SALVAGE_SHIPS.filter(s => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredMaterials = useMemo(() => {
+    if (!search) return SALVAGE_MATERIALS;
+    const q = search.toLowerCase();
+    return SALVAGE_MATERIALS.filter(m => m.name.toLowerCase().includes(q) || m.fullName?.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredMechanics = useMemo(() => {
+    if (!search) return SALVAGE_MECHANICS;
+    const q = search.toLowerCase();
+    return SALVAGE_MECHANICS.filter(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredTools = useMemo(() => {
+    if (!search) return SALVAGE_TOOLS;
+    const q = search.toLowerCase();
+    return SALVAGE_TOOLS.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+  }, [search]);
 
   return (
     <div className="space-y-6">
@@ -174,6 +199,25 @@ export default function Salvage() {
           </button>
         ))}
       </div>
+
+      {/* Search */}
+      {activeTab !== 'overview' && (
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher un vaisseau, matériau, outil..."
+            className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {activeTab === 'overview' && (
         <div className="space-y-6">
@@ -255,7 +299,7 @@ export default function Salvage() {
       {activeTab === 'mechanics' && (
         <div className="space-y-4">
           <p className="text-sm text-slate-400">Développez chaque mécanique pour voir les étapes détaillées et les conseils.</p>
-          {SALVAGE_MECHANICS.map(mechanic => (
+          {filteredMechanics.map(mechanic => (
             <MechanicCard key={mechanic.id} mechanic={mechanic} />
           ))}
         </div>
@@ -263,7 +307,7 @@ export default function Salvage() {
 
       {activeTab === 'ships' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {SALVAGE_SHIPS.map(ship => (
+          {filteredShips.map(ship => (
             <ShipCard key={ship.id} ship={ship} />
           ))}
         </div>
@@ -271,7 +315,7 @@ export default function Salvage() {
 
       {activeTab === 'materials' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {SALVAGE_MATERIALS.map(mat => (
+          {filteredMaterials.map(mat => (
             <div key={mat.id} className={`card p-5 border ${mat.border}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
@@ -302,7 +346,7 @@ export default function Salvage() {
 
       {activeTab === 'tools' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {SALVAGE_TOOLS.map(tool => (
+          {filteredTools.map(tool => (
             <div key={tool.id} className="card p-5">
               <div className="flex items-start justify-between mb-2">
                 <div>

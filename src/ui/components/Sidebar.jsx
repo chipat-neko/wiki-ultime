@@ -47,6 +47,7 @@ import {
   AlertTriangle,
   FlaskConical,
   Camera,
+  PenTool,
 } from 'lucide-react';
 
 const SIDEBAR_SECTIONS_KEY = 'sc_sidebar_sections';
@@ -113,7 +114,8 @@ const NAV_SECTIONS = [
     items: [
       { path: '/minage',      label: 'Minage',              icon: Gem     },
       { path: '/salvage',     label: 'Salvage',             icon: Recycle },
-      { path: '/artisanat',   label: 'Artisanat',           icon: Hammer, isNew: true },
+      { path: '/artisanat',   label: 'Artisanat (Wikelo)',   icon: Hammer },
+      { path: '/crafting',    label: 'Crafting Avancé',     icon: Hammer, isNew: true },
       { path: '/engineering', label: 'Engineering',         icon: Wrench, isNew: true },
       { path: '/vehicules',   label: 'Véhicules Terrestres', icon: Car         },
       { path: '/raffinerie',  label: 'Calculateur Raffinerie', icon: FlaskConical, isNew: true },
@@ -151,6 +153,8 @@ const NAV_SECTIONS = [
     title: 'Communauté',
     items: [
       { path: '/galerie',    label: 'Galerie',           icon: Camera,     isNew: true },
+      { path: '/blog',       label: 'Blog',              icon: PenTool,    isNew: true },
+      { path: '/builds',     label: 'Builds Partagés',   icon: Wrench,     isNew: true },
       { path: '/favoris',    label: 'Favoris',           icon: Star        },
       { path: '/reputation', label: 'Réputation',        icon: Award       },
       { path: '/historique', label: 'Historique',        icon: Clock       },

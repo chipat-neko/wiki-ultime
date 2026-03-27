@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import {
   Cpu, Zap, Thermometer, Eye, Shield, Calculator,
   ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle,
-  Rocket, TrendingDown, Radio, Crosshair,
+  Rocket, TrendingDown, Radio, Crosshair, Search, X,
 } from 'lucide-react';
 
 // ============================================================
@@ -217,9 +217,14 @@ function InfoNote({ children, type = 'info' }) {
 // ONGLET 1 — GESTION DE L'ÉNERGIE
 // ============================================================
 
-function TabEnergy() {
+function TabEnergy({ search = '' }) {
   const [selectedPreset, setSelectedPreset] = useState(0);
   const preset = ALLOC_PRESETS[selectedPreset];
+  const filteredPP = useMemo(() => {
+    if (!search) return POWER_PLANTS;
+    const q = search.toLowerCase();
+    return POWER_PLANTS.filter(pp => pp.name.toLowerCase().includes(q) || pp.type.toLowerCase().includes(q) || pp.taille.toLowerCase().includes(q));
+  }, [search]);
 
   return (
     <div className="space-y-8">
@@ -335,7 +340,7 @@ function TabEnergy() {
               </tr>
             </thead>
             <tbody>
-              {POWER_PLANTS.map(pp => (
+              {filteredPP.map(pp => (
                 <tr key={pp.id}>
                   <td className="font-medium text-slate-200">{pp.name}</td>
                   <td><span className="badge badge-slate">{pp.taille}</span></td>
@@ -378,7 +383,17 @@ function TabEnergy() {
 // ONGLET 2 — GESTION DE LA CHALEUR
 // ============================================================
 
-function TabHeat() {
+function TabHeat({ search = '' }) {
+  const filteredCoolers = useMemo(() => {
+    if (!search) return COOLERS;
+    const q = search.toLowerCase();
+    return COOLERS.filter(c => c.name.toLowerCase().includes(q) || c.type.toLowerCase().includes(q) || c.taille.toLowerCase().includes(q));
+  }, [search]);
+  const filteredWeaponHeat = useMemo(() => {
+    if (!search) return WEAPON_HEAT;
+    const q = search.toLowerCase();
+    return WEAPON_HEAT.filter(w => w.arme.toLowerCase().includes(q) || w.categorie.toLowerCase().includes(q));
+  }, [search]);
   return (
     <div className="space-y-8">
 
@@ -469,7 +484,7 @@ function TabHeat() {
               </tr>
             </thead>
             <tbody>
-              {COOLERS.map(c => (
+              {filteredCoolers.map(c => (
                 <tr key={c.id}>
                   <td className="font-medium text-slate-200">{c.name}</td>
                   <td><span className="badge badge-slate">{c.taille}</span></td>
@@ -513,7 +528,7 @@ function TabHeat() {
               </tr>
             </thead>
             <tbody>
-              {WEAPON_HEAT.map(w => (
+              {filteredWeaponHeat.map(w => (
                 <tr key={w.arme}>
                   <td className="font-medium text-slate-200">{w.arme}</td>
                   <td>
@@ -553,7 +568,12 @@ function TabHeat() {
 // ONGLET 3 — SIGNATURES
 // ============================================================
 
-function TabSignatures() {
+function TabSignatures({ search = '' }) {
+  const filteredStealthShips = useMemo(() => {
+    if (!search) return STEALTH_SHIPS;
+    const q = search.toLowerCase();
+    return STEALTH_SHIPS.filter(s => s.name.toLowerCase().includes(q));
+  }, [search]);
   return (
     <div className="space-y-8">
 
@@ -676,7 +696,7 @@ function TabSignatures() {
               </tr>
             </thead>
             <tbody>
-              {STEALTH_SHIPS.map(s => (
+              {filteredStealthShips.map(s => (
                 <tr key={s.name}>
                   <td className="font-medium text-slate-200">{s.name}</td>
                   <td><SigBadge value={s.ir} /></td>
@@ -752,7 +772,12 @@ function TabSignatures() {
 // ONGLET 4 — BOUCLIERS
 // ============================================================
 
-function TabShields() {
+function TabShields({ search = '' }) {
+  const filteredShields = useMemo(() => {
+    if (!search) return SHIELD_GENERATORS;
+    const q = search.toLowerCase();
+    return SHIELD_GENERATORS.filter(sg => sg.name.toLowerCase().includes(q) || sg.type.toLowerCase().includes(q) || sg.taille.toLowerCase().includes(q));
+  }, [search]);
   return (
     <div className="space-y-8">
 
@@ -833,7 +858,7 @@ function TabShields() {
               </tr>
             </thead>
             <tbody>
-              {SHIELD_GENERATORS.map(sg => (
+              {filteredShields.map(sg => (
                 <tr key={sg.id}>
                   <td className="font-medium text-slate-200">{sg.name}</td>
                   <td><span className="badge badge-slate">{sg.taille}</span></td>
@@ -1155,6 +1180,7 @@ const TABS = [
 
 export default function ShipSystems() {
   const [activeTab, setActiveTab] = useState('energy');
+  const [search, setSearch] = useState('');
 
   return (
     <div className="space-y-6">
@@ -1169,6 +1195,14 @@ export default function ShipSystems() {
             <p className="page-subtitle">Gestion de l'énergie, chaleur et signatures IR/EM/CS — Alpha 4.6</p>
           </div>
         </div>
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un composant, type, taille..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Onglets */}
@@ -1194,10 +1228,10 @@ export default function ShipSystems() {
 
       {/* Contenu */}
       <div>
-        {activeTab === 'energy'     && <TabEnergy />}
-        {activeTab === 'heat'       && <TabHeat />}
-        {activeTab === 'signatures' && <TabSignatures />}
-        {activeTab === 'shields'    && <TabShields />}
+        {activeTab === 'energy'     && <TabEnergy search={search} />}
+        {activeTab === 'heat'       && <TabHeat search={search} />}
+        {activeTab === 'signatures' && <TabSignatures search={search} />}
+        {activeTab === 'shields'    && <TabShields search={search} />}
         {activeTab === 'calculator' && <TabCalculator />}
       </div>
     </div>

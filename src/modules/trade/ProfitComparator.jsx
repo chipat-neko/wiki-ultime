@@ -5,7 +5,7 @@ import {
   TrendingUp, Star, Shield, AlertTriangle, Zap, Users, User,
   Package, Pickaxe, Target, Truck, Wrench, ShoppingBag,
   ChevronRight, Calculator, BarChart3, Clock, Crosshair,
-  Anchor, Flame, DollarSign, Filter, RotateCcw, Info,
+  Anchor, Flame, DollarSign, Filter, RotateCcw, Info, Search, X,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -482,7 +482,10 @@ export default function ProfitComparator() {
   const [simDuration, setSimDuration] = useState(2);
   const [simGoal, setSimGoal]         = useState('constellation');
 
-  // ── Filtre catégorie graphique ──
+  // ── Recherche activités ──
+  const [search, setSearch] = useState('');
+
+  // ── Filtre catégorie graphique ��─
   const [chartFilter, setChartFilter] = useState('all');
 
   // ── Calcul des activités filtrées + scorées ──
@@ -497,6 +500,12 @@ export default function ProfitComparator() {
       .filter(a => a.auecPerHour !== null)
       .sort((a, b) => b.auecPerHour - a.auecPerHour);
   }, [params]);
+
+  const searchedActivities = useMemo(() => {
+    if (!search.trim()) return scoredActivities;
+    const q = search.toLowerCase();
+    return scoredActivities.filter(a => a.name.toLowerCase().includes(q) || a.description.toLowerCase().includes(q));
+  }, [scoredActivities, search]);
 
   const filteredForChart = useMemo(() => {
     const list = chartFilter === 'all'
@@ -697,11 +706,19 @@ export default function ProfitComparator() {
             Classement des Activités
           </h2>
           <span className="text-sm text-slate-500">
-            {scoredActivities.length} activité{scoredActivities.length !== 1 ? 's' : ''} affichée{scoredActivities.length !== 1 ? 's' : ''}
+            {searchedActivities.length} activité{searchedActivities.length !== 1 ? 's' : ''} affichée{searchedActivities.length !== 1 ? 's' : ''}
           </span>
         </div>
 
-        {scoredActivities.length === 0 ? (
+        {/* Barre de recherche */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une activité par nom ou description…"
+            className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+          {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
+        </div>
+
+        {searchedActivities.length === 0 ? (
           <div className="card p-8 text-center">
             <AlertTriangle size={40} className="mx-auto mb-3 text-yellow-500/60" />
             <p className="text-slate-400 font-medium">Aucune activité ne correspond à vos critères.</p>
@@ -712,7 +729,7 @@ export default function ProfitComparator() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {scoredActivities.map((act, idx) => (
+            {searchedActivities.map((act, idx) => (
               <div key={act.id} className="relative">
                 {idx === 0 && (
                   <div className="absolute -top-3 left-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 text-xs font-bold shadow-lg">

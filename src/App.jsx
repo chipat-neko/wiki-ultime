@@ -53,6 +53,7 @@ const Contribute = React.lazy(() => import('./modules/auth/Contribute.jsx'));
 const ResetPassword = React.lazy(() => import('./modules/auth/ResetPassword.jsx'));
 const VerifyEmail = React.lazy(() => import('./modules/auth/VerifyEmail.jsx'));
 const Wikelo = React.lazy(() => import('./modules/wikelo/Wikelo.jsx'));
+const Crafting = React.lazy(() => import('./modules/crafting/Crafting.jsx'));
 const EngineeringModule = React.lazy(() => import('./modules/engineering/Engineering.jsx'));
 const LoadoutBuilder = React.lazy(() => import('./modules/loadout/LoadoutBuilder.jsx'));
 const ItemFinder = React.lazy(() => import('./modules/items/ItemFinder.jsx'));
@@ -75,6 +76,9 @@ const ShipSystems = React.lazy(() => import('./modules/ships/ShipSystems.jsx'));
 const PiracyGuide = React.lazy(() => import('./modules/mechanics/PiracyGuide.jsx'));
 const Galactapedia = React.lazy(() => import('./modules/lore/Galactapedia.jsx'));
 const Patchnotes = React.lazy(() => import('./modules/patchnotes/Patchnotes.jsx'));
+const BlogList = React.lazy(() => import('./modules/blog/BlogList.jsx'));
+const BlogPostView = React.lazy(() => import('./modules/blog/BlogPost.jsx'));
+const SharedBuildsGallery = React.lazy(() => import('./modules/builds/SharedBuildsGallery.jsx'));
 
 import LoadingSpinner from './ui/components/LoadingSpinner.jsx';
 
@@ -165,6 +169,7 @@ function App() {
 
             {/* Artisanat */}
             <Route path="/artisanat" element={<Wikelo />} />
+            <Route path="/crafting" element={<Crafting />} />
 
             {/* Engineering */}
             <Route path="/engineering" element={<EngineeringModule />} />
@@ -224,6 +229,13 @@ function App() {
 
             {/* Patchnotes */}
             <Route path="/patchnotes" element={<Patchnotes />} />
+
+            {/* Blog Communautaire */}
+            <Route path="/blog" element={<BlogList />} />
+            <Route path="/blog/:id" element={<BlogPostView />} />
+
+            {/* Builds Communautaires */}
+            <Route path="/builds" element={<SharedBuildsGallery />} />
 
             {/* Parametres */}
             <Route path="/parametres" element={<Settings />} />

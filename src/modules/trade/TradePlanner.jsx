@@ -21,7 +21,7 @@ import {
   TrendingUp, ArrowRight, Package, Calculator, Route,
   Star, Filter, RefreshCw, BarChart3, Shield, AlertTriangle,
   MapPin, Zap, ChevronDown, ChevronUp, Wifi, WifiOff, ExternalLink,
-  Search, Award,
+  Search, Award, X,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -219,6 +219,7 @@ export default function TradePlanner() {
   const [filterCategory, setFilterCategory] = useState('');
   const [activeTab, setActiveTab] = useState('routes'); // 'routes' | 'top' | 'chart' | 'sct' | 'buyer'
   const [useLivePrices, setUseLivePrices] = useState(false);
+  const [search, setSearch] = useState('');
 
   // ---- État onglet Meilleur Acheteur ----
   const [buyerCommodity, setBuyerCommodity] = useState('');
@@ -552,11 +553,19 @@ export default function TradePlanner() {
         ))}
       </div>
 
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une commodité, station ou route…"
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
+      </div>
+
       {/* ---- Onglet : Routes Calculées ---- */}
       {activeTab === 'routes' && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="section-title">{tradeRoutes.length} Routes Calculées</h2>
+            <h2 className="section-title">{tradeRoutes.filter(r => { const q = search.toLowerCase(); return !q || r.commodity.name.toLowerCase().includes(q) || r.buyStation.name.toLowerCase().includes(q) || r.sellStation.name.toLowerCase().includes(q); }).length} Routes Calculées</h2>
             <span className="text-xs text-slate-500">
               Cargo: {cargoCapacity} SCU{budget ? ` • Budget: ${formatCredits(Number(budget), true)}` : ''}
               {legalOnly && <span className="ml-2 text-success-500">• Légal seulement</span>}
@@ -572,7 +581,7 @@ export default function TradePlanner() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 stagger-children">
-              {tradeRoutes.map(route => (
+              {tradeRoutes.filter(r => { const q = search.toLowerCase(); return !q || r.commodity.name.toLowerCase().includes(q) || r.buyStation.name.toLowerCase().includes(q) || r.sellStation.name.toLowerCase().includes(q); }).map(route => (
                 <TradeRouteCard key={route.id} route={route} onSave={handleSaveRoute} />
               ))}
             </div>
@@ -601,7 +610,7 @@ export default function TradePlanner() {
             </div>
           )}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 stagger-children">
-            {filteredTopRoutes.map(route => (
+            {filteredTopRoutes.filter(r => { const q = search.toLowerCase(); return !q || r.commodityName.toLowerCase().includes(q) || r.fromName.toLowerCase().includes(q) || r.toName.toLowerCase().includes(q); }).map(route => (
               <TopRouteCard key={route.id} route={route} cargoSCU={cargoCapacity} capital={budget} />
             ))}
           </div>

@@ -5,6 +5,7 @@ import { FACTIONS_BY_ID } from '../../datasets/factions.js';
 import {
   Zap, Calendar, Clock, Users, Star, AlertTriangle,
   ChevronDown, ChevronRight, Globe, Target, Gift, Shield,
+  Search, X,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { formatNumber } from '../../utils/formatters.js';
@@ -308,11 +309,23 @@ function SeasonalCard({ event }) {
 export default function Events() {
   const [activeTab, setActiveTab] = useState('recurring');
   const [filterSystem, setFilterSystem] = useState('');
+  const [search, setSearch] = useState('');
 
   const filteredRecurring = useMemo(() => {
-    if (!filterSystem) return RECURRING_EVENTS;
-    return RECURRING_EVENTS.filter(e => e.systems.includes(filterSystem));
-  }, [filterSystem]);
+    let list = RECURRING_EVENTS;
+    if (filterSystem) list = list.filter(e => e.systems.includes(filterSystem));
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(e => e.name.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
+    }
+    return list;
+  }, [filterSystem, search]);
+
+  const filteredSeasonal = useMemo(() => {
+    if (!search) return SEASONAL_EVENTS;
+    const q = search.toLowerCase();
+    return SEASONAL_EVENTS.filter(e => e.name.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
+  }, [search]);
 
   const activeCount = RECURRING_EVENTS.filter(e => e.status === 'active').length;
   const seasonalCount = SEASONAL_EVENTS.length;
@@ -408,6 +421,23 @@ export default function Events() {
         </div>
       )}
 
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher un événement..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       {/* Content */}
       {activeTab === 'recurring' && (
         <div className="space-y-2">
@@ -417,7 +447,7 @@ export default function Events() {
 
       {activeTab === 'seasonal' && (
         <div className="space-y-2">
-          {SEASONAL_EVENTS.map(e => <SeasonalCard key={e.id} event={e} />)}
+          {filteredSeasonal.map(e => <SeasonalCard key={e.id} event={e} />)}
         </div>
       )}
     </div>

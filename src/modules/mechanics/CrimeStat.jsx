@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   AlertTriangle, Shield, MapPin, Clock, ChevronDown, ChevronUp,
-  Info, Zap, Lock, Eye, Target, DollarSign, BookOpen,
+  Info, Zap, Lock, Eye, Target, DollarSign, BookOpen, Search, X,
 } from 'lucide-react';
 
 /* ─── Données ─── */
@@ -261,6 +261,16 @@ function PurgeCard({ method }) {
 
 export default function CrimeStat() {
   const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+
+  const q = search.toLowerCase();
+  const match = (/** @type {string[]} */ ...fields) => !q || fields.some(f => f && f.toLowerCase().includes(q));
+
+  const filteredLevels = CS_LEVELS.filter(cs => match(cs.level, cs.threshold, cs.examples, cs.consequences, cs.hunters));
+  const filteredInfractions = INFRACTIONS.filter(r => match(r.infraction, r.cs, r.zone, r.amende));
+  const filteredPurge = PURGE_METHODS.filter(m => match(m.name, m.location, m.csLimit, m.difficulty, m.tip));
+  const filteredZones = SECURITY_ZONES.filter(z => match(z.zone, z.description, z.reaction, z.examples));
+  const filteredTips = TIPS.filter(t => match(t.title, t.text));
 
   const NAV_ITEMS = [
     { id: 'intro', label: 'Présentation' },
@@ -299,6 +309,14 @@ export default function CrimeStat() {
             {item.label}
           </a>
         ))}
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un niveau, une infraction, une méthode de purge..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Section 1 : Introduction */}
@@ -343,7 +361,7 @@ export default function CrimeStat() {
           Niveaux CrimeStat — CS1 à CS5
         </h2>
         <div className="space-y-3">
-          {CS_LEVELS.map(cs => (
+          {filteredLevels.map(cs => (
             <div key={cs.level} className={clsx('card border p-5', cs.border)}>
               <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                 <div className={clsx('flex-shrink-0 w-16 h-16 rounded-xl flex items-center justify-center font-display font-black text-xl', cs.bg, cs.glow)}>
@@ -396,7 +414,7 @@ export default function CrimeStat() {
                 </tr>
               </thead>
               <tbody>
-                {INFRACTIONS.map((row, i) => (
+                {filteredInfractions.map((row, i) => (
                   <tr key={i}>
                     <td className="font-medium text-slate-200">{row.infraction}</td>
                     <td>
@@ -423,7 +441,7 @@ export default function CrimeStat() {
           Cliquez sur une méthode pour afficher les étapes détaillées.
         </p>
         <div className="space-y-3">
-          {PURGE_METHODS.map(method => (
+          {filteredPurge.map(method => (
             <PurgeCard key={method.id} method={method} />
           ))}
         </div>
@@ -448,7 +466,7 @@ export default function CrimeStat() {
                 </tr>
               </thead>
               <tbody>
-                {SECURITY_ZONES.map((zone, i) => (
+                {filteredZones.map((zone, i) => (
                   <tr key={i}>
                     <td>
                       <span className={`badge ${zone.color}`}>{zone.zone}</span>
@@ -478,7 +496,7 @@ export default function CrimeStat() {
           Astuces et Méta-Stratégies
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {TIPS.map((tip, i) => (
+          {filteredTips.map((tip, i) => (
             <TipBox key={i} {...tip} />
           ))}
         </div>

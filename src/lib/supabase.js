@@ -258,6 +258,166 @@ export async function uploadCommunityImage(userId, file) {
   return publicUrl;
 }
 
+// ─── Blog Communautaire ───────────────────────────────────────────────────
+
+const BLOG_PAGE_SIZE = 15;
+
+/** Liste les articles du blog avec pagination, filtres et tri */
+export async function getBlogPosts({ category = null, page = 1, sortBy = 'recent', search = '' } = {}) {
+  if (!supabase) return { posts: [], count: 0 };
+  const from = (page - 1) * BLOG_PAGE_SIZE;
+  const to = from + BLOG_PAGE_SIZE - 1;
+
+  let query = supabase
+    .from('blog_posts')
+    .select('id, user_id, title, body, category, likes_count, created_at, profiles(username, avatar_url, level)', { count: 'exact' });
+
+  if (category) query = query.eq('category', category);
+  if (search) query = query.ilike('title', `%${search}%`);
+
+  if (sortBy === 'popular') {
+    query = query.order('likes_count', { ascending: false }).order('created_at', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  query = query.range(from, to);
+  const { data, error, count } = await query;
+  if (error) throw error;
+  return { posts: data ?? [], count: count ?? 0 };
+}
+
+/** Récupère un article par ID */
+export async function getBlogPost(postId) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('id, user_id, title, body, category, likes_count, created_at, profiles(username, avatar_url, level)')
+    .eq('id', postId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Crée un article de blog */
+export async function createBlogPost(userId, post) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .insert({
+      user_id: userId,
+      title: String(post.title).slice(0, 200),
+      body: String(post.body).slice(0, 50000),
+      category: post.category || 'discussion',
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Supprime un article de blog */
+export async function deleteBlogPost(postId) {
+  if (!supabase) return;
+  const { error } = await supabase.from('blog_posts').delete().eq('id', postId);
+  if (error) throw error;
+}
+
+/** Toggle like sur un article de blog */
+export async function toggleBlogLike(postId) {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('toggle_blog_like', { p_post_id: postId });
+  if (error) throw error;
+  return data;
+}
+
+/** Récupère les IDs des articles likés par l'utilisateur */
+export async function getUserBlogLikes(userId) {
+  if (!supabase || !userId) return new Set();
+  const { data, error } = await supabase
+    .from('blog_likes')
+    .select('post_id')
+    .eq('user_id', userId);
+  if (error) return new Set();
+  return new Set((data ?? []).map(d => d.post_id));
+}
+
+// ─── Builds Communautaires ────────────────────────────────────────────────
+
+const BUILDS_PAGE_SIZE = 20;
+
+/** Liste les builds partagés avec pagination et filtres */
+export async function getSharedBuilds({ buildType = null, shipId = null, page = 1, sortBy = 'recent', search = '' } = {}) {
+  if (!supabase) return { builds: [], count: 0 };
+  const from = (page - 1) * BUILDS_PAGE_SIZE;
+  const to = from + BUILDS_PAGE_SIZE - 1;
+
+  let query = supabase
+    .from('shared_builds')
+    .select('id, user_id, build_type, ship_id, build_data, title, description, total_price, likes_count, created_at, profiles(username, avatar_url, level)', { count: 'exact' });
+
+  if (buildType) query = query.eq('build_type', buildType);
+  if (shipId) query = query.eq('ship_id', shipId);
+  if (search) query = query.ilike('title', `%${search}%`);
+
+  if (sortBy === 'popular') {
+    query = query.order('likes_count', { ascending: false }).order('created_at', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  query = query.range(from, to);
+  const { data, error, count } = await query;
+  if (error) throw error;
+  return { builds: data ?? [], count: count ?? 0 };
+}
+
+/** Crée un build partagé */
+export async function createSharedBuild(userId, build) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('shared_builds')
+    .insert({
+      user_id: userId,
+      build_type: build.buildType,
+      ship_id: build.shipId || null,
+      build_data: build.buildData,
+      title: String(build.title).slice(0, 100),
+      description: String(build.description || '').slice(0, 500),
+      total_price: build.totalPrice || 0,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Supprime un build partagé */
+export async function deleteSharedBuild(buildId) {
+  if (!supabase) return;
+  const { error } = await supabase.from('shared_builds').delete().eq('id', buildId);
+  if (error) throw error;
+}
+
+/** Toggle like sur un build */
+export async function toggleBuildLike(buildId) {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('toggle_build_like', { p_build_id: buildId });
+  if (error) throw error;
+  return data;
+}
+
+/** Récupère les IDs des builds likés par l'utilisateur */
+export async function getUserBuildLikes(userId) {
+  if (!supabase || !userId) return new Set();
+  const { data, error } = await supabase
+    .from('build_likes')
+    .select('build_id')
+    .eq('user_id', userId);
+  if (error) return new Set();
+  return new Set((data ?? []).map(d => d.build_id));
+}
+
 /** Soumet une nouvelle contribution */
 export async function submitContribution(userId, contribution) {
   if (!supabase) return;

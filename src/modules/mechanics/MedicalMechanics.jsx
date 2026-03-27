@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   Heart, AlertTriangle, Info, Zap, ChevronDown, ChevronUp,
-  Activity, Pill, Ship, MapPin, BookOpen, Shield, Clock,
+  Activity, Pill, Ship, MapPin, BookOpen, Shield, Clock, Search, X,
 } from 'lucide-react';
 
 /* ─── Données ─── */
@@ -369,6 +369,17 @@ function ShipCard({ ship }) {
 
 export default function MedicalMechanics() {
   const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+
+  const q = search.toLowerCase();
+  const match = (/** @type {string[]} */ ...fields) => !q || fields.some(f => f && f.toLowerCase().includes(q));
+
+  const filteredZones = BODY_ZONES.filter(z => match(z.zone, z.t1.effects, z.t1.treatment, z.t2.effects, z.t2.treatment, z.t3.effects, z.t3.treatment));
+  const filteredMeds = MEDICATIONS.filter(m => match(m.name, m.category, m.effect, m.usage, m.whereGet, m.note));
+  const filteredBeds = MEDICAL_BEDS.filter(b => match(b.tier, b.name, b.note, ...b.capabilities, ...b.ships, ...b.stations));
+  const filteredShips = MEDICAL_SHIPS.filter(s => match(s.name, s.manufacturer, s.role, s.bestFor, ...s.strengths, ...s.weaknesses));
+  const filteredStations = MEDICAL_STATIONS.filter(s => match(s.name, s.location, s.tier));
+  const filteredTips = TIPS_MED.filter(t => match(t.title, t.text));
 
   const NAV_ITEMS = [
     { id: 'intro', label: 'Introduction' },
@@ -407,6 +418,14 @@ export default function MedicalMechanics() {
             {item.label}
           </a>
         ))}
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une zone, un médicament, un vaisseau médical..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Section 1 : Introduction */}
@@ -470,7 +489,7 @@ export default function MedicalMechanics() {
                 </tr>
               </thead>
               <tbody>
-                {BODY_ZONES.map((zone, i) => (
+                {filteredZones.map((zone, i) => (
                   <tr key={i}>
                     <td>
                       <div className="flex items-center gap-2">
@@ -527,7 +546,7 @@ export default function MedicalMechanics() {
                 </tr>
               </thead>
               <tbody>
-                {MEDICATIONS.map((med, i) => (
+                {filteredMeds.map((med, i) => (
                   <tr key={i}>
                     <td>
                       <div className="font-medium text-slate-200">{med.name}</div>
@@ -560,7 +579,7 @@ export default function MedicalMechanics() {
           Lits Médicaux — Tiers 1, 2 et 3
         </h2>
         <div className="space-y-3">
-          {MEDICAL_BEDS.map((bed, i) => (
+          {filteredBeds.map((bed, i) => (
             <BedTierCard key={i} bed={bed} />
           ))}
         </div>
@@ -574,7 +593,7 @@ export default function MedicalMechanics() {
           Vaisseaux Médicaux
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-          {MEDICAL_SHIPS.map((ship, i) => (
+          {filteredShips.map((ship, i) => (
             <ShipCard key={i} ship={ship} />
           ))}
         </div>
@@ -595,7 +614,7 @@ export default function MedicalMechanics() {
                 </tr>
               </thead>
               <tbody>
-                {MEDICAL_STATIONS.map((s, i) => (
+                {filteredStations.map((s, i) => (
                   <tr key={i}>
                     <td className="font-medium text-slate-200">{s.name}</td>
                     <td className="text-slate-400 text-xs">{s.location}</td>
@@ -616,7 +635,7 @@ export default function MedicalMechanics() {
           Astuces & Conseils
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {TIPS_MED.map((tip, i) => (
+          {filteredTips.map((tip, i) => (
             <TipBox key={i} {...tip} />
           ))}
         </div>

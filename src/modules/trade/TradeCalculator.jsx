@@ -10,7 +10,7 @@ import {
 } from '../../datasets/tradeprices.js';
 import { calcTradeProfit, calcBreakEven } from '../../utils/calculations.js';
 import { formatCredits, formatNumber, formatPercent } from '../../utils/formatters.js';
-import { Calculator, TrendingUp, TrendingDown, AlertTriangle, MapPin, ArrowRight, Package, Zap } from 'lucide-react';
+import { Calculator, TrendingUp, TrendingDown, AlertTriangle, MapPin, ArrowRight, Package, Zap, Search, X } from 'lucide-react';
 import clsx from 'clsx';
 
 // Liste des stations avec prix connus (pour les selects)
@@ -27,6 +27,7 @@ export default function TradeCalculator() {
   const [fees, setFees] = useState('');
   const [travelTime, setTravelTime] = useState('20');
   const [investment, setInvestment] = useState('');
+  const [search, setSearch] = useState('');
 
   // Nouvelles options : stations départ/arrivée
   const [fromStation, setFromStation] = useState('');
@@ -97,11 +98,31 @@ export default function TradeCalculator() {
 
   const commodityMeta = commodity ? COMMODITY_META[commodity] : null;
 
+  const filteredCommodities = useMemo(() => {
+    if (!search.trim()) return COMMODITIES;
+    const q = search.toLowerCase();
+    return COMMODITIES.filter(c => c.name.toLowerCase().includes(q) || c.id.includes(q));
+  }, [search]);
+
+  const filteredStationOptions = useMemo(() => {
+    if (!search.trim()) return STATION_OPTIONS;
+    const q = search.toLowerCase();
+    return STATION_OPTIONS.filter(s => s.name.toLowerCase().includes(q) || s.system.toLowerCase().includes(q));
+  }, [search]);
+
   return (
     <div className="space-y-6">
       <div className="page-header">
         <h1 className="page-title">Calculateur Commercial</h1>
         <p className="page-subtitle">Calculez précisément vos marges — sélectionnez des stations pour un auto-remplissage des prix</p>
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une commodité ou station…"
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* ---- Sélection des stations ---- */}
@@ -119,7 +140,7 @@ export default function TradeCalculator() {
               className="select"
             >
               <option value="">— Choisir une station —</option>
-              {STATION_OPTIONS.map(s => (
+              {filteredStationOptions.map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.system}){!s.legal ? ' ⚠️' : ''}
                 </option>
@@ -145,7 +166,7 @@ export default function TradeCalculator() {
               className="select"
             >
               <option value="">— Choisir une station —</option>
-              {STATION_OPTIONS.filter(s => s.id !== fromStation).map(s => (
+              {filteredStationOptions.filter(s => s.id !== fromStation).map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} ({s.system}){!s.legal ? ' ⚠️' : ''}
                 </option>
@@ -210,7 +231,7 @@ export default function TradeCalculator() {
             <label className="text-xs text-slate-500 uppercase tracking-wide">Commodité</label>
             <select value={commodity} onChange={e => handleCommoditySelect(e.target.value)} className="select">
               <option value="">— Choisir une commodité —</option>
-              {COMMODITIES.map(c => (
+              {filteredCommodities.map(c => (
                 <option key={c.id} value={c.id}>{c.name} {c.illegal ? '⚠️ illégal' : ''}</option>
               ))}
             </select>

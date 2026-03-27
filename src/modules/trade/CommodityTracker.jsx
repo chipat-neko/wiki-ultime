@@ -308,6 +308,7 @@ export default function CommodityTracker() {
     }
   });
 
+  const [search, setSearch] = useState('');
   const [catalogSearch, setCatalogSearch] = useState('');
   const [catalogCategory, setCatalogCategory] = useState('all');
   const [catalogLegal, setCatalogLegal] = useState('all'); // 'all' | 'legal' | 'illegal'
@@ -376,6 +377,15 @@ export default function CommodityTracker() {
   // ---- Top opportunités ----
   const topOpportunities = useMemo(() => computeTopOpportunities(legalOnly), [legalOnly]);
 
+  // ---- Filtre global (watchlist + opportunités) ----
+  const searchLower = search.toLowerCase();
+  const filteredWatchedCommodities = search
+    ? watchedCommodities.filter(c => c.name.toLowerCase().includes(searchLower) || c.category?.toLowerCase().includes(searchLower))
+    : watchedCommodities;
+  const filteredTopOpportunities = search
+    ? topOpportunities.filter(o => o.name.toLowerCase().includes(searchLower) || o.buyStationLabel.toLowerCase().includes(searchLower) || o.sellStationLabel.toLowerCase().includes(searchLower))
+    : topOpportunities;
+
   // ---- Graphique prix ----
   const chartCommodity = useMemo(() => {
     const id = selectedCommodityChart || watchlist[0] || COMMODITIES[0]?.id;
@@ -425,6 +435,14 @@ export default function CommodityTracker() {
         <p className="text-gray-400 mt-1">Surveillez les prix et optimisez vos trades</p>
       </div>
 
+      {/* Barre de recherche globale */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une commodité, station ou opportunité…"
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
+      </div>
+
       {/* ============ SECTION 1 — WATCHLIST ============ */}
       <section>
         <div className="flex items-center justify-between mb-4">
@@ -446,7 +464,7 @@ export default function CommodityTracker() {
           </button>
         </div>
 
-        {watchedCommodities.length === 0 ? (
+        {filteredWatchedCommodities.length === 0 ? (
           <div className="card p-8 text-center text-gray-400">
             <Package size={40} className="mx-auto mb-3 opacity-30" />
             <p className="font-medium text-lg mb-1">Aucune commodité suivie</p>
@@ -461,7 +479,7 @@ export default function CommodityTracker() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {watchedCommodities.map(c => (
+            {filteredWatchedCommodities.map(c => (
               <WatchlistCard
                 key={c.id}
                 commodity={c}
@@ -592,7 +610,7 @@ export default function CommodityTracker() {
         </div>
 
         <div className="space-y-2">
-          {topOpportunities.map((opp, idx) => (
+          {filteredTopOpportunities.map((opp, idx) => (
             <div
               key={opp.id}
               className="card p-4 flex flex-wrap gap-3 items-center"
@@ -661,7 +679,7 @@ export default function CommodityTracker() {
             </div>
           ))}
 
-          {topOpportunities.length === 0 && (
+          {filteredTopOpportunities.length === 0 && (
             <div className="card p-6 text-center text-gray-400">
               Aucune opportunité trouvée avec les filtres actuels.
             </div>

@@ -3,11 +3,12 @@
  * Constructeur d'équipement FPS avec stats live, builds méta, partage URL
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Shield, Target, Zap, Heart, Anchor, Crosshair,
   ChevronDown, ChevronUp, Copy, Check, RefreshCw,
   Search, Filter, Star, TrendingUp, Activity,
-  Radio, Wrench, AlertCircle, Wifi
+  Radio, Wrench, AlertCircle, Wifi, Share2, Users,
 } from 'lucide-react';
 import clsx from 'clsx';
 import {
@@ -15,6 +16,8 @@ import {
   LOADOUT_ARMOR_SETS,
   LOADOUT_GADGETS,
   FPS_META_BUILDS,
+  FPS_BUDGET_TIERS,
+  getFPSBudgetTier,
   calcLoadoutStats,
   getLoadoutScore,
   WEAPON_TYPE_LABELS,
@@ -22,6 +25,8 @@ import {
   AMMO_TYPE_COLORS,
   ARMOR_PEN_LABELS,
 } from '../../datasets/fpsLoadoutData.js';
+import { supabase } from '../../lib/supabase.js';
+import ShareBuildModal from '../builds/ShareBuildModal.jsx';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -384,11 +389,24 @@ export default function FPSLoadoutBuilder() {
   // UI states
   const [copied, setCopied] = useState(false);
   const [expandedMeta, setExpandedMeta] = useState(null);
+  const [fpsBudgetFilter, setFpsBudgetFilter] = useState('all');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [fpsUser, setFpsUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Auth
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getUser().then(({ data }) => setFpsUser(data?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setFpsUser(s?.user ?? null));
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Lire loadout depuis URL au montage
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const encoded = params.get('loadout');
+    const sharedParam = params.get('shared');
     if (encoded) {
       const data = decodeLoadout(encoded);
       if (data) {
@@ -396,6 +414,13 @@ export default function FPSLoadoutBuilder() {
         if (data.armorId) setSelectedArmor(data.armorId);
         if (Array.isArray(data.gadgets)) setSelectedGadgets(data.gadgets);
       }
+    } else if (sharedParam) {
+      try {
+        const data = JSON.parse(atob(sharedParam));
+        if (data.weaponId) setSelectedWeapon(data.weaponId);
+        if (data.armorId) setSelectedArmor(data.armorId);
+        if (Array.isArray(data.gadgets)) setSelectedGadgets(data.gadgets);
+      } catch {}
     }
   }, []);
 
@@ -525,7 +550,23 @@ export default function FPSLoadoutBuilder() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-900/60 hover:bg-cyan-800/60 border border-cyan-700/60 text-sm text-cyan-300 transition-colors"
             >
               {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copié !' : 'Partager'}
+              {copied ? 'Copié !' : 'Copier URL'}
+            </button>
+            {fpsUser && selectedWeapon && (
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-900/60 hover:bg-purple-800/60 border border-purple-700/60 text-sm text-purple-300 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                Partager Build
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/builds?type=fps')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-sm text-gray-300 transition-colors"
+            >
+              <Users className="w-4 h-4" />
+              Communauté
             </button>
           </div>
         </div>
@@ -768,8 +809,34 @@ export default function FPSLoadoutBuilder() {
                 <Star className="w-4 h-4 text-yellow-400" />
                 Builds Méta recommandés
               </h2>
+
+              {/* Filtres budget */}
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                <button
+                  onClick={() => setFpsBudgetFilter('all')}
+                  className={clsx('text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-pointer',
+                    fpsBudgetFilter === 'all' ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300' : 'border-gray-700 text-gray-500 hover:border-gray-500')}
+                >
+                  Tous
+                </button>
+                {FPS_BUDGET_TIERS.map(tier => (
+                  <button
+                    key={tier.id}
+                    onClick={() => setFpsBudgetFilter(tier.id)}
+                    className={clsx('text-[10px] px-2 py-0.5 rounded-full border transition-all cursor-pointer',
+                      fpsBudgetFilter === tier.id ? `${tier.bg} ${tier.border} ${tier.color}` : 'border-gray-700 text-gray-500 hover:border-gray-500')}
+                  >
+                    {tier.label} {tier.max < Infinity ? `≤${tier.max >= 1000 ? Math.round(tier.max/1000)+'K' : tier.max}` : ''}
+                  </button>
+                ))}
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
-                {FPS_META_BUILDS.map(build => (
+                {FPS_META_BUILDS.filter(build => {
+                  if (fpsBudgetFilter === 'all') return true;
+                  const buildStats = calcLoadoutStats(build.weaponId, build.armorId, build.gadgets);
+                  return getFPSBudgetTier(buildStats.price).id === fpsBudgetFilter;
+                }).map(build => (
                   <div
                     key={build.id}
                     className={clsx(
@@ -816,6 +883,18 @@ export default function FPSLoadoutBuilder() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Badge prix */}
+                    {(() => {
+                      const bStats = calcLoadoutStats(build.weaponId, build.armorId, build.gadgets);
+                      const bTier = getFPSBudgetTier(bStats.price);
+                      return (
+                        <div className="flex items-center justify-between text-[10px] mb-1">
+                          <span className={clsx(bTier.color)}>~{bStats.price >= 1000 ? Math.round(bStats.price/1000)+'K' : bStats.price} aUEC</span>
+                          <span className={clsx('px-1.5 py-0.5 rounded', bTier.bg, bTier.border, bTier.color, 'border')}>{bTier.label}</span>
+                        </div>
+                      );
+                    })()}
 
                     {expandedMeta === build.id && (
                       <div className="border-t border-gray-700/50 pt-2 mt-2">
@@ -1020,6 +1099,17 @@ export default function FPSLoadoutBuilder() {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareBuildModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        buildType="fps"
+        shipId={null}
+        buildData={{ weaponId: selectedWeapon, armorId: selectedArmor, gadgets: selectedGadgets }}
+        totalPrice={stats.price}
+        userId={fpsUser?.id}
+      />
     </div>
   );
 }

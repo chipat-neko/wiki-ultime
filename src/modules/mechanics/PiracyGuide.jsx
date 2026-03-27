@@ -5,7 +5,7 @@ import {
   AlertTriangle, Shield, MapPin, Clock, ChevronDown, ChevronUp,
   Info, Zap, Target, DollarSign, BookOpen, Skull, Radio,
   Package, Eye, Anchor, Navigation, TrendingUp, Users,
-  Lock, Star, Crosshair, Rocket,
+  Lock, Star, Crosshair, Rocket, Search, X,
 } from 'lucide-react';
 
 /* ══════════════════════════════════════════════════════════════
@@ -1128,6 +1128,29 @@ export default function PiracyGuide() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('piraterie');
   const [expandedType, setExpandedType] = useState(null);
+  const [search, setSearch] = useState('');
+
+  const q = search.toLowerCase();
+  const match = (/** @type {string[]} */ ...fields) => !q || fields.some(f => f && f.toLowerCase().includes(q));
+
+  // Tab 1 filters
+  const filteredPiracyTypes = PIRACY_TYPES.filter(t => match(t.name, t.description, t.method, t.legalStatus, t.loot));
+  const filteredCrimeTable = CRIME_STAT_TABLE.filter(r => match(r.action, r.cs, r.notes));
+  const filteredTactics = INTERDICTION_TACTICS.filter(t => match(t.title, t.crimestatRisk, t.timing, t.tip, ...t.ships, ...t.idealZones));
+  const filteredScripts = COMMUNICATION_SCRIPTS.filter(s => match(s.scenario, s.opener, s.tone, s.outcome));
+  const filteredPiracyZones = PIRACY_ZONES.filter(z => match(z.zone, z.security, z.cargos, z.advocacy, z.tip));
+  // Tab 2 filters
+  const filteredBases = OUTLAW_BASES.filter(b => match(b.name, b.location, b.faction, b.description, b.tip));
+  const filteredSurvivalTips = OUTLAW_SURVIVAL_TIPS.filter(t => match(t.title, t.text));
+  // Tab 3 filters
+  const filteredGoods = CONTRABAND_GOODS.filter(g => match(g.name, g.type, g.buyLocations, g.sellLocations, g.notes));
+  const filteredSmugShips = SMUGGLING_SHIPS.filter(s => match(s.ship, s.hiddenDesc, s.tip));
+  const filteredRoutes = SMUGGLING_ROUTES.filter(r => match(r.name, r.goods, r.buy, r.sell, r.notes, r.ship));
+  // Tab 4 filters
+  const filteredSigns = PIRACY_SIGNS.filter(s => match(s));
+  const filteredCountermeasures = COUNTERMEASURES.filter(c => match(c.title, c.text));
+  const filteredAntiShips = ANTI_PIRACY_SHIPS.filter(s => match(s.ship, s.role, s.strength, s.weakness, s.tip));
+  const filteredSteps = INTERCEPTED_STEPS.filter(s => match(s.step, s.detail));
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -1199,6 +1222,14 @@ export default function PiracyGuide() {
         })}
       </div>
 
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une tactique, une base, une marchandise, un vaisseau..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
+      </div>
+
       {/* ══════════════════════════════════════════════════════
           ONGLET 1 : PIRATERIE SPATIALE
       ══════════════════════════════════════════════════════ */}
@@ -1226,7 +1257,7 @@ export default function PiracyGuide() {
 
             {/* Types de piraterie - cartes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {PIRACY_TYPES.map(type => {
+              {filteredPiracyTypes.map(type => {
                 const Icon = type.icon;
                 const isOpen = expandedType === type.id;
                 return (
@@ -1288,7 +1319,7 @@ export default function PiracyGuide() {
                     </tr>
                   </thead>
                   <tbody>
-                    {CRIME_STAT_TABLE.map((row, i) => (
+                    {filteredCrimeTable.map((row, i) => (
                       <tr key={i}>
                         <td className="text-slate-200 font-medium">{row.action}</td>
                         <td><span className={`badge ${CS_BADGE_STYLES[row.cs]}`}>{row.cs}</span></td>
@@ -1315,7 +1346,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Cliquez sur une tactique pour afficher les détails, vaisseaux recommandés et contre-mesures.</p>
             <div className="space-y-3">
-              {INTERDICTION_TACTICS.map(tactic => (
+              {filteredTactics.map(tactic => (
                 <TacticCard key={tactic.id} tactic={tactic} />
               ))}
             </div>
@@ -1329,7 +1360,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Scripts de communication recommandés selon le scénario. Une communication bien menée peut éviter un combat coûteux.</p>
             <div className="space-y-3">
-              {COMMUNICATION_SCRIPTS.map((script, i) => (
+              {filteredScripts.map((script, i) => (
                 <div key={i} className="card p-4 space-y-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="font-bold text-slate-200 text-sm">{script.scenario}</div>
@@ -1366,7 +1397,7 @@ export default function PiracyGuide() {
                     </tr>
                   </thead>
                   <tbody>
-                    {PIRACY_ZONES.map((zone, i) => (
+                    {filteredPiracyZones.map((zone, i) => (
                       <tr key={i}>
                         <td className="font-medium text-slate-200">{zone.zone}</td>
                         <td><span className={`badge ${zone.secBadge}`}>{zone.security}</span></td>
@@ -1397,7 +1428,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Cliquez sur une base pour afficher les services disponibles, la faction, et les conseils pratiques.</p>
             <div className="space-y-3">
-              {OUTLAW_BASES.map(base => (
+              {filteredBases.map(base => (
                 <BaseCard key={base.id} base={base} />
               ))}
             </div>
@@ -1487,7 +1518,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Conseils pratiques pour survivre et prospérer avec un CrimeStat élevé.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {OUTLAW_SURVIVAL_TIPS.map((tip, i) => (
+              {filteredSurvivalTips.map((tip, i) => (
                 <TipBox key={i} {...tip} />
               ))}
             </div>
@@ -1551,7 +1582,7 @@ export default function PiracyGuide() {
                     </tr>
                   </thead>
                   <tbody>
-                    {CONTRABAND_GOODS.map((good, i) => (
+                    {filteredGoods.map((good, i) => (
                       <tr key={i}>
                         <td className="font-bold text-slate-200">{good.name}</td>
                         <td className="text-xs text-slate-400">{good.type}</td>
@@ -1618,7 +1649,7 @@ export default function PiracyGuide() {
               Vaisseaux avec Compartiments de Contrebande
             </h3>
             <div className="space-y-3">
-              {SMUGGLING_SHIPS.map((ship, i) => (
+              {filteredSmugShips.map((ship, i) => (
                 <div key={i} className="card p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
@@ -1650,7 +1681,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Chaque route inclut un calculateur de profit rapide. Entrez votre quantité pour estimer le gain total.</p>
             <div className="space-y-4">
-              {SMUGGLING_ROUTES.map(route => (
+              {filteredRoutes.map(route => (
                 <RouteCard key={route.id} route={route} />
               ))}
             </div>
@@ -1678,7 +1709,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Reconnaître les signaux d'alarme avant qu'il soit trop tard peut vous sauver la mise.</p>
             <div className="space-y-2">
-              {PIRACY_SIGNS.map((sign, i) => (
+              {filteredSigns.map((sign, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-space-700/40 border border-warning-500/20">
                   <div className="flex-shrink-0 w-5 h-5 rounded-full bg-warning-500/20 text-warning-400 text-xs flex items-center justify-center font-bold mt-0.5">{i + 1}</div>
                   <p className="text-sm text-slate-300">{sign}</p>
@@ -1694,7 +1725,7 @@ export default function PiracyGuide() {
               Contre-mesures Anti-Piraterie
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {COUNTERMEASURES.map((cm, i) => (
+              {filteredCountermeasures.map((cm, i) => (
                 <TipBox key={i} {...cm} />
               ))}
             </div>
@@ -1707,7 +1738,7 @@ export default function PiracyGuide() {
               Vaisseaux Recommandés pour Éviter la Piraterie
             </h2>
             <div className="space-y-3">
-              {ANTI_PIRACY_SHIPS.map((ship, i) => (
+              {filteredAntiShips.map((ship, i) => (
                 <div key={i} className="card p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div>
@@ -1744,7 +1775,7 @@ export default function PiracyGuide() {
             </h2>
             <p className="text-sm text-slate-400 mb-4">Protocole d'urgence étape par étape en cas d'interception pirate.</p>
             <div className="space-y-2">
-              {INTERCEPTED_STEPS.map((step, i) => (
+              {filteredSteps.map((step, i) => (
                 <div key={i} className="card p-4 flex gap-4">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-danger-500/20 text-danger-400 flex items-center justify-center font-bold text-sm">{i + 1}</div>
                   <div>

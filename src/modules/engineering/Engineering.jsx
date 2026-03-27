@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ENGINEERING_SYSTEMS, ENGINEERING_COMPONENTS,
   ENGINEERING_SHIPS, ENGINEERING_GLOSSARY,
@@ -6,6 +6,7 @@ import {
 import {
   Zap, Thermometer, Wrench, AlertTriangle, Users,
   ChevronDown, ChevronRight, BookOpen, Cpu, Rocket, Ship,
+  Search, X,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -98,100 +99,34 @@ function SystemCard({ system }) {
   );
 }
 
-// ─── Components Tab ───────────────────────────────────────────────────────────
-function ComponentsTab() {
-  return (
-    <div className="space-y-4">
-      {ENGINEERING_COMPONENTS.map(comp => (
-        <div key={comp.id} className="card p-5 space-y-4">
-          <div>
-            <h3 className="font-bold text-slate-100">{comp.name}</h3>
-            <p className="text-xs text-slate-400 mt-1">{comp.description}</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {comp.grades.map(g => (
-              <div key={g.grade} className={clsx(
-                'p-3 rounded-lg border',
-                g.grade === 'A' ? 'border-cyan-500/30 bg-cyan-500/5' :
-                g.grade === 'B' ? 'border-blue-500/20 bg-blue-500/5' :
-                'border-space-400/20 bg-space-800/40'
-              )}>
-                <div className={clsx(
-                  'text-lg font-bold font-display mb-1',
-                  g.grade === 'A' ? 'text-cyan-400' : g.grade === 'B' ? 'text-blue-400' : 'text-slate-400'
-                )}>Grade {g.grade}</div>
-                <p className="text-xs text-slate-400">{g.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            <span className="text-xs text-slate-500 mr-1">Stats clés :</span>
-            {comp.keyStats.map(s => (
-              <span key={s} className="badge badge-slate text-xs">{s}</span>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Ships Tab ────────────────────────────────────────────────────────────────
-function ShipsTab() {
-  return (
-    <div className="card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="border-b border-space-400/20 bg-space-800/50">
-            <tr>
-              <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3">Vaisseau</th>
-              <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3 hidden sm:table-cell">Équipage</th>
-              <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3">Complexité</th>
-              <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3 hidden md:table-cell">Notes Engineering</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-space-400/10">
-            {ENGINEERING_SHIPS.map(ship => (
-              <tr key={ship.id} className="hover:bg-space-700/20 transition-colors">
-                <td className="px-4 py-3 font-medium text-slate-200 text-sm">{ship.name}</td>
-                <td className="px-4 py-3 text-sm text-slate-400 hidden sm:table-cell">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5" />
-                    {ship.crew}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <ComplexityBar value={ship.complexity} />
-                </td>
-                <td className="px-4 py-3 text-xs text-slate-400 hidden md:table-cell max-w-xs">{ship.engineeringNote}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// ─── Glossary Tab ─────────────────────────────────────────────────────────────
-function GlossaryTab() {
-  return (
-    <div className="card divide-y divide-space-400/10">
-      {ENGINEERING_GLOSSARY.map(entry => (
-        <div key={entry.term} className="px-5 py-3 flex flex-col sm:flex-row gap-2 sm:gap-6 hover:bg-space-700/20 transition-colors">
-          <dt className="text-sm font-bold text-cyan-400 flex-shrink-0 sm:w-44">{entry.term}</dt>
-          <dd className="text-sm text-slate-400">{entry.def}</dd>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 // ─── Composant principal ──────────────────────────────────────────────────────
 export default function Engineering() {
   const [activeTab, setActiveTab] = useState('systems');
+  const [search, setSearch] = useState('');
+
+  const filteredSystems = useMemo(() => {
+    if (!search) return ENGINEERING_SYSTEMS;
+    const q = search.toLowerCase();
+    return ENGINEERING_SYSTEMS.filter(s => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredComponents = useMemo(() => {
+    if (!search) return ENGINEERING_COMPONENTS;
+    const q = search.toLowerCase();
+    return ENGINEERING_COMPONENTS.filter(c => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredShips = useMemo(() => {
+    if (!search) return ENGINEERING_SHIPS;
+    const q = search.toLowerCase();
+    return ENGINEERING_SHIPS.filter(s => s.name.toLowerCase().includes(q));
+  }, [search]);
+
+  const filteredGlossary = useMemo(() => {
+    if (!search) return ENGINEERING_GLOSSARY;
+    const q = search.toLowerCase();
+    return ENGINEERING_GLOSSARY.filter(e => e.term.toLowerCase().includes(q) || e.def.toLowerCase().includes(q));
+  }, [search]);
 
   const tabs = [
     { id: 'systems',    label: 'Systèmes',    icon: Zap,      count: ENGINEERING_SYSTEMS.length },
@@ -263,15 +198,106 @@ export default function Engineering() {
         ))}
       </div>
 
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Rechercher un système, composant, vaisseau..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       {/* Contenu */}
       {activeTab === 'systems' && (
         <div className="space-y-3">
-          {ENGINEERING_SYSTEMS.map(sys => <SystemCard key={sys.id} system={sys} />)}
+          {filteredSystems.map(sys => <SystemCard key={sys.id} system={sys} />)}
         </div>
       )}
-      {activeTab === 'components' && <ComponentsTab />}
-      {activeTab === 'ships'      && <ShipsTab />}
-      {activeTab === 'glossary'   && <GlossaryTab />}
+      {activeTab === 'components' && (
+        <div className="space-y-4">
+          {filteredComponents.map(comp => (
+            <div key={comp.id} className="card p-5 space-y-4">
+              <div>
+                <h3 className="font-bold text-slate-100">{comp.name}</h3>
+                <p className="text-xs text-slate-400 mt-1">{comp.description}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {comp.grades.map(g => (
+                  <div key={g.grade} className={clsx(
+                    'p-3 rounded-lg border',
+                    g.grade === 'A' ? 'border-cyan-500/30 bg-cyan-500/5' :
+                    g.grade === 'B' ? 'border-blue-500/20 bg-blue-500/5' :
+                    'border-space-400/20 bg-space-800/40'
+                  )}>
+                    <div className={clsx(
+                      'text-lg font-bold font-display mb-1',
+                      g.grade === 'A' ? 'text-cyan-400' : g.grade === 'B' ? 'text-blue-400' : 'text-slate-400'
+                    )}>Grade {g.grade}</div>
+                    <p className="text-xs text-slate-400">{g.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-xs text-slate-500 mr-1">Stats cles :</span>
+                {comp.keyStats.map(s => (
+                  <span key={s} className="badge badge-slate text-xs">{s}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {activeTab === 'ships' && (
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b border-space-400/20 bg-space-800/50">
+                <tr>
+                  <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3">Vaisseau</th>
+                  <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3 hidden sm:table-cell">Equipage</th>
+                  <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3">Complexite</th>
+                  <th className="text-left text-xs text-slate-400 uppercase tracking-wide px-4 py-3 hidden md:table-cell">Notes Engineering</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-space-400/10">
+                {filteredShips.map(ship => (
+                  <tr key={ship.id} className="hover:bg-space-700/20 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-200 text-sm">{ship.name}</td>
+                    <td className="px-4 py-3 text-sm text-slate-400 hidden sm:table-cell">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5" />
+                        {ship.crew}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ComplexityBar value={ship.complexity} />
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400 hidden md:table-cell max-w-xs">{ship.engineeringNote}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {activeTab === 'glossary' && (
+        <div className="card divide-y divide-space-400/10">
+          {filteredGlossary.map(entry => (
+            <div key={entry.term} className="px-5 py-3 flex flex-col sm:flex-row gap-2 sm:gap-6 hover:bg-space-700/20 transition-colors">
+              <dt className="text-sm font-bold text-cyan-400 flex-shrink-0 sm:w-44">{entry.term}</dt>
+              <dd className="text-sm text-slate-400">{entry.def}</dd>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

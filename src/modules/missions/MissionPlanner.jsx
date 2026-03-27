@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import {
   Target, Clock, AlertTriangle, CheckCircle2,
   Layers, Filter, ChevronRight, Star, Shield, Package, Compass,
-  ClipboardList, Calculator,
+  ClipboardList, Calculator, Search, X,
 } from 'lucide-react';
 
 const DIFFICULTY_COLORS = {
@@ -145,16 +145,19 @@ export default function MissionPlanner() {
   const [selectedFaction, setSelectedFaction]       = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
   const [showIllegal, setShowIllegal]               = useState(false);
+  const [search, setSearch] = useState('');
 
   const filteredTypes = useMemo(() => {
+    const q = search.toLowerCase().trim();
     return MISSION_TYPES_DATA.filter(m => {
+      if (q && !m.name.toLowerCase().includes(q) && !(m.description || '').toLowerCase().includes(q)) return false;
       if (selectedCategory  && m.category !== selectedCategory) return false;
       if (selectedFaction   && !(m.factions || []).includes(selectedFaction)) return false;
       if (selectedDifficulty && m.difficulty !== selectedDifficulty) return false;
       if (!showIllegal && !m.legal) return false;
       return true;
     });
-  }, [selectedCategory, selectedFaction, selectedDifficulty, showIllegal]);
+  }, [search, selectedCategory, selectedFaction, selectedDifficulty, showIllegal]);
 
   const activeMissions = useMemo(() => {
     const shuffled = [...SAMPLE_MISSIONS].sort(() => 0.5 - Math.random());
@@ -234,6 +237,14 @@ export default function MissionPlanner() {
             </button>
           );
         })}
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une mission par nom ou description..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Filters */}

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import clsx from 'clsx';
-import { Zap, ChevronUp, ChevronDown, Filter, Calculator, RotateCcw } from 'lucide-react';
+import { Zap, ChevronUp, ChevronDown, Filter, Calculator, RotateCcw, Search, X } from 'lucide-react';
 import {
   QT_DRIVES_EXTENDED,
   QT_ROUTES,
@@ -229,6 +229,7 @@ function QTCalculator({ drives }) {
 
 // ─── Composant principal ───────────────────────────────────────────────────────
 export default function QTDrives() {
+  const [search, setSearch] = useState('');
   const [filterSize, setFilterSize] = useState(null);
   const [filterGrade, setFilterGrade] = useState(null);
   const [filterClass, setFilterClass] = useState(null);
@@ -257,6 +258,10 @@ export default function QTDrives() {
   // Filtres + tri
   const filtered = useMemo(() => {
     let data = [...QT_DRIVES_EXTENDED];
+    if (search) {
+      const q = search.toLowerCase();
+      data = data.filter(d => d.name.toLowerCase().includes(q) || d.manufacturer.toLowerCase().includes(q));
+    }
     if (filterSize !== null) data = data.filter(d => d.size === filterSize);
     if (filterGrade !== null) data = data.filter(d => d.grade === filterGrade);
     if (filterClass !== null) data = data.filter(d => d.classification === filterClass);
@@ -271,7 +276,7 @@ export default function QTDrives() {
         : String(vb).localeCompare(String(va));
     });
     return data;
-  }, [filterSize, filterGrade, filterClass, sortKey, sortDir]);
+  }, [search, filterSize, filterGrade, filterClass, sortKey, sortDir]);
 
   // Meilleure/pire valeur pour chaque stat (sur l'ensemble des données filtrées)
   const extremes = useMemo(() => {
@@ -294,12 +299,13 @@ export default function QTDrives() {
   }, [filtered]);
 
   const resetFilters = () => {
+    setSearch('');
     setFilterSize(null);
     setFilterGrade(null);
     setFilterClass(null);
   };
 
-  const hasFilters = filterSize !== null || filterGrade !== null || filterClass !== null;
+  const hasFilters = search || filterSize !== null || filterGrade !== null || filterClass !== null;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -326,6 +332,14 @@ export default function QTDrives() {
             <div className="text-xs text-slate-500">moteur{filtered.length > 1 ? 's' : ''}</div>
           </div>
         </div>
+      </div>
+
+      {/* Barre de recherche */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un moteur QT par nom ou fabricant..."
+          className="w-full pl-10 pr-9 py-2 rounded-lg bg-space-700/60 border border-space-400/20 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all" />
+        {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"><X className="w-4 h-4" /></button>)}
       </div>
 
       {/* Filtres */}

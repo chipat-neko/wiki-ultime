@@ -54,6 +54,10 @@ export const MINERALS = {
   lindinium:     { id: 'lindinium', imageUrl: '/images/minerals/lindinium.jpg',     name: 'Lindinium',     rarity: 'rare',      value: 4.10,  color: 'text-cyan-400',     bg: 'bg-cyan-900/30',     border: 'border-cyan-700/40',   method: 'ship', desc: 'Métal versatile pour alliages. Glaciem Ring, Nyx. Ajouté ~4.6.' },
   savrilium:     { id: 'savrilium', imageUrl: '/images/minerals/savrilium.jpg',     name: 'Savrilium',     rarity: 'rare',      value: 4.40,  color: 'text-emerald-300',  bg: 'bg-emerald-900/40',  border: 'border-emerald-600/50', method: 'ship', desc: 'Propriétés d\'alliage uniques. Glaciem Ring, Nyx. Ajouté ~4.6.' },
   torite:        { id: 'torite', imageUrl: '/images/minerals/torite.jpg',        name: 'Torite',        rarity: 'uncommon',  value: 3.30,  color: 'text-amber-400',    bg: 'bg-amber-900/30',    border: 'border-amber-700/40',  method: 'ship', desc: 'Minerai d\'alliage. Nyx. Ajouté ~4.6.' },
+
+  // ── Crafting exclusif (non-minable, achat/loot uniquement) ─────────────
+  ouratite:      { id: 'ouratite', imageUrl: '/images/minerals/ouratite.jpg',      name: 'Ouratite',      rarity: 'rare',      value: 5.00,  color: 'text-purple-300',   bg: 'bg-purple-900/30',   border: 'border-purple-700/40', method: 'hand', desc: 'Minerai d\'armure spécial. Utilisé pour la mitigation des dégâts en crafting. Obtenu via missions/loot.' },
+  aslarite:      { id: 'aslarite', imageUrl: '/images/minerals/aslarite.jpg',      name: 'Aslarite',      rarity: 'rare',      value: 4.80,  color: 'text-teal-200',     bg: 'bg-teal-900/30',     border: 'border-teal-700/40',   method: 'hand', desc: 'Minerai thermique rare. Utilisé en crafting pour les propriétés de température. Obtenu via missions/loot.' },
 };
 
 export const RARITY_LABELS = {
