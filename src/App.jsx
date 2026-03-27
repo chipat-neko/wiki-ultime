@@ -70,6 +70,7 @@ const SpawnGuide = React.lazy(() => import('./modules/systems/SpawnGuide.jsx'));
 const ArmorComparator = React.lazy(() => import('./modules/equipment/ArmorComparator.jsx'));
 const DPSCalculator = React.lazy(() => import('./modules/ships/DPSCalculator.jsx'));
 const CharacterTracker = React.lazy(() => import('./modules/community/CharacterTracker.jsx'));
+const CommunityGallery = React.lazy(() => import('./modules/community/CommunityGallery.jsx'));
 const ShipSystems = React.lazy(() => import('./modules/ships/ShipSystems.jsx'));
 const PiracyGuide = React.lazy(() => import('./modules/mechanics/PiracyGuide.jsx'));
 const Galactapedia = React.lazy(() => import('./modules/lore/Galactapedia.jsx'));
@@ -135,6 +136,7 @@ function App() {
             <Route path="/favoris" element={<Favorites />} />
             <Route path="/historique" element={<History />} />
             <Route path="/reputation" element={<ReputationTracker />} />
+            <Route path="/galerie" element={<CommunityGallery />} />
 
             {/* Équipement */}
             <Route path="/equipement" element={<Equipment />} />

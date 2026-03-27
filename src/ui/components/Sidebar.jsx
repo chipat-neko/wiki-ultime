@@ -46,6 +46,7 @@ import {
   Heart,
   AlertTriangle,
   FlaskConical,
+  Camera,
 } from 'lucide-react';
 
 const SIDEBAR_SECTIONS_KEY = 'sc_sidebar_sections';
@@ -149,6 +150,7 @@ const NAV_SECTIONS = [
   {
     title: 'Communauté',
     items: [
+      { path: '/galerie',    label: 'Galerie',           icon: Camera,     isNew: true },
       { path: '/favoris',    label: 'Favoris',           icon: Star        },
       { path: '/reputation', label: 'Réputation',        icon: Award       },
       { path: '/historique', label: 'Historique',        icon: Clock       },
