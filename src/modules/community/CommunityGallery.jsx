@@ -10,7 +10,7 @@ import {
   Image, Camera, Rocket, Swords, Compass, ShoppingCart, Star,
   Heart, MessageCircle, Plus, X, Send, Loader2, Filter,
   TrendingUp, Clock, ChevronLeft, ChevronRight, Trash2,
-  Upload, AlertCircle, Users,
+  Upload, AlertCircle, Users, Maximize2, Calendar,
 } from 'lucide-react';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
@@ -45,6 +45,7 @@ export default function CommunityGallery() {
   const [error, setError] = useState('');
   const [userLikes, setUserLikes] = useState(new Set());
   const [showForm, setShowForm] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const totalPages = Math.ceil(totalCount / 20);
 
@@ -236,6 +237,7 @@ export default function CommunityGallery() {
               liked={userLikes.has(post.id)}
               onLike={handleLike}
               onDelete={handleDelete}
+              onOpen={setSelectedPost}
               currentUserId={user?.id}
             />
           ))}
@@ -271,19 +273,34 @@ export default function CommunityGallery() {
           Connectez-vous pour publier et liker des posts.
         </p>
       )}
+
+      {/* Modale détail */}
+      {selectedPost && (
+        <PostModal
+          post={selectedPost}
+          liked={userLikes.has(selectedPost.id)}
+          onLike={handleLike}
+          onDelete={(id) => { handleDelete(id); setSelectedPost(null); }}
+          onClose={() => setSelectedPost(null)}
+          currentUserId={user?.id}
+        />
+      )}
     </div>
   );
 }
 
 // ── Carte de post ────────────────────────────────────────────────────────────
-function PostCard({ post, liked, onLike, onDelete, currentUserId }) {
+function PostCard({ post, liked, onLike, onDelete, onOpen, currentUserId }) {
   const cat = CATEGORIES_MAP[post.category] || CATEGORIES_MAP.autre;
   const CatIcon = cat.icon;
   const profile = post.profiles;
   const isOwner = currentUserId === post.user_id;
 
   return (
-    <div className="card-dark rounded-xl overflow-hidden group transition-all hover:ring-1 hover:ring-white/10">
+    <div
+      className="card-dark rounded-xl overflow-hidden group transition-all hover:ring-1 hover:ring-white/10 cursor-pointer"
+      onClick={() => onOpen(post)}
+    >
       {/* Image */}
       {post.image_url && (
         <div className="relative aspect-video overflow-hidden bg-space-900">
@@ -296,6 +313,9 @@ function PostCard({ post, liked, onLike, onDelete, currentUserId }) {
           <div className={clsx('absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium backdrop-blur-sm', cat.bg, cat.color)}>
             <CatIcon className="w-3 h-3" />
             {cat.label}
+          </div>
+          <div className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Maximize2 className="w-3.5 h-3.5" />
           </div>
         </div>
       )}
@@ -331,7 +351,7 @@ function PostCard({ post, liked, onLike, onDelete, currentUserId }) {
           <div className="flex items-center gap-2">
             {/* Like */}
             <button
-              onClick={() => onLike(post.id)}
+              onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
               className={clsx(
                 'flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all',
                 liked
@@ -346,13 +366,128 @@ function PostCard({ post, liked, onLike, onDelete, currentUserId }) {
             {/* Delete (owner only) */}
             {isOwner && (
               <button
-                onClick={() => onDelete(post.id)}
+                onClick={(e) => { e.stopPropagation(); onDelete(post.id); }}
                 className="p-1 rounded text-space-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                 title="Supprimer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modale détail ────────────────────────────────────────────────────────────
+function PostModal({ post, liked, onLike, onDelete, onClose, currentUserId }) {
+  const cat = CATEGORIES_MAP[post.category] || CATEGORIES_MAP.autre;
+  const CatIcon = cat.icon;
+  const profile = post.profiles;
+  const isOwner = currentUserId === post.user_id;
+
+  // Fermer avec Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handler);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      onClick={onClose}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+
+      {/* Contenu */}
+      <div
+        className="relative w-full max-w-4xl max-h-[90vh] bg-space-900 rounded-2xl ring-1 ring-white/10 overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Bouton fermer */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 p-2 rounded-xl bg-black/50 text-white/70 hover:text-white hover:bg-black/70 transition-colors backdrop-blur-sm"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Image en grand */}
+        {post.image_url && (
+          <div className="relative bg-black flex items-center justify-center max-h-[60vh]">
+            <img
+              src={post.image_url}
+              alt={post.title}
+              className="w-full max-h-[60vh] object-contain"
+            />
+          </div>
+        )}
+
+        {/* Infos */}
+        <div className="p-6 space-y-4 overflow-y-auto">
+          {/* Catégorie + date */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className={clsx('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium', cat.bg, cat.color)}>
+              <CatIcon className="w-3.5 h-3.5" />
+              {cat.label}
+            </div>
+            <span className="text-xs text-space-500 flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {dayjs(post.created_at).format('DD MMM YYYY [à] HH:mm')}
+            </span>
+          </div>
+
+          {/* Titre */}
+          <h2 className="text-xl font-bold text-space-100">{post.title}</h2>
+
+          {/* Description complète */}
+          {post.description && (
+            <p className="text-sm text-space-300 leading-relaxed whitespace-pre-line">{post.description}</p>
+          )}
+
+          {/* Footer : auteur + actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-space-700/50">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-space-700 flex items-center justify-center text-sm font-bold text-space-300">
+                {profile?.username?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-space-200">{profile?.username || 'Anonyme'}</p>
+                <p className="text-xs text-space-500">{dayjs(post.created_at).fromNow()}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onLike(post.id)}
+                className={clsx(
+                  'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                  liked
+                    ? 'text-red-400 bg-red-500/15 ring-1 ring-red-500/30'
+                    : 'text-space-400 bg-space-800 hover:text-red-400 hover:bg-red-500/10'
+                )}
+              >
+                <Heart className={clsx('w-4 h-4', liked && 'fill-current')} />
+                {post.likes_count > 0 ? post.likes_count : 'J\'aime'}
+              </button>
+
+              {isOwner && (
+                <button
+                  onClick={() => onDelete(post.id)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-space-500 bg-space-800 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Supprimer
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
