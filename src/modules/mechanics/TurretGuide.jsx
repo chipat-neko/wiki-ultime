@@ -5,6 +5,7 @@ import {
   Info, Lightbulb, Users, Eye, Radio, Gauge, Navigation,
   AlertTriangle, Star, Zap, Move, RotateCw,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Modes de tourelle
@@ -476,6 +477,9 @@ export default function TurretGuide() {
           Les informations sur les tourelles peuvent varier selon les mises à jour de Star Citizen. Guide basé sur Alpha 4.6.
         </p>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="tourelles" />
     </div>
   );
 }

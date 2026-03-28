@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import clsx from 'clsx';
-import { Gem, Globe, Filter, ChevronDown, ChevronUp, AlertTriangle, Leaf, Info, ShoppingCart, Wrench, FlaskConical, Zap, Package, Rocket, Calculator, MapPin, Star, Search, X } from 'lucide-react';
+import { Gem, Globe, Filter, ChevronDown, ChevronUp, AlertTriangle, Leaf, Info, ShoppingCart, Wrench, FlaskConical, Zap, Package, Rocket, Calculator, MapPin, Star, Search, X, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { useLiveMining } from '../../hooks/useLiveData.js';
 import {
   MINERALS,
   MINING_BODIES,
@@ -90,7 +91,7 @@ function DangerBadge({ danger }) {
 
 // ─── View: By Mineral ────────────────────────────────────────────────────────
 
-function MineralView({ systemFilter, methodFilter, rarityFilter, search }) {
+function MineralView({ systemFilter, methodFilter, rarityFilter, search, livePriceMap }) {
   const [selected, setSelected] = useState(null);
   const q = search?.toLowerCase() || '';
 
@@ -140,8 +141,17 @@ function MineralView({ systemFilter, methodFilter, rarityFilter, search }) {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <div className="text-sm font-bold text-yellow-400">{mineral.value.toFixed(2)} aUEC/u</div>
-                  <div className="text-xs text-slate-500">Valeur de base</div>
+                  {livePriceMap && livePriceMap[mineral.id] != null ? (
+                    <>
+                      <div className="text-sm font-bold text-cyan-400">{livePriceMap[mineral.id].toFixed(2)} aUEC/u</div>
+                      <div className="text-xs text-slate-500">Live — <span className="line-through">{mineral.value.toFixed(2)}</span></div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-sm font-bold text-yellow-400">{mineral.value.toFixed(2)} aUEC/u</div>
+                      <div className="text-xs text-slate-500">Valeur de base</div>
+                    </>
+                  )}
                 </div>
                 {isOpen
                   ? <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
@@ -1442,6 +1452,23 @@ export default function Mining() {
   const [methodFilter, setMethod] = useState('Tous');
   const [rarityFilter, setRarity] = useState('Tous');
   const [search, setSearch]       = useState('');
+  const [useLive, setUseLive]     = useState(false);
+
+  // ---- Données live UEX Corp ----
+  const { mining: liveMining, isLive, lastUpdated, loading: liveLoading, refresh } = useLiveMining();
+
+  // Build a map: mineral id → live price (aUEC/unit)
+  const livePriceMap = useMemo(() => {
+    if (!useLive || !isLive || !liveMining?.length) return null;
+    const map = {};
+    for (const item of liveMining) {
+      // UEX data uses commodity_name or name; try to match by lowercased id
+      const key = (item.commodity_slug || item.slug || item.commodity_name || item.name || '').toLowerCase().replace(/[\s-]+/g, '_');
+      const price = parseFloat(item.price_sell_avg || item.price_sell || item.price || 0);
+      if (key && price > 0) map[key] = price;
+    }
+    return Object.keys(map).length > 0 ? map : null;
+  }, [useLive, isLive, liveMining]);
 
   // Stats
   const totalBodies    = MINING_BODIES.length;
@@ -1462,6 +1489,43 @@ export default function Mining() {
           <p className="text-slate-400 mt-1 text-sm">
             Ressources minérales dans Stanton et Pyro — données Alpha 4.0
           </p>
+          {/* Live toggle + timestamp */}
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              onClick={() => {
+                if (!useLive) refresh();
+                setUseLive(v => !v);
+              }}
+              className={clsx(
+                'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all',
+                useLive && isLive
+                  ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                  : useLive && liveLoading
+                    ? 'bg-space-700 border-space-400/30 text-slate-400'
+                    : 'bg-space-700/50 border-space-400/20 text-slate-500 hover:border-space-300/40'
+              )}
+              title={isLive ? 'Prix minage en temps réel depuis UEX Corp' : 'Activer les prix live UEX Corp'}
+            >
+              {liveLoading && useLive ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : useLive && isLive ? (
+                <Wifi className="w-3.5 h-3.5" />
+              ) : (
+                <WifiOff className="w-3.5 h-3.5" />
+              )}
+              {useLive && isLive ? 'Prix Live' : 'Prix Statiques'}
+              {useLive && isLive && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500/20 text-green-400 font-bold uppercase tracking-wider">
+                  Live
+                </span>
+              )}
+            </button>
+            {useLive && isLive && lastUpdated && (
+              <span className="text-[11px] text-slate-500">
+                Dernière MAJ : {new Date(lastUpdated).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
         {/* Quick stats */}
         <div className="flex gap-3 flex-wrap">
@@ -1610,6 +1674,7 @@ export default function Mining() {
           methodFilter={methodFilter}
           rarityFilter={rarityFilter}
           search={search}
+          livePriceMap={livePriceMap}
         />
       )}
       {view === 'body' && (

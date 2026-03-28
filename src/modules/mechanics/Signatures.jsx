@@ -5,6 +5,7 @@ import {
   Eye, EyeOff, Search, Shield, Crosshair, Gauge, Info,
   Lightbulb, Radar, ScanLine, AlertTriangle, Settings,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ─── Données ─── */
 
@@ -587,6 +588,9 @@ export default function Signatures() {
       <div className="text-center text-xs text-slate-600 pt-4 border-t border-space-400/10">
         Données basées sur Star Citizen Alpha 4.6 — Les valeurs peuvent varier selon les mises à jour
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="signatures" />
     </div>
   );
 }

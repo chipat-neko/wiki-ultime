@@ -7,6 +7,7 @@ import {
   Heart, Star, Info, BookOpen, Calculator, Clock,
   Backpack, Wrench, Snowflake, Flame,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Types de grottes
@@ -608,6 +609,8 @@ export default function CaveMining() {
         </div>
       </section>
 
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="grottes" />
     </div>
   );
 }

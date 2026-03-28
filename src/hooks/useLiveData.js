@@ -2,10 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { COMMODITIES as LOCAL_COMMODITIES } from '../datasets/commodities.js';
 import { CacheManager } from '../core/CacheManager.js';
 
-const UEX_COMMODITIES_URL = 'https://uexcorp.space/api/2.0/commodities';
-const UEX_TERMINALS_URL   = 'https://uexcorp.space/api/2.0/terminals';
-const CACHE_KEY_COMM = 'uex:commodities:live';
-const CACHE_KEY_TERM = 'uex:terminals:live';
+const UEX_BASE = 'https://uexcorp.space/api/2.0';
+const UEX_COMMODITIES_URL = `${UEX_BASE}/commodities`;
+const UEX_TERMINALS_URL   = `${UEX_BASE}/terminals`;
+const UEX_VEHICLES_URL    = `${UEX_BASE}/vehicles`;
+const UEX_PURCHASES_URL   = `${UEX_BASE}/vehicles_purchases`;
+const UEX_RENTALS_URL     = `${UEX_BASE}/vehicles_rentals`;
+const UEX_COMPONENTS_URL  = `${UEX_BASE}/vehicle_components`;
+const UEX_MINING_URL      = `${UEX_BASE}/mining`;
+const UEX_REFINERIES_URL  = `${UEX_BASE}/refineries`;
+const UEX_ROUTES_URL      = `${UEX_BASE}/commodities_routes`;
+
+const CACHE_KEY_COMM   = 'uex:commodities:live';
+const CACHE_KEY_TERM   = 'uex:terminals:live';
+const CACHE_KEY_VEHI   = 'uex:vehicles:live';
+const CACHE_KEY_PURCH  = 'uex:purchases:live';
+const CACHE_KEY_RENT   = 'uex:rentals:live';
+const CACHE_KEY_COMP   = 'uex:components:live';
+const CACHE_KEY_MINE   = 'uex:mining:live';
+const CACHE_KEY_REFI   = 'uex:refineries:live';
+const CACHE_KEY_ROUTES = 'uex:routes:live';
+
 const TTL_PRICES = 5 * 60 * 1000;   // 5 min
 const TTL_STATIC = 60 * 60 * 1000;  // 1 h
 
@@ -175,4 +192,105 @@ export function useLiveTerminals() {
   useEffect(() => { load(); }, [load]);
 
   return { ...state, refresh: load };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Helper générique pour hooks UEX
+// ─────────────────────────────────────────────────────────────
+
+function useUexData(url, cacheKey, ttl, dataKey, fallback = []) {
+  const [state, setState] = useState({
+    [dataKey]: fallback,
+    isLive: false,
+    lastUpdated: null,
+    loading: true,
+    error: null,
+  });
+
+  const load = useCallback(async () => {
+    setState(prev => ({ ...prev, loading: true }));
+
+    const cached = CacheManager.get(cacheKey);
+    if (cached) {
+      setState({ [dataKey]: cached, isLive: true, lastUpdated: Date.now(), loading: false, error: null });
+      return;
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const json = await res.json();
+      const arr = Array.isArray(json) ? json : (json.data ?? []);
+
+      CacheManager.set(cacheKey, arr, ttl);
+      setState({ [dataKey]: arr, isLive: true, lastUpdated: Date.now(), loading: false, error: null });
+    } catch (err) {
+      setState({ [dataKey]: fallback, isLive: false, lastUpdated: Date.now(), loading: false, error: err.message });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, cacheKey, ttl, dataKey]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return { ...state, refresh: load };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — véhicules/vaisseaux live depuis UEX Corp
+// ─────────────────────────────────────────────────────────────
+
+export function useLiveVehicles() {
+  return useUexData(UEX_VEHICLES_URL, CACHE_KEY_VEHI, TTL_STATIC, 'vehicles');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — prix d'achat vaisseaux par location
+// ─────────────────────────────────────────────────────────────
+
+export function useLivePurchases() {
+  return useUexData(UEX_PURCHASES_URL, CACHE_KEY_PURCH, TTL_STATIC, 'purchases');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — prix de location vaisseaux par station
+// ─────────────────────────────────────────────────────────────
+
+export function useLiveRentals() {
+  return useUexData(UEX_RENTALS_URL, CACHE_KEY_RENT, TTL_STATIC, 'rentals');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — composants vaisseaux live depuis UEX Corp
+// ─────────────────────────────────────────────────────────────
+
+export function useLiveComponents() {
+  return useUexData(UEX_COMPONENTS_URL, CACHE_KEY_COMP, TTL_STATIC, 'components');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — données minage live depuis UEX Corp
+// ─────────────────────────────────────────────────────────────
+
+export function useLiveMining() {
+  return useUexData(UEX_MINING_URL, CACHE_KEY_MINE, TTL_PRICES, 'mining');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — données raffinerie live depuis UEX Corp
+// ─────────────────────────────────────────────────────────────
+
+export function useLiveRefineries() {
+  return useUexData(UEX_REFINERIES_URL, CACHE_KEY_REFI, TTL_PRICES, 'refineries');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hook — routes commerciales UEX Corp
+// ─────────────────────────────────────────────────────────────
+
+export function useLiveRoutes() {
+  return useUexData(UEX_ROUTES_URL, CACHE_KEY_ROUTES, TTL_PRICES, 'routes');
 }

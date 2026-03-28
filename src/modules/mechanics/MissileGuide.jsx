@@ -6,6 +6,7 @@ import {
   Crosshair, Clock, Eye, Gauge, Bomb, Star,
   Lightbulb, Volume2, CircleDot, Layers,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNEES — Types de missiles
@@ -638,6 +639,9 @@ export default function MissileGuide() {
           Les valeurs de degats et portees sont approximatives et peuvent varier selon les mises a jour de Star Citizen.
         </p>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="missiles" />
     </div>
   );
 }

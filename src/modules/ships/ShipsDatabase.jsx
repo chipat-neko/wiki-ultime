@@ -5,11 +5,13 @@ import { useShipImages } from '../../core/ShipImagesContext.jsx';
 import { resolveShipImage } from '../../services/ShipImageService.js';
 import { SHIPS, SHIP_MANUFACTURERS, SIZES } from '../../datasets/ships.js';
 import { formatCredits } from '../../utils/formatters.js';
+import { useLiveVehicles, useLivePurchases, useLiveRentals } from '../../hooks/useLiveData.js';
 import clsx from 'clsx';
 import {
   Rocket, Star, Plus, Eye, Search, Grid3X3, List,
   Users, Package, Shield, Zap, ArrowLeftRight,
   ChevronDown, ChevronUp, X, RotateCcw, ArrowUpDown,
+  Wifi, WifiOff, RefreshCw,
 } from 'lucide-react';
 import PatchBadge from '../../ui/components/PatchBadge.jsx';
 import { usePatchCategory } from '../../hooks/usePatchInfo.js';
@@ -138,7 +140,7 @@ function ShipImageBanner({ imageUrl, name, inGame }) {
 }
 
 // ─── ShipCard (vue grille) ────────────────────────────────────────────────────
-function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav, patchInfo }) {
+function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav, patchInfo, liveData }) {
   const cat = ROLE_CATEGORIES.find(c => c.key === ship.roleCategory);
   return (
     <div
@@ -196,24 +198,48 @@ function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav, patchInfo })
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 mt-auto border-t border-space-400/20">
-          <span className="text-xs font-bold text-gold-400">{formatCredits(ship.price, true)}</span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={e => { e.stopPropagation(); onAddToFleet(ship); }}
-              title="Ajouter à la flotte"
-              className="btn-secondary btn-sm py-0.5 px-1.5 text-xs"
-            >
-              <Plus className="w-3 h-3" />
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onView(ship); }}
-              title="Voir les détails"
-              className="btn-primary btn-sm py-0.5 px-1.5 text-xs"
-            >
-              <Eye className="w-3 h-3" />
-            </button>
+        <div className="flex flex-col gap-1.5 pt-2 mt-auto border-t border-space-400/20">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gold-400">{formatCredits(ship.price, true)}</span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={e => { e.stopPropagation(); onAddToFleet(ship); }}
+                title="Ajouter à la flotte"
+                className="btn-secondary btn-sm py-0.5 px-1.5 text-xs"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); onView(ship); }}
+                title="Voir les détails"
+                className="btn-primary btn-sm py-0.5 px-1.5 text-xs"
+              >
+                <Eye className="w-3 h-3" />
+              </button>
+            </div>
           </div>
+          {liveData && (liveData.purchases.length > 0 || liveData.rentals.length > 0) && (
+            <div className="space-y-0.5 text-[10px] leading-tight">
+              {liveData.purchases.length > 0 && (() => {
+                const best = liveData.purchases.reduce((a, b) => a.price < b.price ? a : b);
+                return (
+                  <div className="flex items-center gap-1 text-green-400">
+                    <Wifi className="w-2.5 h-2.5 flex-shrink-0" />
+                    <span className="truncate">Achat in-game : {formatCredits(best.price, true)} @ {best.location}</span>
+                  </div>
+                );
+              })()}
+              {liveData.rentals.length > 0 && (() => {
+                const best = liveData.rentals.reduce((a, b) => a.price < b.price ? a : b);
+                return (
+                  <div className="flex items-center gap-1 text-cyan-400">
+                    <Wifi className="w-2.5 h-2.5 flex-shrink-0" />
+                    <span className="truncate">Location : {formatCredits(best.price, true)}/jour @ {best.location}</span>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -221,7 +247,7 @@ function ShipCard({ ship, onView, onAddToFleet, isFav, onToggleFav, patchInfo })
 }
 
 // ─── TableRow (vue tableau) ───────────────────────────────────────────────────
-function TableRow({ ship, onView, onAddToFleet, isFav, onToggleFav }) {
+function TableRow({ ship, onView, onAddToFleet, isFav, onToggleFav, liveData }) {
   const cat = ROLE_CATEGORIES.find(c => c.key === ship.roleCategory);
   return (
     <tr
@@ -266,6 +292,26 @@ function TableRow({ ship, onView, onAddToFleet, isFav, onToggleFav }) {
       </td>
       <td className="px-3 py-2.5 text-right">
         <span className="text-sm font-medium text-gold-400">{formatCredits(ship.price, true)}</span>
+        {liveData && (liveData.purchases.length > 0 || liveData.rentals.length > 0) && (
+          <div className="space-y-0.5 mt-0.5">
+            {liveData.purchases.length > 0 && (() => {
+              const best = liveData.purchases.reduce((a, b) => a.price < b.price ? a : b);
+              return (
+                <div className="text-[10px] text-green-400 whitespace-nowrap">
+                  {formatCredits(best.price, true)} @ {best.location}
+                </div>
+              );
+            })()}
+            {liveData.rentals.length > 0 && (() => {
+              const best = liveData.rentals.reduce((a, b) => a.price < b.price ? a : b);
+              return (
+                <div className="text-[10px] text-cyan-400 whitespace-nowrap">
+                  Loc. {formatCredits(best.price, true)}/j @ {best.location}
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </td>
       <td className="px-3 py-2.5">
         <span className={`badge text-xs ${ship.inGame ? 'badge-green' : 'badge-yellow'}`}>
@@ -316,6 +362,53 @@ export default function ShipsDatabase() {
   const { addShipToFleet, notify } = useAppActions();
   const { favorites, addFavorite, removeFavorite } = useFavorites();
   const shipPatches = usePatchCategory('ships');
+
+  // ── Données live UEX ──────────────────────────────────────────────────────
+  const [useLive, setUseLive] = useState(false);
+  const { vehicles: liveVehicles, loading: loadingVehicles } = useLiveVehicles();
+  const { purchases: livePurchases, loading: loadingPurchases } = useLivePurchases();
+  const { rentals: liveRentals, loading: loadingRentals, refresh: refreshRentals, lastUpdated: liveLastUpdated } = useLiveRentals();
+
+  const liveLoading = loadingVehicles || loadingPurchases || loadingRentals;
+
+  const refreshAllLive = useCallback(() => {
+    // refreshRentals clears cache & refetches; we only expose one refresh button
+    refreshRentals();
+  }, [refreshRentals]);
+
+  // Map: ship name (lowercase) → { purchases: [...], rentals: [...] }
+  const liveDataMap = useMemo(() => {
+    if (!useLive) return {};
+    const map = {};
+
+    // Purchases: array of { vehicle_name, price_calculated, location_name, ... }
+    if (Array.isArray(livePurchases)) {
+      for (const p of livePurchases) {
+        const key = (p.vehicle_name || p.name || '').toLowerCase();
+        if (!key) continue;
+        if (!map[key]) map[key] = { purchases: [], rentals: [] };
+        map[key].purchases.push({
+          price: p.price_calculated ?? p.price ?? 0,
+          location: p.location_name ?? p.terminal_name ?? '?',
+        });
+      }
+    }
+
+    // Rentals: array of { vehicle_name, price_calculated, location_name, ... }
+    if (Array.isArray(liveRentals)) {
+      for (const r of liveRentals) {
+        const key = (r.vehicle_name || r.name || '').toLowerCase();
+        if (!key) continue;
+        if (!map[key]) map[key] = { purchases: [], rentals: [] };
+        map[key].rentals.push({
+          price: r.price_calculated ?? r.price ?? 0,
+          location: r.location_name ?? r.terminal_name ?? '?',
+        });
+      }
+    }
+
+    return map;
+  }, [useLive, livePurchases, liveRentals]);
 
   // Vue
   const [viewMode, setViewMode]       = useState('grid');
@@ -494,11 +587,53 @@ export default function ShipsDatabase() {
             {stats.inGame} en jeu · {stats.pledge} pledge only · {stats.total} total
           </p>
         </div>
-        <button onClick={() => navigate('/vaisseaux/comparer')} className="btn-secondary gap-2 flex-shrink-0">
-          <ArrowLeftRight className="w-4 h-4" />
-          Comparer
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={() => navigate('/vaisseaux/comparer')} className="btn-secondary gap-2">
+            <ArrowLeftRight className="w-4 h-4" />
+            Comparer
+          </button>
+
+          {/* Toggle UEX Live */}
+          <button
+            onClick={() => setUseLive(v => !v)}
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all',
+              useLive
+                ? 'bg-green-500/15 border-green-500/40 text-green-400'
+                : 'bg-space-700/50 border-space-400/20 text-slate-500 hover:text-slate-300 hover:border-space-300/30'
+            )}
+            title={useLive ? 'Données live UEX Corp actives' : 'Activer les prix live UEX Corp'}
+          >
+            {useLive ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
+            {useLive && <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />}
+            <span className="hidden sm:inline">{useLive ? 'LIVE' : 'UEX'}</span>
+          </button>
+
+          {useLive && (
+            <button
+              onClick={refreshAllLive}
+              className="p-2 rounded-lg bg-space-700/50 border border-space-400/20 text-slate-400 hover:text-cyan-400 transition-colors"
+              title="Rafraichir les donnees UEX"
+            >
+              <RefreshCw className={clsx('w-3.5 h-3.5', liveLoading && 'animate-spin')} />
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* ── Bandeau UEX Live info ────────────────────────────────────────────── */}
+      {useLive && (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-400">
+          <Wifi className="w-3 h-3 flex-shrink-0" />
+          <span>Donnees UEX Corp actives</span>
+          {liveLoading && <span className="text-slate-500">Chargement...</span>}
+          {!liveLoading && liveLastUpdated && (
+            <span className="text-slate-500 ml-auto">
+              MAJ {new Date(liveLastUpdated).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ── Cartes de stats ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -766,6 +901,7 @@ export default function ShipsDatabase() {
               isFav={isFav(ship)}
               onToggleFav={handleToggleFav}
               patchInfo={shipPatches[ship.id]}
+              liveData={useLive ? liveDataMap[ship.name.toLowerCase()] : null}
             />
           ))}
         </div>
@@ -796,6 +932,7 @@ export default function ShipsDatabase() {
                     onAddToFleet={handleAddToFleet}
                     isFav={isFav(ship)}
                     onToggleFav={handleToggleFav}
+                    liveData={useLive ? liveDataMap[ship.name.toLowerCase()] : null}
                   />
                 ))}
               </tbody>

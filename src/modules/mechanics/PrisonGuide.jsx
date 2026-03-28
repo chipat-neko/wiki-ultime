@@ -6,6 +6,7 @@ import {
   Pickaxe, Swords, Timer, Wind, Mountain, Map,
   Heart, Package, Star, Users, Skull, Flame,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Système Carcéral de Klescher
@@ -522,6 +523,9 @@ export default function PrisonGuide() {
           Donnees basees sur Star Citizen Alpha 4.6 — Les mecaniques de prison evoluent regulierement. Consultez les patch notes pour les changements recents.
         </p>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="prison" />
     </div>
   );
 }

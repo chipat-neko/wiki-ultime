@@ -4,7 +4,9 @@ import {
   FlaskConical, Gem, MapPin, ChevronUp, ChevronDown,
   Clock, TrendingUp, TrendingDown, Coins, Package,
   Star, Award, Zap, Info, BarChart3, Building2, Search, X,
+  Wifi, WifiOff, RefreshCw,
 } from 'lucide-react';
+import { useLiveRefineries } from '../../hooks/useLiveData.js';
 import {
   REFINERY_METHODS,
   REFINERY_METHODS_LIST,
@@ -645,6 +647,8 @@ function StationGuide() {
 export default function RefineryCalculator() {
   const [activeSection, setActiveSection] = useState('calculator');
   const [search, setSearch] = useState('');
+  const [useLive, setUseLive] = useState(false);
+  const { refineries: liveRefineries, isLive, lastUpdated, loading: liveLoading, error: liveError, refresh } = useLiveRefineries();
 
   const NAV = [
     { id: 'calculator',  label: 'Calculateur',         icon: FlaskConical },
@@ -657,7 +661,7 @@ export default function RefineryCalculator() {
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
       {/* Page header */}
       <div className="page-header">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
           <div className="w-10 h-10 rounded-xl bg-cyan-900/30 border border-cyan-700/40 flex items-center justify-center">
             <FlaskConical className="w-5 h-5 text-cyan-400" />
           </div>
@@ -668,7 +672,54 @@ export default function RefineryCalculator() {
             </p>
           </div>
         </div>
+
+        {/* Toggle Prix Live */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => {
+              if (!useLive) refresh();
+              setUseLive(v => !v);
+            }}
+            className={clsx(
+              'flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all',
+              useLive && isLive
+                ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                : useLive && liveLoading
+                  ? 'bg-space-700 border-space-400/30 text-slate-400'
+                  : 'bg-space-700/50 border-space-400/20 text-slate-500 hover:border-space-300/40'
+            )}
+            title={isLive ? 'Données raffinerie en temps réel depuis UEX Corp' : 'Activer les données live UEX Corp'}
+          >
+            {liveLoading && useLive ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            ) : useLive && isLive ? (
+              <Wifi className="w-3.5 h-3.5" />
+            ) : (
+              <WifiOff className="w-3.5 h-3.5" />
+            )}
+            {useLive && isLive ? 'Prix Live' : 'Prix Statiques'}
+            {useLive && isLive && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 uppercase tracking-wider">
+                LIVE
+              </span>
+            )}
+          </button>
+
+          {useLive && isLive && lastUpdated && (
+            <span className="text-[11px] text-slate-500">
+              Dernière MAJ : {new Date(lastUpdated).toLocaleTimeString('fr-FR')}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Alerte erreur live */}
+      {useLive && liveError && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm">
+          <Info className="w-4 h-4 flex-shrink-0" />
+          Impossible de charger les données live UEX Corp — fallback sur les données statiques.
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative mb-4">

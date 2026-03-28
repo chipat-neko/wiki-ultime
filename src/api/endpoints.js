@@ -30,9 +30,31 @@ export const UEXCORP = {
   MOONS: `${UEXCORP_BASE}/moons`,
   SPACE_STATIONS: `${UEXCORP_BASE}/space_stations`,
 
-  // Ships
+  // Ships / Vehicles
   SHIPS: `${UEXCORP_BASE}/ships`,
   SHIP: (id) => `${UEXCORP_BASE}/ships/${id}`,
+  VEHICLES: `${UEXCORP_BASE}/vehicles`,
+  VEHICLE: (id) => `${UEXCORP_BASE}/vehicles/${id}`,
+  VEHICLES_PURCHASES: `${UEXCORP_BASE}/vehicles_purchases`,
+  VEHICLES_RENTALS: `${UEXCORP_BASE}/vehicles_rentals`,
+
+  // Vehicle components
+  VEHICLE_COMPONENTS: `${UEXCORP_BASE}/vehicle_components`,
+
+  // Items (FPS weapons, armors, attachments)
+  ITEMS: `${UEXCORP_BASE}/items`,
+  ITEMS_WEAPONS: `${UEXCORP_BASE}/items_weapons`,
+  ITEMS_ARMORS: `${UEXCORP_BASE}/items_armors`,
+  ITEMS_ATTACHMENTS: `${UEXCORP_BASE}/items_attachments`,
+
+  // Mining
+  MINING: `${UEXCORP_BASE}/mining`,
+
+  // Refineries
+  REFINERIES: `${UEXCORP_BASE}/refineries`,
+
+  // Commodity routes
+  COMMODITIES_ROUTES: `${UEXCORP_BASE}/commodities_routes`,
 };
 
 export const ERKUL = {

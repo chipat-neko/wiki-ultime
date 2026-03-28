@@ -5,6 +5,8 @@ import { SearchEngine, SEARCH_INDICES } from '../../core/SearchEngine.js';
 import { debounce } from '../../utils/helpers.js';
 import { DEBOUNCE_SEARCH } from '../../utils/constants.js';
 import { useServerStatus } from '../../hooks/useServerStatus.js';
+import notificationManager from '../../core/NotificationManager.js';
+import NotificationPanel from './NotificationPanel.jsx';
 import clsx from 'clsx';
 import {
   Menu,
@@ -132,8 +134,20 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState({});
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const searchRef = useRef(null);
   const inputRef = useRef(null);
+  const bellRef = useRef(null);
+
+  // Poll unread count every 30s + subscribe to live changes
+  useEffect(() => {
+    const updateCount = () => setUnreadCount(notificationManager.getUnreadCount());
+    updateCount();
+    const unsub = notificationManager.subscribe(updateCount);
+    const interval = setInterval(updateCount, 30000);
+    return () => { unsub(); clearInterval(interval); };
+  }, []);
 
   // Debounced search
   const debouncedSearch = useRef(
@@ -293,12 +307,16 @@ export default function Header() {
       <div className="flex items-center gap-1 ml-auto">
         {/* Notifications */}
         <button
+          ref={bellRef}
+          onClick={() => setNotifPanelOpen(prev => !prev)}
           className="relative btn-ghost p-2"
           title="Notifications"
         >
           <Bell className="w-4.5 h-4.5" />
-          {ui.notifications.length > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-red-500 text-white rounded-full leading-none">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
           )}
         </button>
 
@@ -318,6 +336,8 @@ export default function Header() {
         {/* Server status — live depuis RSI API */}
         <ServerStatusBadge />
       </div>
+      {/* Notification panel */}
+      <NotificationPanel open={notifPanelOpen} onClose={() => setNotifPanelOpen(false)} />
     </header>
   );
 }

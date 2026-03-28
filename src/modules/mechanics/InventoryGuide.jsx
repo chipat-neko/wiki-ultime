@@ -5,6 +5,7 @@ import {
   Box, Shirt, Crosshair, Apple, Wrench, Gem, Backpack, Ship,
   Skull, Heart, Lightbulb, Coffee, Pill, Flame, BookOpen,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ─── Donn\ées ─── */
 
@@ -383,6 +384,8 @@ export default function InventoryGuide() {
         </div>
       </section>
 
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="inventaire" />
     </div>
   );
 }

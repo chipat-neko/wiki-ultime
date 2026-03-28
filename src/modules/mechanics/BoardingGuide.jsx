@@ -6,6 +6,7 @@ import {
   AlertTriangle, Star, Rocket, Package, Heart,
   Wrench, Move, Bomb, BookOpen, Layers, Info,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Méthodes d'abordage
@@ -450,6 +451,9 @@ export default function BoardingGuide() {
           bounty hunters. Pratiquez dans des zones lawless (Pyro) pour minimiser les conséquences.
         </p>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="abordage" />
     </div>
   );
 }

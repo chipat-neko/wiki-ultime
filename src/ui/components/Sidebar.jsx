@@ -45,9 +45,11 @@ import {
   PlusCircle,
   Heart,
   AlertTriangle,
+  Wind,
   FlaskConical,
   Camera,
   PenTool,
+  Map,
 } from 'lucide-react';
 
 const SIDEBAR_SECTIONS_KEY = 'sc_sidebar_sections';
@@ -75,6 +77,10 @@ const NAV_SECTIONS = [
       { path: '/assurance',         label: 'Assurance & Réclamation', icon: Shield,     isNew: true },
       { path: '/dps-calc',          label: 'Calculateur DPS',         icon: Zap,        isNew: true },
       { path: '/systemes-vaisseau', label: 'Systèmes Vaisseau',        icon: Cpu,        isNew: true },
+      { path: '/vaisseaux/tailles', label: 'Comparaison Tailles',     icon: ArrowLeftRight, isNew: true },
+      { path: '/vaisseaux/showcase', label: 'Showcase Vaisseau',      icon: Rocket,     isNew: true },
+      { path: '/vaisseaux/hardpoints', label: 'Schéma Hardpoints',   icon: Target,     isNew: true },
+      { path: '/dps-graphs',        label: 'DPS Graphs',              icon: Zap,        isNew: true },
     ],
   },
   {
@@ -85,6 +91,7 @@ const NAV_SECTIONS = [
       { path: '/missions/empilement',  label: "IA d'Empilement",       icon: Layers,       stackBadge: true },
       { path: '/missions/tracker',     label: 'Suivi Missions',        icon: ClipboardList },
       { path: '/missions/calculateur', label: 'Calculateur',           icon: Calculator    },
+      { path: '/missions/flowcharts', label: 'Flowcharts',            icon: Target,       isNew: true },
     ],
   },
   {
@@ -96,6 +103,9 @@ const NAV_SECTIONS = [
       { path: '/routes',              label: 'Optimiseur de Routes',    icon: Route      },
       { path: '/profits',             label: 'Comparateur Rentabilité', icon: TrendingUp, isNew: true },
       { path: '/commodites',          label: 'Suivi des Commodités',    icon: Package,    isNew: true },
+      { path: '/prix-historique',     label: 'Historique des Prix',     icon: TrendingUp, isNew: true },
+      { path: '/routes/multi-stop',   label: 'Route Multi-Stop',       icon: Route,      isNew: true },
+      { path: '/economie',           label: 'Événements Économie',     icon: Zap,        isNew: true },
     ],
   },
   {
@@ -105,6 +115,8 @@ const NAV_SECTIONS = [
       { path: '/systemes/planetes', label: 'Planètes & Lunes',    icon: Navigation },
       { path: '/systemes/stations', label: 'Stations & Villes',   icon: Building   },
       { path: '/locations',         label: 'Locations & POI',     icon: Mountain   },
+      { path: '/carte',             label: 'Carte Interactive',   icon: Map,        isNew: true },
+      { path: '/exploration',       label: 'Exploration & POI',   icon: Mountain,   isNew: true },
       { path: '/factions',          label: 'Factions',            icon: Shield     },
       { path: '/npcs',              label: 'PNJ & Marchands',     icon: Users,      isNew: true },
     ],
@@ -113,6 +125,7 @@ const NAV_SECTIONS = [
     title: 'Activités',
     items: [
       { path: '/minage',      label: 'Minage',              icon: Gem     },
+      { path: '/minage/routes', label: 'Routes de Minage',  icon: Gem,    isNew: true },
       { path: '/salvage',     label: 'Salvage',             icon: Recycle },
       { path: '/artisanat',   label: 'Artisanat (Wikelo)',   icon: Hammer },
       { path: '/crafting',    label: 'Crafting Avancé',     icon: Hammer, isNew: true },
@@ -152,6 +165,9 @@ const NAV_SECTIONS = [
       { path: '/abordage',            label: 'Abordage Vaisseau',    icon: Crosshair,      isNew: true },
       { path: '/groupe',              label: 'Gameplay en Groupe',   icon: Users,          isNew: true },
       { path: '/power-management',    label: 'Power Management',     icon: Zap,            isNew: true },
+      { path: '/medical-avance',      label: 'Système Médical',      icon: Heart,          isNew: true },
+      { path: '/stamina',             label: 'Stamina & Oxygène',    icon: Wind,           isNew: true },
+      { path: '/degradation',         label: 'Dégradation',          icon: Wrench,         isNew: true },
     ],
   },
   {
@@ -161,8 +177,12 @@ const NAV_SECTIONS = [
       { path: '/outils',      label: 'Outils de Jeu',  icon: Wrench   },
       { path: '/checklist',   label: 'Planificateur Session', icon: ClipboardList, isNew: true },
       { path: '/carburant',  label: 'Calculateur Carburant', icon: Zap,           isNew: true },
+      { path: '/ccu',        label: 'CCU Calculator',         icon: Calculator,    isNew: true },
+      { path: '/base-building', label: 'Base Building',       icon: Hammer,        isNew: true },
+      { path: '/overlay',    label: 'Mode Overlay',           icon: Layers,        isNew: true },
       { path: '/lore',        label: 'Galactapédie',   icon: BookOpen, isNew: true },
       { path: '/patchnotes',  label: 'Patchnotes',     icon: Bell,     isNew: true },
+      { path: '/tutoriel',   label: 'Tutoriel Débutant', icon: BookOpen,  isNew: true },
     ],
   },
   {
@@ -171,6 +191,7 @@ const NAV_SECTIONS = [
       { path: '/galerie',    label: 'Galerie',           icon: Camera,     isNew: true },
       { path: '/blog',       label: 'Blog',              icon: PenTool,    isNew: true },
       { path: '/builds',     label: 'Builds Partagés',   icon: Wrench,     isNew: true },
+      { path: '/classement', label: 'Classement',        icon: Award,      isNew: true },
       { path: '/favoris',    label: 'Favoris',           icon: Star        },
       { path: '/reputation', label: 'Réputation',        icon: Award       },
       { path: '/historique', label: 'Historique',        icon: Clock       },

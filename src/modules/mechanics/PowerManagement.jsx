@@ -6,6 +6,7 @@ import {
   AlertTriangle, Battery, Fan, Navigation, Radio, Settings,
   Power, Flame, BarChart3, Keyboard,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ═══════════════════════════════════════════════════════
    DONNÉES
@@ -609,6 +610,9 @@ export default function PowerManagement() {
           })}
         </div>
       </section>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="power-management" />
     </div>
   );
 }

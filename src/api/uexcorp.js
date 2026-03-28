@@ -108,6 +108,83 @@ class UexCorpApiClass {
   }
 
   /**
+   * Get all vehicles with full specs from UEX Corp.
+   */
+  async getVehicles() {
+    return CacheManager.getOrFetch(
+      'uex_vehicles',
+      () => ApiService.get(UEXCORP.VEHICLES),
+      TTL_STATIC
+    );
+  }
+
+  /**
+   * Get vehicle purchase locations and prices.
+   */
+  async getVehiclePurchases() {
+    return CacheManager.getOrFetch(
+      'uex_vehicles_purchases',
+      () => ApiService.get(UEXCORP.VEHICLES_PURCHASES),
+      TTL_STATIC
+    );
+  }
+
+  /**
+   * Get vehicle rental locations and prices.
+   */
+  async getVehicleRentals() {
+    return CacheManager.getOrFetch(
+      'uex_vehicles_rentals',
+      () => ApiService.get(UEXCORP.VEHICLES_RENTALS),
+      TTL_STATIC
+    );
+  }
+
+  /**
+   * Get vehicle components data.
+   */
+  async getVehicleComponents() {
+    return CacheManager.getOrFetch(
+      'uex_vehicle_components',
+      () => ApiService.get(UEXCORP.VEHICLE_COMPONENTS),
+      TTL_STATIC
+    );
+  }
+
+  /**
+   * Get mining data (minerals, locations, prices).
+   */
+  async getMining() {
+    return CacheManager.getOrFetch(
+      'uex_mining',
+      () => ApiService.get(UEXCORP.MINING),
+      TTL_PRICES
+    );
+  }
+
+  /**
+   * Get refinery data (jobs, yields, times).
+   */
+  async getRefineries() {
+    return CacheManager.getOrFetch(
+      'uex_refineries',
+      () => ApiService.get(UEXCORP.REFINERIES),
+      TTL_PRICES
+    );
+  }
+
+  /**
+   * Get commodity trade routes.
+   */
+  async getCommodityRoutes() {
+    return CacheManager.getOrFetch(
+      'uex_commodity_routes',
+      () => ApiService.get(UEXCORP.COMMODITIES_ROUTES),
+      TTL_PRICES
+    );
+  }
+
+  /**
    * Normalize UEX Corp commodity data to local format.
    * @param {object} uexCommodity - Raw UEX Corp commodity
    * @returns {object} Normalized commodity

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import './ui/styles/main.css';
+import { register } from './core/ServiceWorkerRegistration.js';
 
 // Initialize the application
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -14,3 +15,6 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+// Register Service Worker for PWA / offline support
+register();

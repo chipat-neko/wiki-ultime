@@ -11,8 +11,9 @@ import {
   Copy, Check, RotateCcw, ChevronDown, ChevronUp,
   X, Target, Wind, Gauge, AlertTriangle, Info,
   Star, Compass, Eye, EyeOff, Skull, Share2, Users,
-  Download, Upload, GitCompare,
+  Download, Upload, GitCompare, Wifi, RefreshCw,
 } from 'lucide-react';
+import { useLiveComponents } from '../../hooks/useLiveData.js';
 import { SHIPS } from '../../datasets/ships.js';
 import { supabase } from '../../lib/supabase.js';
 import ShareBuildModal from '../builds/ShareBuildModal.jsx';
@@ -860,6 +861,8 @@ export default function LoadoutBuilder() {
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [useLive, setUseLive] = useState(false);
+  const { components: liveComponents, isLive, lastUpdated: liveLastUpdated, loading: liveLoading, refresh: liveRefresh } = useLiveComponents();
 
   // Auth
   useEffect(() => {
@@ -1022,8 +1025,48 @@ export default function LoadoutBuilder() {
             <h1 className="page-title">Constructeur de Loadout</h1>
             <p className="page-subtitle">Configure les armes, systèmes et missiles de ton vaisseau — inspiré d'erkul.games</p>
           </div>
+          {/* Live toggle */}
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setUseLive(v => !v)}
+              className={clsx(
+                'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
+                useLive && isLive
+                  ? 'bg-green-500/15 border-green-500/30 text-green-400'
+                  : 'bg-space-800 border-space-400/20 text-slate-500 hover:text-slate-300'
+              )}
+            >
+              <Wifi className="w-3.5 h-3.5" />
+              {useLive && isLive ? 'LIVE' : 'Live Off'}
+            </button>
+            {useLive && (
+              <button
+                onClick={liveRefresh}
+                disabled={liveLoading}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-cyan-400 transition-colors"
+                title="Rafraîchir données UEX"
+              >
+                <RefreshCw className={clsx('w-3.5 h-3.5', liveLoading && 'animate-spin')} />
+              </button>
+            )}
+            {useLive && isLive && liveLastUpdated && (
+              <span className="text-[10px] text-slate-600 font-mono">
+                {new Date(liveLastUpdated).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Live banner */}
+      {useLive && isLive && liveComponents && (
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
+          <Wifi className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+          <span className="text-xs text-green-300">
+            Données composants UEX Corp — {Array.isArray(liveComponents) ? liveComponents.length : Object.keys(liveComponents).length} composants disponibles
+          </span>
+        </div>
+      )}
 
       {/* ── Tabs ── */}
       <div className="tabs w-fit">

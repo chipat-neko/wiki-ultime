@@ -6,6 +6,7 @@ import {
   Star, Zap, Heart, Eye, Lock, Flame, Award, Info,
   BookOpen, Layers, Box, Compass,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Types de Bunkers
@@ -624,6 +625,9 @@ export default function BunkerGuide() {
           })}
         </div>
       </section>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="bunkers" />
     </div>
   );
 }

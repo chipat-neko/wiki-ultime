@@ -6,6 +6,7 @@ import {
   Info, BookOpen, Clock, AlertTriangle, Crosshair, Navigation,
   Fuel, TrendingUp, Target, ArrowRightLeft, Search, X,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ─── Donn\ées ─── */
 
@@ -629,6 +630,9 @@ export default function MasterModes() {
           </button>
         </div>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="master-modes" />
     </div>
   );
 }

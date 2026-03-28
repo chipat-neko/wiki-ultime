@@ -7,6 +7,7 @@ import {
   Volume2, Navigation, UserPlus, Crown, Award, Rocket,
   Target, Heart, Eye, Zap,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Système de Groupe
@@ -487,6 +488,9 @@ export default function GroupGuide() {
           })}
         </div>
       </section>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="groupe" />
     </div>
   );
 }

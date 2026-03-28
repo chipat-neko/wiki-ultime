@@ -88,10 +88,29 @@ const CaveMining = React.lazy(() => import('./modules/mechanics/CaveMining.jsx')
 const BoardingGuide = React.lazy(() => import('./modules/mechanics/BoardingGuide.jsx'));
 const GroupGuide = React.lazy(() => import('./modules/mechanics/GroupGuide.jsx'));
 const PowerManagement = React.lazy(() => import('./modules/mechanics/PowerManagement.jsx'));
+const HealingGuide = React.lazy(() => import('./modules/mechanics/HealingGuide.jsx'));
+const StaminaGuide = React.lazy(() => import('./modules/mechanics/StaminaGuide.jsx'));
+const DegradationGuide = React.lazy(() => import('./modules/mechanics/DegradationGuide.jsx'));
 const SessionPlanner = React.lazy(() => import('./modules/tools/SessionPlanner.jsx'));
 const FuelCalculator = React.lazy(() => import('./modules/tools/FuelCalculator.jsx'));
 const Galactapedia = React.lazy(() => import('./modules/lore/Galactapedia.jsx'));
 const Patchnotes = React.lazy(() => import('./modules/patchnotes/Patchnotes.jsx'));
+const InteractiveMap = React.lazy(() => import('./modules/map/InteractiveMap.jsx'));
+const CCUCalculator = React.lazy(() => import('./modules/tools/CCUCalculator.jsx'));
+const PriceHistory = React.lazy(() => import('./modules/trade/PriceHistory.jsx'));
+const MissionFlowcharts = React.lazy(() => import('./modules/missions/MissionFlowcharts.jsx'));
+const MultiStopPlanner = React.lazy(() => import('./modules/route/MultiStopPlanner.jsx'));
+const MiningRoutePlanner = React.lazy(() => import('./modules/mining/MiningRoutePlanner.jsx'));
+const POIDiscovery = React.lazy(() => import('./modules/exploration/POIDiscovery.jsx'));
+const EconomyEvents = React.lazy(() => import('./modules/trade/EconomyEvents.jsx'));
+const Tutorial = React.lazy(() => import('./modules/tutorial/Tutorial.jsx'));
+const Leaderboard = React.lazy(() => import('./modules/community/Leaderboard.jsx'));
+const ShipSizeComparison = React.lazy(() => import('./modules/ships/ShipSizeComparison.jsx'));
+const ShipShowcase = React.lazy(() => import('./modules/ships/ShipShowcase.jsx'));
+const HardpointVisualizer = React.lazy(() => import('./modules/ships/HardpointVisualizer.jsx'));
+const DPSGraphs = React.lazy(() => import('./modules/ships/DPSGraphs.jsx'));
+const BaseBuildingPlanner = React.lazy(() => import('./modules/tools/BaseBuildingPlanner.jsx'));
+const OverlayMode = React.lazy(() => import('./modules/tools/OverlayMode.jsx'));
 const BlogList = React.lazy(() => import('./modules/blog/BlogList.jsx'));
 const BlogPostView = React.lazy(() => import('./modules/blog/BlogPost.jsx'));
 const SharedBuildsGallery = React.lazy(() => import('./modules/builds/SharedBuildsGallery.jsx'));
@@ -255,6 +274,9 @@ function App() {
             <Route path="/abordage" element={<BoardingGuide />} />
             <Route path="/groupe" element={<GroupGuide />} />
             <Route path="/power-management" element={<PowerManagement />} />
+            <Route path="/medical-avance" element={<HealingGuide />} />
+            <Route path="/stamina" element={<StaminaGuide />} />
+            <Route path="/degradation" element={<DegradationGuide />} />
 
             {/* Outils avancés */}
             <Route path="/checklist" element={<SessionPlanner />} />
@@ -262,6 +284,30 @@ function App() {
 
             {/* Galactapédie */}
             <Route path="/lore" element={<Galactapedia />} />
+
+            {/* Carte Interactive */}
+            <Route path="/carte" element={<InteractiveMap />} />
+
+            {/* Nouveaux modules Tier 6 */}
+            <Route path="/ccu" element={<CCUCalculator />} />
+            <Route path="/prix-historique" element={<PriceHistory />} />
+            <Route path="/missions/flowcharts" element={<MissionFlowcharts />} />
+            <Route path="/routes/multi-stop" element={<MultiStopPlanner />} />
+            <Route path="/minage/routes" element={<MiningRoutePlanner />} />
+            <Route path="/exploration" element={<POIDiscovery />} />
+            <Route path="/economie" element={<EconomyEvents />} />
+
+            {/* Tutoriel & Classement */}
+            <Route path="/tutoriel" element={<Tutorial />} />
+            <Route path="/classement" element={<Leaderboard />} />
+
+            {/* Tier 8 — Modules avancés */}
+            <Route path="/vaisseaux/tailles" element={<ShipSizeComparison />} />
+            <Route path="/vaisseaux/showcase" element={<ShipShowcase />} />
+            <Route path="/vaisseaux/hardpoints" element={<HardpointVisualizer />} />
+            <Route path="/dps-graphs" element={<DPSGraphs />} />
+            <Route path="/base-building" element={<BaseBuildingPlanner />} />
+            <Route path="/overlay" element={<OverlayMode />} />
 
             {/* Patchnotes */}
             <Route path="/patchnotes" element={<Patchnotes />} />

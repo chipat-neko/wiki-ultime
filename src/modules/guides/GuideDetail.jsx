@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GUIDES } from '../../datasets/guides.js';
 import { useFavorites } from '../../core/StateManager.jsx';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 import clsx from 'clsx';
 import {
   ArrowLeft, BookOpen, Clock, Star, ChevronRight,
@@ -214,6 +215,9 @@ export default function GuideDetail() {
           )}
         </div>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="guide" targetId={guide.id} />
     </div>
   );
 }

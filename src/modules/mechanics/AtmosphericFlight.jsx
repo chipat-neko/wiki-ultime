@@ -6,6 +6,7 @@ import {
   Thermometer, Mountain, Cloudy, Info, Lightbulb,
   Anchor, Crosshair, ArrowUp, Search, X,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ─── Données ─── */
 
@@ -691,6 +692,9 @@ export default function AtmosphericFlight() {
           })}
         </div>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="vol-atmospherique" />
     </div>
   );
 }

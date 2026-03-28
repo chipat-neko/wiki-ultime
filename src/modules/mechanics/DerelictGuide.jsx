@@ -6,6 +6,7 @@ import {
   Eye, Shield, Crosshair, Info, BookOpen, Layers,
   Wrench, Wind, Flashlight, Database, Gem, HardDrive,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Types d'épaves
@@ -582,6 +583,9 @@ export default function DerelictGuide() {
           })}
         </div>
       </section>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="epaves" />
     </div>
   );
 }

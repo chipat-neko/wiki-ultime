@@ -4,6 +4,7 @@ import { ChevronRight, Home } from 'lucide-react';
 import Sidebar from '../components/Sidebar.jsx';
 import Header from '../components/Header.jsx';
 import NotificationStack from '../components/NotificationStack.jsx';
+import OfflineBanner from '../components/OfflineBanner.jsx';
 import { useAppActions } from '../../core/StateManager.jsx';
 import { usePageTitle } from '../../hooks/usePageTitle.js';
 import { SearchEngine, SEARCH_INDICES, INDEX_CONFIGS } from '../../core/SearchEngine.js';
@@ -71,6 +72,25 @@ const ROUTE_LABELS = {
   '/abordage':              'Abordage de Vaisseau',
   '/groupe':                'Gameplay en Groupe',
   '/power-management':      'Power Management',
+  '/medical-avance':         'Système Médical',
+  '/stamina':                'Stamina & Oxygène',
+  '/degradation':            'Dégradation & Maintenance',
+  '/carte':                  'Carte Interactive',
+  '/ccu':                    'CCU Calculator',
+  '/prix-historique':        'Historique des Prix',
+  '/missions/flowcharts':    'Flowcharts Missions',
+  '/routes/multi-stop':      'Route Multi-Stop',
+  '/minage/routes':          'Routes de Minage',
+  '/exploration':            'Exploration & POI',
+  '/economie':               'Événements Économiques',
+  '/tutoriel':               'Tutoriel Interactif',
+  '/classement':             'Classement',
+  '/vaisseaux/tailles':      'Comparaison de Tailles',
+  '/vaisseaux/showcase':     'Showcase Vaisseau',
+  '/vaisseaux/hardpoints':   'Schéma Hardpoints',
+  '/dps-graphs':             'DPS Graphs',
+  '/base-building':          'Base Building',
+  '/overlay':                'Mode Overlay',
 };
 
 export default function MainLayout({ children }) {
@@ -325,6 +345,9 @@ export default function MainLayout({ children }) {
 
       {/* Notifications */}
       <NotificationStack />
+
+      {/* Offline indicator */}
+      <OfflineBanner />
     </div>
   );
 }

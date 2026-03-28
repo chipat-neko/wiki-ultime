@@ -5,6 +5,7 @@ import {
   Info, Zap, Target, DollarSign, BookOpen, Eye, Package, Navigation,
   TrendingUp, Skull, Lock, Star, Truck, Radio, Search, X,
 } from 'lucide-react';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DONNÉES — Marchandises illégales
@@ -795,6 +796,9 @@ export default function SmugglingGuide() {
           Le commerce illégal comporte des risques in-game significatifs. Bon contrebandage, citoyen !
         </p>
       </div>
+
+      {/* Commentaires */}
+      <CommentsSection targetType="mechanic" targetId="contrebande" />
     </div>
   );
 }

@@ -97,48 +97,47 @@ Actuellement on utilise seulement `/commodities` et `/game_versions`. Il reste *
 - ~~**Master Modes** (SCM/NAV/QT)~~ ✅ FAIT
 - **Quantum Travel détaillé** — fuel consumption par drive, calcul temps réel
 - **Points de saut Stanton↔Pyro** — procédure, risques, temps
-- **Atmospheric flight** — différences gravité par lune/planète
+- ~~**Atmospheric flight**~~ ✅ FAIT (`/vol-atmospherique`)
 
 ### Combat Avancé
 - ~~**Gestion des signatures** (IR/EM/CS)~~ ✅ FAIT
 - ~~**Countermeasures**~~ ✅ FAIT (inclus dans Missiles)
 - ~~**Missile gameplay**~~ ✅ FAIT
-- **Ship-to-ship boarding** — procédure, équipement nécessaire
-- **Tourelles** — modes (gyro/fixed/auto), efficacité
-- **Armistice zones** — carte des zones protégées
+- ~~**Ship-to-ship boarding**~~ ✅ FAIT (`/abordage`)
+- ~~**Tourelles**~~ ✅ FAIT (`/tourelles`)
+- ~~**Armistice zones**~~ ✅ FAIT (intégré dans StationsMap)
 
 ### Économie & Commerce
-- **Illegal commodities** — routes, risques, multiplicateurs
+- ~~**Illegal commodities**~~ ✅ FAIT (`/contrebande`)
 - **Dynamic economy events** — impacts sur les prix
 - **Cargo insurance** — coûts, conditions
-- **Smuggling routes** — passages sûrs, scanners à éviter
+- ~~**Smuggling routes**~~ ✅ FAIT (inclus dans `/contrebande`)
 
 ### Exploration
 - ~~**Scanning gameplay**~~ ✅ FAIT (inclus dans Signatures)
 - **Cartographie** — POI discovery, partage de données
-- **Cave mining/exploration** — locations, loot tables
-- **Derelict ships** — locations, loot, risques
+- ~~**Cave mining/exploration**~~ ✅ FAIT (`/grottes`)
+- ~~**Derelict ships**~~ ✅ FAIT (`/epaves`)
 - ~~**Bunker missions détaillées**~~ ✅ FAIT
-- **Atmospheric flight** ✅ FAIT
+- ~~**Atmospheric flight**~~ ✅ FAIT
 
 ### Systèmes de Personnage
 - ~~**Inventory management**~~ ✅ FAIT
-- **Healing/revive détaillé** — tiers médicaux, drogues, overdose
-- **Stamina/oxygen** — gestion, impacts armure
+- ~~**Healing/revive détaillé**~~ ✅ FAIT (`/medical-avance`)
+- ~~**Stamina/oxygen**~~ ✅ FAIT (`/stamina`)
 - ~~**Food/drink**~~ ✅ FAIT (inclus dans Inventaire)
 
 ### Systèmes Véhicule Avancés
-- **Overclock/underclock** — power management
-- **Component degradation** — usure, réparation
-- **Fuel management** — hydrogen vs quantum, consommation par manœuvre
+- ~~**Overclock/underclock**~~ ✅ FAIT (`/power-management`)
+- ~~**Component degradation**~~ ✅ FAIT (`/degradation`)
+- ~~**Fuel management**~~ ✅ FAIT (`/carburant`)
 - **Self-destruct** — timer, rayon, dégâts
 
 ### Gameplay Social
-- **Party system** — invitations, partage missions, voix
-- **Org gameplay** — gestion, permissions, hangar partagé
-- **Reputation system détaillé** — seuils, récompenses par palier
-- ~~**Prison gameplay**~~ ✅ FAIT
+- ~~**Party system**~~ ✅ FAIT (`/groupe`)
+- ~~**Org gameplay**~~ ✅ FAIT (inclus dans `/groupe`)
 - ~~**Reputation system détaillé**~~ ✅ FAIT (roadmap ajoutée à ReputationTracker)
+- ~~**Prison gameplay**~~ ✅ FAIT
 
 ---
 
@@ -214,9 +213,9 @@ Actuellement on utilise seulement `/commodities` et `/game_versions`. Il reste *
 ### Fonctionnalités sociales manquantes
 - ~~**Commentaires**~~ ✅ FAIT (CommentsSection réutilisable, intégré dans BlogPost)
 - **Système de vote** sur les guides/builds (qualité)
-- **Profils utilisateur enrichis** (avatar, bio, fleet publique)
+- ~~**Profils utilisateur enrichis**~~ ✅ FAIT (stats, bio, fleet, badges dans UserProfile)
 - **Partage sur Discord** (webhooks, embeds riches)
-- **Système de badges/achievements** (contributeur, explorateur, etc.)
+- ~~**Système de badges/achievements**~~ ✅ FAIT (8 badges dans UserProfile)
 
 ---
 
@@ -235,15 +234,46 @@ Actuellement on utilise seulement `/commodities` et `/game_versions`. Il reste *
 
 ---
 
-## 6. Prochaine Vague — Faisable en une session (par priorité)
+## 6. Prochaine Vague — Par priorité
 
 ### ~~Tiers 1-4~~ ✅ TOUT FAIT — voir ci-dessus
 
-### Prochains — Gros projets (sessions dédiées)
-| # | Feature | Détail | Effort |
-|---|---------|--------|--------|
-| 21 | **Carte interactive Leaflet** | Map 2D Stanton+Pyro avec POI cliquables | Nouveau module complet |
-| 22 | **CCU Calculator** | Chaînes d'upgrades pledge, prix dynamiques | Nouveau module + API |
-| 23 | **PWA + Service Worker** | Mode offline, installation mobile | Config + manifest |
-| 24 | **Historique des prix** | Graphiques tendance Recharts + données UEX | Nouveau composant + API |
-| 25 | **Mission flowcharts** | Arbres décision interactifs par type mission | Nouveau module |
+---
+
+### Tier 5 — FAIT (28 mars 2026)
+- [x] **Données vaisseaux live UEX** — toggle "LIVE" dans ShipsDatabase, prix achat/location par station via `/vehicles` + `/vehicles_purchases` + `/vehicles_rentals`
+- [x] **Données composants live UEX** — toggle "LIVE" dans LoadoutBuilder, `/vehicle_components` UEX Corp
+- [x] **Données minéraux live UEX** — toggle "Prix Live" dans Mining.jsx, prix temps réel via `/mining`
+- [x] **Routes commerce UEX** — toggle "Routes Live" dans RouteOptimizer, routes normalisées depuis `/commodities_routes`
+- [x] **Données raffinerie UEX** — toggle "Prix Live" dans RefineryCalculator via `/refineries`
+- [x] **Commentaires sur guides** — CommentsSection ajouté à GuideDetail + 17 pages mécaniques
+- [x] **Système de vote builds** — déjà implémenté (toggleBuildLike + tri populaire dans SharedBuildsGallery)
+- [x] **Healing/Revive détaillé** — `/medical-avance` — 3 tiers médicaux, 9 substances, équipement, triage, réanimation, hôpitaux
+- [x] **Stamina & Oxygène** — `/stamina` — endurance, O2, 4 tiers armure, 11 corps célestes, gestion thermique
+- [x] **Component degradation** — `/degradation` — usure 5 types composants, réparation, grades A-D, maintenance préventive
+
+### Tier 6 — FAIT (28 mars 2026)
+- [x] **Carte interactive Leaflet** — `/carte` — Map 2D Stanton (45 POI) + Pyro (20 POI), filtres, recherche, légende
+- [x] **CCU Calculator** — `/ccu` — 61 vaisseaux, chaîne Dijkstra, collection Warbond, budget planner
+- [x] **Historique des prix** — `/prix-historique` — Recharts LineChart/BarChart, alertes localStorage, stats
+- [x] **Mission flowcharts** — `/missions/flowcharts` — 6 types, arbres CSS, 8-12 nœuds chacun, chemin recommandé
+- [x] **Route multi-stop** — `/routes/multi-stop` — 2-6 stops, auto-optimisation, timeline, profit/SCU
+- [x] **Mining route planner** — `/minage/routes` — sélecteur minéral, route recommandée, comparaison, historique
+- [x] **Cartographie & POI** — `/exploration` — 51 POI, checklist explorateur, badges, filtres
+- [x] **Dynamic economy events** — `/economie` — 8 événements, matrice d'impact, simulateur, calendrier
+
+### Tier 7 — FAIT (28 mars 2026)
+- [x] **PWA + Service Worker** — `sw.js` cache-first/network-first, OfflineBanner, manifest enrichi, ServiceWorkerRegistration
+- [x] **Notifications in-app** — NotificationManager (localStorage, 100 max), NotificationPanel slide-out, badge cloche Header
+- [x] **Partage Discord** — DiscordShareModal + discordFormat.js, 4 types embed, copier/webhook, aperçu style Discord
+- [x] **Tutoriel interactif** — `/tutoriel` — 8 chapitres, quiz, progression localStorage, badge complétion
+- [x] **Classement/Leaderboard** — `/classement` — 3 onglets Supabase, podium, filtres temps, recherche, badges
+- [ ] ~~**API Publique**~~ — reporté (nécessite un backend dédié, hors scope frontend)
+
+### Tier 8 — FAIT (28 mars 2026)
+- [x] **Ship Showcase** — `/vaisseaux/showcase` — vue premium, radar SVG hexagonal, barres animées, analyse rôle
+- [x] **Size Comparison** — `/vaisseaux/tailles` — comparaison jusqu'à 5 vaisseaux, barres échelle, silhouettes, fun facts
+- [x] **Base Building Planner** — `/base-building` — grille 6×6, 20 modules, power balance, préréglages, save/load
+- [x] **DPS Graphs temps réel** — `/dps-graphs` — Recharts DPS vs distance/temps, comparaison 4 armes, TTK calculator
+- [x] **Overlay In-Game** — `/overlay` — mode compact 2e écran, 6 widgets, timer, notes, keybinds, fond noir
+- [x] **Hardpoint Visualizer** — `/vaisseaux/hardpoints` — schéma SVG top-down, 15 vaisseaux, hardpoints cliquables, DPS summary

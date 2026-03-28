@@ -13,11 +13,12 @@ import {
 import { findOptimalRoute, calcQTravelTime } from '../../utils/calculations.js';
 import { formatCredits, formatNumber, formatDuration } from '../../utils/formatters.js';
 import { generateId } from '../../utils/helpers.js';
+import { useLiveRoutes } from '../../hooks/useLiveData.js';
 import clsx from 'clsx';
 import {
   Route, ArrowRight, Plus, Trash2, Save, Zap, Clock, Package,
   TrendingUp, AlertTriangle, Globe, Flame, Shield, ChevronDown, ChevronUp,
-  Navigation, Star, Filter, MapPin, Search,
+  Navigation, Star, Filter, MapPin, Search, RefreshCw, Wifi,
 } from 'lucide-react';
 
 // ─── Données Jump Points & Distances inter-système ─────────────────────────
@@ -244,6 +245,11 @@ export default function RouteOptimizer() {
   const [legalOnlyFilter, setLegalOnlyFilter] = useState(false);
   const [avoidPyroFilter, setAvoidPyroFilter] = useState(false);
 
+  // Live UEX routes
+  const { routes: liveRoutes, isLive: liveAvailable, lastUpdated: liveUpdatedAt, loading: liveLoading, error: liveError, refresh: refreshLive } = useLiveRoutes();
+  const [useLive, setUseLive] = useState(false);
+  const showLive = useLive && liveAvailable && liveRoutes.length > 0;
+
   // ---- État onglet En Route ----
   const [enRouteFrom, setEnRouteFrom] = useState('');
   const [enRouteTo, setEnRouteTo] = useState('');
@@ -310,14 +316,37 @@ export default function RouteOptimizer() {
     [filterSystem],
   );
 
+  // Normalize live UEX routes to match TradeRouteCard format
+  const normalizedLiveRoutes = useMemo(() => {
+    if (!liveRoutes || liveRoutes.length === 0) return [];
+    return liveRoutes.map((r, i) => ({
+      id: `live-${r.id ?? i}`,
+      commodityName: r.commodity_name ?? r.name ?? 'Inconnu',
+      fromName: r.terminal_buy_name ?? r.origin_name ?? r.from ?? 'Inconnu',
+      toName: r.terminal_sell_name ?? r.destination_name ?? r.to ?? 'Inconnu',
+      buyPrice: r.price_buy ?? r.buy_price ?? 0,
+      sellPrice: r.price_sell ?? r.sell_price ?? 0,
+      profitPerSCU: (r.price_sell ?? r.sell_price ?? 0) - (r.price_buy ?? r.buy_price ?? 0),
+      profitPerRun: ((r.price_sell ?? r.sell_price ?? 0) - (r.price_buy ?? r.buy_price ?? 0)) * (r.scu ?? 100),
+      cargoRef: r.scu ?? 100,
+      risk: r.risk ?? 'Inconnu',
+      legal: r.is_illegal ? false : true,
+      distance: r.distance ?? '',
+      notes: r.notes ?? null,
+      _live: true,
+    }));
+  }, [liveRoutes]);
+
   const filteredTradeRoutes = useMemo(() => {
-    let routes = [...TOP_TRADE_ROUTES];
+    let routes = showLive ? [...normalizedLiveRoutes] : [...TOP_TRADE_ROUTES];
     if (legalOnlyFilter) routes = routes.filter(r => r.legal);
     if (avoidPyroFilter) routes = routes.filter(r =>
       !r.distance?.toLowerCase().includes('pyro')
     );
+    // Sort live routes by profit/SCU descending
+    if (showLive) routes.sort((a, b) => b.profitPerSCU - a.profitPerSCU);
     return routes;
-  }, [legalOnlyFilter, avoidPyroFilter]);
+  }, [legalOnlyFilter, avoidPyroFilter, showLive, normalizedLiveRoutes]);
 
   const addWaypoint = () => {
     if (!addStationId) return;
@@ -661,10 +690,56 @@ export default function RouteOptimizer() {
               <Flame className="w-3.5 h-3.5" />
               Éviter Pyro
             </button>
-            <span className="text-xs text-slate-500 ml-auto">
+
+            {/* Toggle Routes Live UEX */}
+            <button
+              onClick={() => setUseLive(!useLive)}
+              disabled={liveLoading}
+              className={clsx(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors',
+                useLive && liveAvailable
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                  : 'bg-space-700/50 border-space-400/20 text-slate-400',
+              )}
+            >
+              <Wifi className="w-3.5 h-3.5" />
+              {liveLoading ? 'Chargement...' : 'Routes Live'}
+              {showLive && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+                  LIVE
+                </span>
+              )}
+            </button>
+            {showLive && (
+              <button
+                onClick={refreshLive}
+                className="p-1.5 rounded-lg border border-space-400/20 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
+                title="Rafraichir les données live"
+              >
+                <RefreshCw className={clsx('w-3.5 h-3.5', liveLoading && 'animate-spin')} />
+              </button>
+            )}
+
+            <span className="text-xs text-slate-500 ml-auto flex items-center gap-2">
+              {showLive && liveUpdatedAt && (
+                <span className="text-emerald-400/70">
+                  Derniere MAJ: {new Date(liveUpdatedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
               {filteredTradeRoutes.length} route{filteredTradeRoutes.length !== 1 ? 's' : ''}
+              {showLive && <span className="text-emerald-400">(UEX Corp)</span>}
             </span>
           </div>
+
+          {/* Live error notice */}
+          {useLive && liveError && !liveAvailable && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-warning-500/5 border border-warning-500/20">
+              <AlertTriangle className="w-4 h-4 text-warning-400 flex-shrink-0" />
+              <p className="text-xs text-warning-300">
+                Impossible de charger les routes live UEX Corp ({liveError}). Affichage des routes statiques.
+              </p>
+            </div>
+          )}
 
           {/* Warning Pyro */}
           {!avoidPyroFilter && filteredTradeRoutes.some(r => r.distance?.toLowerCase().includes('pyro')) && (
