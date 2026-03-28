@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import {
   Users, Star, TrendingUp, TrendingDown, Save, RotateCcw,
   ChevronUp, ChevronDown, Info, Award, Lock, Unlock,
+  Shield, Target, Crosshair, Zap, Gift, Crown, Map, Truck, Pickaxe, Swords,
 } from 'lucide-react';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -304,6 +305,204 @@ export default function ReputationTracker() {
         </div>
         <p className="text-xs text-slate-600 mt-3">
           Source : données PTU 4.7. En 4.6, le rang 1 était "Applicant" (750 XP) — supprimé en 4.7.
+        </p>
+      </div>
+
+      {/* ── Roadmap de Réputation ─────────────────────────────────────────────── */}
+      <div className="card p-5">
+        <h2 className="section-title mb-1 flex items-center gap-2">
+          <Map className="w-4 h-4 text-cyan-400" />
+          Roadmap de Réputation
+        </h2>
+        <p className="text-xs text-slate-500 mb-5">
+          Progression des avantages par palier de réputation auprès de chaque type de faction.
+        </p>
+
+        <div className="space-y-3">
+          {[
+            { rang: 0, nom: 'Neutre',    desc: 'Accès basique, missions Tier 1 uniquement',                                          icon: Shield,    color: 'text-slate-400',   bg: 'bg-space-700/50',   border: 'border-slate-500/20',  bar: 'w-0'       },
+            { rang: 1, nom: 'Reconnu',    desc: 'Missions Tier 2 débloquées, meilleurs paiements (+20%)',                             icon: Target,    color: 'text-cyan-400',    bg: 'bg-cyan-500/10',    border: 'border-cyan-500/20',   bar: 'w-1/5'     },
+            { rang: 2, nom: 'Estimé',     desc: 'Missions Tier 3, accès équipement exclusif, +40% paiements',                         icon: Crosshair, color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20',   bar: 'w-2/5'     },
+            { rang: 3, nom: 'Respecté',   desc: 'Missions Tier 4, accès zones restreintes, +60% paiements',                           icon: Zap,       color: 'text-success-400', bg: 'bg-success-500/10', border: 'border-success-500/20',bar: 'w-3/5'     },
+            { rang: 4, nom: 'Honoré',     desc: 'Missions Tier 5, réductions marchands (-10%), +80% paiements',                       icon: Gift,      color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20',  bar: 'w-4/5'     },
+            { rang: 5, nom: 'Légende',    desc: 'Toutes missions débloquées, réductions max (-20%), titre exclusif',                  icon: Crown,     color: 'text-gold-400',    bg: 'bg-gold-500/10',    border: 'border-gold-500/20',   bar: 'w-full'    },
+          ].map((tier, idx, arr) => {
+            const Icon = tier.icon;
+            return (
+              <div key={tier.rang} className="relative">
+                {/* Connector line */}
+                {idx < arr.length - 1 && (
+                  <div className="absolute left-5 top-14 bottom-0 w-px bg-space-400/20 -mb-3 hidden sm:block" style={{ height: '12px' }} />
+                )}
+                <div className={clsx('p-4 rounded-xl border', tier.bg, tier.border)}>
+                  <div className="flex items-start gap-4">
+                    {/* Rang badge */}
+                    <div className={clsx('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-space-600/80')}>
+                      <Icon className={clsx('w-5 h-5', tier.color)} />
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={clsx('font-bold text-sm', tier.color)}>Rang {tier.rang}</span>
+                        <span className="text-slate-500">—</span>
+                        <span className={clsx('font-semibold text-sm', tier.color)}>{tier.nom}</span>
+                      </div>
+                      <p className="text-xs text-slate-400">{tier.desc}</p>
+                      {/* Progress bar */}
+                      <div className="mt-2 h-1.5 bg-space-600 rounded-full overflow-hidden">
+                        <div className={clsx('h-full rounded-full transition-all duration-500', tier.rang === 0 ? 'bg-slate-600' : 'bg-gradient-to-r from-cyan-500 to-gold-500', tier.bar)} />
+                      </div>
+                    </div>
+                    {/* Bonus badge */}
+                    {tier.rang > 0 && (
+                      <div className={clsx('text-xs font-bold px-2 py-1 rounded-lg flex-shrink-0', tier.bg, tier.color)}>
+                        +{tier.rang * 20}% aUEC
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Parcours de Grind Optimal ─────────────────────────────────────────── */}
+      <div className="card p-5">
+        <h2 className="section-title mb-1 flex items-center gap-2">
+          <Zap className="w-4 h-4 text-amber-400" />
+          Parcours de Grind Optimal
+        </h2>
+        <p className="text-xs text-slate-500 mb-4">
+          Les meilleurs circuits pour monter votre réputation rapidement selon la faction visée.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[
+            {
+              faction: 'Crusader Security',
+              icon: Shield,
+              color: '#06b6d4',
+              method: 'Chaîne de bunkers sur les lunes de Crusader',
+              repH: '3 000 – 5 000 rep/h',
+              tips: 'Enchaîner Yela → Cellin → Daymar. Prendre les contrats "Remove Illegal Occupants". Équipement lourd recommandé.',
+            },
+            {
+              faction: 'Hurston Security',
+              icon: Crosshair,
+              color: '#ef4444',
+              method: 'Chaîne de bunkers sur Hurston',
+              repH: '3 000 – 5 000 rep/h',
+              tips: 'Missions bunkers HDMS sur Aberdeen & Arial. Les ennemis sont bien équipés, armure lourde conseillée.',
+            },
+            {
+              faction: 'microTech Security',
+              icon: Target,
+              color: '#8b5cf6',
+              method: 'Bounties + patrouilles orbitales',
+              repH: '4 000 – 6 000 rep/h',
+              tips: 'Combiner primes VLRT/LRT autour de Clio et Calliope avec les missions de surveillance.',
+            },
+            {
+              faction: 'Bounty Hunters Guild',
+              icon: Swords,
+              color: '#f59e0b',
+              method: 'Chaîne de certifications bounty',
+              repH: '5 000 – 8 000 rep/h',
+              tips: 'Suivre la progression VLRT → LRT → MRT → HRT → VHRT → ERT. Chaque palier débloque le suivant.',
+            },
+            {
+              faction: 'Commerce (général)',
+              icon: Truck,
+              color: '#22c55e',
+              method: 'Trading volume — gain passif de réputation',
+              repH: 'Variable (passif)',
+              tips: 'Le trading haute valeur (Laranite, Agricium) génère de la rep auprès des factions locales. Routes longues = plus de rep.',
+            },
+            {
+              faction: 'Minage (Shubin)',
+              icon: Pickaxe,
+              color: '#64748b',
+              method: 'Contrats minage + vente minerais',
+              repH: '2 000 – 4 000 rep/h',
+              tips: 'Accepter les contrats de minage Shubin. Vendre du Quantanium à la raffinerie la plus proche pour un bonus de rep.',
+            },
+          ].map(path => {
+            const Icon = path.icon;
+            return (
+              <div key={path.faction} className="p-4 rounded-xl bg-space-700/30 border border-space-400/10 hover:border-space-400/25 transition-all">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${path.color}15`, border: `1px solid ${path.color}30` }}>
+                    <Icon className="w-4.5 h-4.5" style={{ color: path.color }} />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm text-slate-200">{path.faction}</div>
+                    <div className="text-xs font-medium" style={{ color: path.color }}>{path.repH}</div>
+                  </div>
+                </div>
+                <div className="text-xs text-slate-400 mb-2">
+                  <span className="text-slate-300 font-medium">Méthode :</span> {path.method}
+                </div>
+                <div className="text-xs text-slate-500 leading-relaxed p-2 rounded-lg bg-space-800/50">
+                  💡 {path.tips}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Récompenses par Faction ───────────────────────────────────────────── */}
+      <div className="card p-5">
+        <h2 className="section-title mb-1 flex items-center gap-2">
+          <Gift className="w-4 h-4 text-success-400" />
+          Récompenses par Faction (Réputation Max)
+        </h2>
+        <p className="text-xs text-slate-500 mb-4">
+          Récapitulatif des avantages débloqués au rang maximum pour chaque faction majeure.
+        </p>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-space-400/15">
+                <th className="text-left py-2.5 px-3 text-slate-500 font-medium text-xs">Faction</th>
+                <th className="text-left py-2.5 px-3 text-slate-500 font-medium text-xs">Missions Exclusives</th>
+                <th className="text-left py-2.5 px-3 text-slate-500 font-medium text-xs">Équipement / Accès</th>
+                <th className="text-left py-2.5 px-3 text-slate-500 font-medium text-xs">Bonus Financier</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-space-400/10">
+              {[
+                { faction: 'Crusader Industries', color: '#06b6d4', missions: 'Défense planétaire, Escort VIP', equip: 'Vaisseaux Crusader à prix réduit, Hangar Orison', bonus: '-10% vaisseaux, +80% paiements missions' },
+                { faction: 'Hurston Dynamics',    color: '#ef4444', missions: 'Opérations spéciales HDMS, Raids',   equip: 'Armes HD exclusives, Accès installations HDMS', bonus: 'Armes premium, +80% paiements' },
+                { faction: 'microTech',           color: '#8b5cf6', missions: 'Recherche avancée, Récupération données', equip: 'Composants mT haut de gamme, Accès Labs', bonus: 'Composants -10%, +80% paiements' },
+                { faction: 'ArcCorp',             color: '#f59e0b', missions: 'Contrats industriels, Sécurité corporative', equip: 'Composants ArcCorp exclusifs, Zones Area18', bonus: 'Réductions magasins, +80% paiements' },
+                { faction: 'Shubin Interstellar', color: '#22c55e', missions: 'Minage zones riches, Extraction dangereuse', equip: 'Zones minage exclusives, Véhicules ROC+', bonus: 'Vente minerais +15%, +80% paiements' },
+                { faction: 'Bounty Hunters Guild',color: '#f59e0b', missions: 'Primes ERT, Cibles HVT, Assassinats',      equip: 'Équipement traqueur, Accès bases sécurisées', bonus: 'Primes doublées, +80% paiements' },
+                { faction: 'Covalex Shipping',    color: '#64748b', missions: 'Livraisons haute valeur, Fret critique',    equip: 'Entrepôts Covalex, Priorité chargement', bonus: '+15% livraisons, +80% paiements' },
+                { faction: 'Nine Tails',          color: '#dc2626', missions: 'Contrebande, Raids illégaux, Piraterie',    equip: 'GrimHEX services complets, Armement marché noir', bonus: 'Vente illégale +20%, pas de Crimestat réduit' },
+                { faction: 'Advocacy (UEE)',       color: '#3b82f6', missions: 'Primes T3+, Opérations spéciales UEE',     equip: 'Équipement UEE avancé, Badge Advocacy', bonus: 'Primes majeures, +80% paiements' },
+              ].map(row => (
+                <tr key={row.faction} className="hover:bg-space-700/30 transition-colors">
+                  <td className="py-2.5 px-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: row.color }} />
+                      <span className="font-medium text-slate-200 text-xs">{row.faction}</span>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-xs text-slate-400">{row.missions}</td>
+                  <td className="py-2.5 px-3 text-xs text-slate-400">{row.equip}</td>
+                  <td className="py-2.5 px-3 text-xs text-cyan-400 font-medium">{row.bonus}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-xs text-slate-600 mt-4">
+          Les récompenses sont basées sur les données Alpha 4.6. Les valeurs exactes peuvent varier selon les mises à jour de CIG.
+          Le système de réputation est en développement actif et sujet à des modifications fréquentes.
         </p>
       </div>
     </div>

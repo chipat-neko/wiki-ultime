@@ -4,7 +4,7 @@ import {
   Building, MapPin, Shield, ShoppingBag, Wrench, Filter, AlertTriangle,
   ChevronDown, ChevronRight, Anchor, Zap, Package, RefreshCw, Star,
   Search, Globe, Lock, BarChart3, CheckCircle, XCircle, Users,
-  Crosshair, Heart, Fuel, Sword,
+  Crosshair, Heart, Fuel, Sword, ShieldCheck, ShieldAlert, ShieldOff, Info,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -29,6 +29,38 @@ const SERVICE_COLORS = {
   'Missions': 'badge-purple', 'Raffinerie': 'badge-yellow', 'Spawn': 'badge-green',
   'Hôpital': 'badge-green', 'Commerce Illégal': 'badge-red', 'Missions Criminelles': 'badge-red',
   'Armurerie': 'badge-orange', 'Effacement de Casier': 'badge-red', 'Distillation': 'badge-slate',
+};
+
+// ─── Zones d'Armistice ───────────────────────────────────────────────────────
+// 'green' = Zone Verte (armes désactivées, safe zone)
+// 'yellow' = Zone Armistice standard (armes rangées, pas de dégâts)
+// 'red' = Pas d'armistice (PvP actif)
+const ARMISTICE_MAP = {
+  // Villes principales — Zone Verte complète
+  'lorville': 'green', 'area18': 'green', 'orison': 'green', 'new-babbage': 'green',
+  // Stations orbitales principales — Zone Verte
+  'port-tressler': 'green',
+  // Stations de Lagrange Stanton — Zone Armistice standard
+  'cru-l1': 'yellow', 'hur-l1': 'yellow', 'hur-l2': 'yellow', 'arc-l1': 'yellow', 'mic-l1': 'yellow',
+  'hur-l3': 'yellow', 'hur-l4': 'yellow', 'hur-l5': 'yellow',
+  'arc-l2': 'yellow', 'arc-l3': 'yellow', 'arc-l4': 'yellow', 'arc-l5': 'yellow',
+  'cru-l2': 'yellow', 'cru-l3': 'yellow', 'cru-l4': 'yellow', 'cru-l5': 'yellow',
+  'mic-l2': 'yellow', 'mic-l3': 'yellow', 'mic-l4': 'yellow', 'mic-l5': 'yellow',
+  // Prison — Zone spéciale
+  'klescher': 'yellow',
+  // Pas d'armistice — PvP actif
+  'grimhex': 'red', 'pyrochem': 'red',
+  'ruin-station': 'red', 'checkmate': 'red', 'orbituary': 'red',
+  'starlight-service': 'red', 'patch-city': 'red', 'gaslight': 'red',
+  'rods-fuel': 'red', 'rats-nest': 'red', 'endgame': 'red',
+  'dudley-daughters': 'red', 'megumi-refueling': 'red',
+  'windfall': 'red', 'rustville': 'red', 'yangs-place': 'red',
+  'pirate-outpost-pyro1': 'red', 'jumptown-yela': 'red', 'levski': 'red',
+};
+const ARMISTICE_META = {
+  green:  { label: 'Zone Verte',     badge: 'badge-green',  color: 'text-success-400', icon: ShieldCheck, desc: 'Armes désactivées, pas de combat, safe zone. Stations principales, villes.' },
+  yellow: { label: 'Zone Armistice', badge: 'badge-yellow', color: 'text-warning-400', icon: ShieldAlert, desc: 'Armes rangées automatiquement, pas de dégâts. La plupart des stations orbitales.' },
+  red:    { label: 'Zone de Combat', badge: 'badge-red',    color: 'text-danger-400',  icon: ShieldOff,   desc: 'PvP actif, armes autorisées. GrimHEX, Pyro, certains avant-postes.' },
 };
 
 // ─── Définition des services à trouver ────────────────────────────────────────
@@ -122,10 +154,12 @@ function utilityScore(station) {
 
 // ─── Station Card ─────────────────────────────────────────────────────────────
 
-function StationCard({ station }) {
+function StationCard({ station, showArmistice = false }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = TYPE_ICONS[station.type] || Building;
   const secKey = Object.keys(SECURITY_COLOR).find(k => station.security?.startsWith(k));
+  const armisticeZone = ARMISTICE_MAP[station.id];
+  const armisticeInfo = armisticeZone ? ARMISTICE_META[armisticeZone] : null;
 
   return (
     <div className={clsx('card overflow-hidden transition-all', !station.legal && 'border-danger-500/15')}>
@@ -143,6 +177,9 @@ function StationCard({ station }) {
             {station.hasRefinery && <span className="badge badge-yellow text-xs">Raffinerie</span>}
             {station.illegalGoods && <span className="badge badge-red text-xs">Marché Noir</span>}
             {!station.legal && <span className="badge badge-red text-xs">Zone Criminelle</span>}
+            {showArmistice && armisticeInfo && (
+              <span className={clsx('badge text-xs', armisticeInfo.badge)}>{armisticeInfo.label}</span>
+            )}
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
             <span className={SYSTEM_COLORS[station.system]}>{station.system}</span>
@@ -242,6 +279,12 @@ function StationCard({ station }) {
                 <div className={clsx('text-xs mt-1', station.legal ? 'text-success-400' : 'text-danger-400')}>
                   {station.legal ? '✓ Zone Légale' : '✗ Zone Criminelle'}
                 </div>
+                {armisticeInfo && (
+                  <div className={clsx('flex items-center gap-1.5 text-xs mt-1.5', armisticeInfo.color)}>
+                    <armisticeInfo.icon className="w-3 h-3" />
+                    {armisticeInfo.label}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -422,6 +465,7 @@ const COMPARE_FEATURES = [
   { key: 'hasSpawnPoint', label: 'Spawn',      render: s => s.hasSpawnPoint ? '✓ Oui' : '✗ Non', colorFn: s => s.hasSpawnPoint ? 'text-success-400' : 'text-slate-500' },
   { key: 'hasRefinery',   label: 'Raffinerie', render: s => s.hasRefinery ? '✓ Oui' : '✗ Non', colorFn: s => s.hasRefinery ? 'text-warning-400' : 'text-slate-500' },
   { key: 'illegalGoods',  label: 'Marché Noir', render: s => s.illegalGoods ? '⚠ Oui' : '— Non', colorFn: s => s.illegalGoods ? 'text-danger-400' : 'text-slate-500' },
+  { key: 'armistice',     label: 'Zone Armistice', render: s => { const z = ARMISTICE_MAP[s.id]; return z ? ARMISTICE_META[z].label : '— Inconnue'; }, colorFn: s => { const z = ARMISTICE_MAP[s.id]; return z ? ARMISTICE_META[z].color : 'text-slate-500'; } },
 ];
 
 function StationComparator() {
@@ -678,6 +722,7 @@ export default function StationsMap() {
   const [filterRefinery, setFilterRefinery] = useState(false);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('cards');
+  const [showArmistice, setShowArmistice] = useState(false);
 
   const filtered = useMemo(() => STATIONS.filter(s => {
     if (filterSystem && s.system !== filterSystem) return false;
@@ -776,6 +821,10 @@ export default function StationsMap() {
               <input type="checkbox" checked={filterRefinery} onChange={e => setFilterRefinery(e.target.checked)} className="accent-cyan-500" />
               Raffinerie
             </label>
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-400">
+              <input type="checkbox" checked={showArmistice} onChange={e => setShowArmistice(e.target.checked)} className="accent-cyan-500" />
+              Zones d'Armistice
+            </label>
             <div className="ml-auto flex gap-1">
               {[['cards', 'Cartes'], ['grouped', 'Par Système']].map(([m, l]) => (
                 <button key={m} onClick={() => setViewMode(m)} className={clsx('px-3 py-1.5 rounded-lg text-xs transition-all', viewMode === m ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-slate-200 bg-space-700/50')}>
@@ -798,6 +847,34 @@ export default function StationsMap() {
             ))}
           </div>
 
+          {/* Légende Zones d'Armistice */}
+          {showArmistice && (
+            <div className="card p-4 border border-space-400/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Info className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-semibold text-slate-200">Zones d'Armistice — Légende</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {Object.entries(ARMISTICE_META).map(([key, meta]) => {
+                  const AIcon = meta.icon;
+                  const count = STATIONS.filter(s => ARMISTICE_MAP[s.id] === key).length;
+                  return (
+                    <div key={key} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-space-700/20">
+                      <AIcon className={clsx('w-5 h-5 flex-shrink-0 mt-0.5', meta.color)} />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={clsx('text-sm font-medium', meta.color)}>{meta.label}</span>
+                          <span className="text-xs text-slate-600">{count} stations</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">{meta.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {filtered.length === 0 ? (
             <div className="card p-12 text-center">
               <MapPin className="w-10 h-10 text-slate-600 mx-auto mb-3" />
@@ -812,12 +889,12 @@ export default function StationsMap() {
                     <span className={clsx('font-semibold', SYSTEM_COLORS[sys])}>{sys}</span>
                     <span className="text-slate-500 text-sm">— {stations.length} emplacement{stations.length > 1 ? 's' : ''}</span>
                   </div>
-                  <div className="space-y-2">{stations.map(s => <StationCard key={s.id} station={s} />)}</div>
+                  <div className="space-y-2">{stations.map(s => <StationCard key={s.id} station={s} showArmistice={showArmistice} />)}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="space-y-2">{filtered.map(s => <StationCard key={s.id} station={s} />)}</div>
+            <div className="space-y-2">{filtered.map(s => <StationCard key={s.id} station={s} showArmistice={showArmistice} />)}</div>
           )}
         </>
       )}

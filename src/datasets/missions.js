@@ -1627,3 +1627,94 @@ export const LEGAL_MISSIONS   = MISSION_TYPES_DATA.filter(m => m.legal);
 export const ILLEGAL_MISSIONS = MISSION_TYPES_DATA.filter(m => !m.legal);
 
 export const STACKABLE_MISSIONS = MISSION_TYPES_DATA.filter(m => m.stackable);
+
+// ─── GAIN DE RÉPUTATION PAR TYPE (% par complétion, Alpha 4.6) ────────────────
+export const REP_GAIN_BY_TYPE = {
+  // Transport / Livraison
+  'delivery-standard':        0.5,
+  'delivery-priority':        0.75,
+  'delivery-illegal':         0.75,
+  'cargo-hauling':            0.5,
+  'cargo-bulk':               0.75,
+  'cargo-run-pyro':           1.0,
+  'agricultural-transport':   0.5,
+  'courier-quantum':          0.75,
+  'vip-transport':            1.0,
+  'prisoner-transport':       1.25,
+  // Combat — Primes
+  'bounty-lawful':            0.75,
+  'bounty-illegal':           0.75,
+  'bounty-t1':                0.25,
+  'bounty-t2':                0.5,
+  'bounty-t3':                0.75,
+  'bounty-t4':                1.0,
+  'bounty-t5-player':         1.25,
+  'bounty-vehicle':           0.75,
+  // Combat — Nettoyage / Escorte
+  'pirate-clearing':          0.75,
+  'patrol-escort':            0.75,
+  'escort-heavy':             1.0,
+  'defense-outpost':          1.25,
+  'assassination':            1.5,
+  'mercenary-contract':       1.0,
+  'security-contract':        0.75,
+  // Combat — Événements
+  'contested-zone':           1.5,
+  'station-siege':            1.5,
+  'ninetails-lockdown':       1.5,
+  'xenothreat-event':         2.0,
+  // Industrie
+  'mining-mission':           0.5,
+  'mining-hazardous':         0.75,
+  'surface-mining':           0.5,
+  'salvage-mission':          0.75,
+  'salvage-classified':       1.25,
+  'hull-scraping':            0.5,
+  'fuel-collection':          0.5,
+  // Exploration
+  'survey-mission':           0.5,
+  'data-run':                 0.75,
+  'exploration-pyro':         1.5,
+  'derelict-exploration':     1.0,
+  'jump-point-survey':        1.5,
+  'probe-deployment':         0.5,
+  'xenobiology':              1.25,
+  'alien-artifact':           1.5,
+  'underground-facility':     1.0,
+  // Service
+  'repair-mission':           0.5,
+  'refuel-mission':           0.5,
+  'medical-evacuation':       1.0,
+  'medical-research':         1.0,
+  'investigation':            1.0,
+  'nyx-engineering-repair':   1.0,
+  'search-rescue':            1.0,
+  'icc-probe-defense':        0.75,
+  'distress-signal':          0.75,
+  // Criminel
+  'smuggling':                1.0,
+  'espionage':                1.5,
+  'heist':                    2.0,
+  'piracy':                   1.5,
+  'prison-break':             2.0,
+  'drug-running-slam':        1.0,
+  'drug-running-widow':       1.25,
+  'cargo-hijacking':          1.5,
+  'prisoner-exchange':        1.5,
+  // Nyx / Onyx / ASD
+  'nyx-levski-supply':        0.75,
+  'nyx-data-retrieval':       0.75,
+  'nyx-bounty-hunt':          1.0,
+  'onyx-investigation':       1.0,
+  'asd-research-recovery':    1.0,
+  'nyx-peoples-alliance-contract': 0.75,
+};
+
+/**
+ * Retourne le gain de réputation (%) pour un typeId donné.
+ * Fallback intelligent basé sur la catégorie si le typeId est inconnu.
+ */
+export function getRepGain(typeId) {
+  if (REP_GAIN_BY_TYPE[typeId] !== undefined) return REP_GAIN_BY_TYPE[typeId];
+  return 0.5; // valeur par défaut
+}

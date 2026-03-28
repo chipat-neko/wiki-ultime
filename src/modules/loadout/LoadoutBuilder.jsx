@@ -11,10 +11,12 @@ import {
   Copy, Check, RotateCcw, ChevronDown, ChevronUp,
   X, Target, Wind, Gauge, AlertTriangle, Info,
   Star, Compass, Eye, EyeOff, Skull, Share2, Users,
+  Download, Upload, GitCompare,
 } from 'lucide-react';
 import { SHIPS } from '../../datasets/ships.js';
 import { supabase } from '../../lib/supabase.js';
 import ShareBuildModal from '../builds/ShareBuildModal.jsx';
+import LoadoutComparator from './LoadoutComparator.jsx';
 import { SHIP_WEAPONS } from '../../datasets/shipweapons.js';
 import { POWER_PLANTS, SHIELDS, QUANTUM_DRIVES, COOLERS, MISSILES } from '../../datasets/shipcomponents.js';
 import {
@@ -35,9 +37,10 @@ import {
 // CONSTANTES
 // ─────────────────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'builder', label: 'Constructeur', icon: Crosshair },
-  { id: 'meta',    label: 'Builds Méta',  icon: Star },
-  { id: 'community', label: 'Communauté', icon: Users },
+  { id: 'builder',  label: 'Constructeur', icon: Crosshair },
+  { id: 'meta',     label: 'Builds Méta',  icon: Star },
+  { id: 'compare',  label: 'Comparer',     icon: GitCompare },
+  { id: 'community', label: 'Communauté',  icon: Users },
 ];
 
 const META_ICONS = {
@@ -937,6 +940,57 @@ export default function LoadoutBuilder() {
     setLoadout(EMPTY_LOADOUT);
   }, []);
 
+  const handleExportJSON = useCallback(() => {
+    const data = {
+      type: 'ship',
+      shipId: selectedShipId,
+      weapons: loadout.weapons,
+      missiles: loadout.missiles,
+      systems: loadout.systems,
+      exportedAt: new Date().toISOString(),
+      version: '1.0',
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const shipName = SHIPS.find(s => s.id === selectedShipId)?.name || 'loadout';
+    a.download = `loadout-${shipName.replace(/\s+/g, '-').toLowerCase()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [selectedShipId, loadout]);
+
+  const handleImportJSON = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (data.type !== 'ship' || !data.version) {
+          alert('Fichier JSON invalide : format de loadout vaisseau non reconnu.');
+          return;
+        }
+        if (data.shipId) setSelectedShipId(data.shipId);
+        setLoadout({
+          weapons: data.weapons || {},
+          missiles: data.missiles || {},
+          systems: {
+            pp: data.systems?.pp || null,
+            shield: data.systems?.shield || null,
+            cooler1: data.systems?.cooler1 || null,
+            cooler2: data.systems?.cooler2 || null,
+            qt: data.systems?.qt || null,
+          },
+        });
+      } catch {
+        alert('Impossible de lire le fichier JSON.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, []);
+
   const handleLoadMeta = useCallback((cfg) => {
     setSelectedShipId(cfg.shipId);
     setLoadout({
@@ -993,6 +1047,11 @@ export default function LoadoutBuilder() {
         <MetaBuildsTab onLoad={handleLoadMeta} />
       )}
 
+      {/* ── Onglet Comparer ── */}
+      {activeTab === 'compare' && (
+        <LoadoutComparator selectedShipId={selectedShipId} />
+      )}
+
       {/* ── Onglet Communauté ── */}
       {activeTab === 'community' && (
         <SharedBuildsEmbed type="ship" />
@@ -1009,6 +1068,15 @@ export default function LoadoutBuilder() {
                 Partager
               </button>
             )}
+            <button onClick={handleExportJSON} className="btn btn-ghost btn-sm gap-1.5 text-emerald-400">
+              <Download className="w-3.5 h-3.5" />
+              Exporter
+            </button>
+            <label className="btn btn-ghost btn-sm gap-1.5 text-amber-400 cursor-pointer">
+              <Upload className="w-3.5 h-3.5" />
+              Importer
+              <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
+            </label>
             <button onClick={handleReset} className="btn btn-ghost btn-sm gap-1.5">
               <RotateCcw className="w-3.5 h-3.5" />
               Réinitialiser

@@ -9,6 +9,7 @@ import {
   ChevronDown, ChevronUp, Copy, Check, RefreshCw,
   Search, Filter, Star, TrendingUp, Activity,
   Radio, Wrench, AlertCircle, Wifi, Share2, Users,
+  Download, Upload,
 } from 'lucide-react';
 import clsx from 'clsx';
 import {
@@ -509,6 +510,49 @@ export default function FPSLoadoutBuilder() {
     setSelectedGadgets([]);
   }, []);
 
+  const handleExportJSON = useCallback(() => {
+    const data = {
+      type: 'fps',
+      loadout: {
+        weaponId: selectedWeapon,
+        armorId: selectedArmor,
+        gadgets: selectedGadgets,
+      },
+      exportedAt: new Date().toISOString(),
+      version: '1.0',
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const weaponName = LOADOUT_WEAPONS.find(w => w.id === selectedWeapon)?.name || 'fps';
+    a.download = `loadout-fps-${weaponName.replace(/\s+/g, '-').toLowerCase()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [selectedWeapon, selectedArmor, selectedGadgets]);
+
+  const handleImportJSON = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (data.type !== 'fps' || !data.version || !data.loadout) {
+          alert('Fichier JSON invalide : format de loadout FPS non reconnu.');
+          return;
+        }
+        if (data.loadout.weaponId) setSelectedWeapon(data.loadout.weaponId);
+        if (data.loadout.armorId) setSelectedArmor(data.loadout.armorId);
+        if (Array.isArray(data.loadout.gadgets)) setSelectedGadgets(data.loadout.gadgets);
+      } catch {
+        alert('Impossible de lire le fichier JSON.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }, []);
+
   const copyShareLink = useCallback(() => {
     navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
@@ -538,6 +582,18 @@ export default function FPSLoadoutBuilder() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportJSON}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-900/60 hover:bg-emerald-800/60 border border-emerald-700/60 text-sm text-emerald-300 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Exporter
+            </button>
+            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-900/60 hover:bg-amber-800/60 border border-amber-700/60 text-sm text-amber-300 transition-colors cursor-pointer">
+              <Upload className="w-4 h-4" />
+              Importer
+              <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
+            </label>
             <button
               onClick={clearLoadout}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-sm text-gray-300 transition-colors"

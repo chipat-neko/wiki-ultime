@@ -3,13 +3,13 @@
  * Affiche les builds ship + FPS partagés par la communauté
  * Route : /builds
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   Wrench, Search, X, Heart, Clock, TrendingUp, Filter,
   ChevronLeft, ChevronRight, Rocket, Crosshair, User,
-  Loader, Layers, Shield,
+  Loader, Layers, Shield, ArrowUp, ChevronDown,
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured, getSharedBuilds, toggleBuildLike, getUserBuildLikes, deleteSharedBuild } from '../../lib/supabase.js';
 import { BUDGET_TIERS, getBudgetTier, formatBudgetPrice } from '../../datasets/loadoutData.js';
@@ -29,6 +29,14 @@ const SORT_OPTIONS = [
   { id: 'popular', label: 'Populaire', icon: TrendingUp },
 ];
 
+const BUDGET_FILTERS = [
+  { id: 'all',      label: 'Tous les budgets', max: Infinity, badge: 'badge-slate' },
+  { id: 'starter',  label: 'Starter (≤100K)',  max: 100_000,  badge: 'badge-green' },
+  { id: 'midrange', label: 'Mid-Range (≤500K)', max: 500_000, badge: 'badge-blue' },
+  { id: 'highend',  label: 'High-End (≤2M)',   max: 2_000_000, badge: 'badge-purple' },
+  { id: 'endgame',  label: 'Endgame (∞)',      max: Infinity, min: 2_000_001, badge: 'badge-gold' },
+];
+
 export default function SharedBuildsGallery() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -39,9 +47,25 @@ export default function SharedBuildsGallery() {
   const [sortBy, setSortBy] = useState('recent');
   const [search, setSearch] = useState('');
   const [searchDebounced, setSearchDebounced] = useState('');
+  const [budgetFilter, setBudgetFilter] = useState('all');
+  const [shipFilter, setShipFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [likedIds, setLikedIds] = useState(new Set());
   const [user, setUser] = useState(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Scroll-to-top listener
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Ship list for dropdown
+  const shipOptions = useMemo(() => {
+    const sorted = [...SHIPS].sort((a, b) => a.name.localeCompare(b.name));
+    return sorted;
+  }, []);
 
   // Debounce
   useEffect(() => {
@@ -78,6 +102,28 @@ export default function SharedBuildsGallery() {
 
   useEffect(() => { loadBuilds(); }, [loadBuilds]);
   useEffect(() => { setPage(1); }, [buildType, sortBy, searchDebounced]);
+  useEffect(() => { setPage(1); }, [budgetFilter, shipFilter]);
+
+  // Client-side filtering by budget + ship
+  const filteredBuilds = useMemo(() => {
+    let result = builds;
+    // Budget filter
+    if (budgetFilter !== 'all') {
+      const tier = BUDGET_FILTERS.find(b => b.id === budgetFilter);
+      if (tier) {
+        if (tier.min) {
+          result = result.filter(b => b.total_price > tier.min - 1);
+        } else {
+          result = result.filter(b => b.total_price <= tier.max);
+        }
+      }
+    }
+    // Ship filter
+    if (shipFilter) {
+      result = result.filter(b => b.ship_id === shipFilter);
+    }
+    return result;
+  }, [builds, budgetFilter, shipFilter]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -181,7 +227,7 @@ export default function SharedBuildsGallery() {
           {TYPE_TABS.map(tab => (
             <button
               key={tab.id || 'all'}
-              onClick={() => setBuildType(tab.id)}
+              onClick={() => { setBuildType(tab.id); setShipFilter(''); }}
               className={clsx('badge cursor-pointer transition-all flex items-center gap-1',
                 buildType === tab.id ? 'badge-cyan' : 'badge-slate hover:border-slate-500')}
             >
@@ -190,6 +236,38 @@ export default function SharedBuildsGallery() {
             </button>
           ))}
         </div>
+
+        {/* Budget tier filter */}
+        <div className="flex flex-wrap gap-1.5">
+          <Filter className="w-3.5 h-3.5 text-slate-500 self-center mr-1" />
+          {BUDGET_FILTERS.map(tier => (
+            <button
+              key={tier.id}
+              onClick={() => setBudgetFilter(tier.id)}
+              className={clsx('badge cursor-pointer transition-all text-[11px]',
+                budgetFilter === tier.id ? tier.badge : 'badge-slate hover:border-slate-500')}
+            >
+              {tier.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Ship filter dropdown — visible when type is 'ship' or null */}
+        {buildType !== 'fps' && (
+          <div className="relative">
+            <select
+              value={shipFilter}
+              onChange={e => setShipFilter(e.target.value)}
+              className="input text-sm pr-8 appearance-none cursor-pointer"
+            >
+              <option value="">Tous les vaisseaux</option>
+              {shipOptions.map(s => (
+                <option key={s.id} value={s.id}>{s.name} — {s.manufacturer}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          </div>
+        )}
       </div>
 
       {/* Builds grid */}
@@ -197,14 +275,22 @@ export default function SharedBuildsGallery() {
         <div className="card p-12 text-center">
           <Loader className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
         </div>
-      ) : builds.length === 0 ? (
+      ) : filteredBuilds.length === 0 ? (
         <div className="card p-12 text-center text-slate-500">
           <Wrench className="w-12 h-12 mx-auto mb-3 opacity-20" />
           <p className="text-sm">Aucun build trouvé.</p>
+          {(budgetFilter !== 'all' || shipFilter) && (
+            <button
+              onClick={() => { setBudgetFilter('all'); setShipFilter(''); }}
+              className="btn btn-secondary btn-sm mt-3"
+            >
+              Réinitialiser les filtres
+            </button>
+          )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {builds.map(build => {
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {filteredBuilds.map(build => {
             const liked = likedIds.has(build.id);
             const isOwner = user?.id === build.user_id;
             const tier = build.build_type === 'ship'
@@ -213,7 +299,7 @@ export default function SharedBuildsGallery() {
             const shipName = getShipName(build.ship_id);
 
             return (
-              <div key={build.id} className="card p-4 flex flex-col gap-3 hover:border-cyan-500/20 transition-all">
+              <div key={build.id} className="card p-3 flex flex-col gap-2 hover:border-cyan-500/20 transition-all">
                 <div className="flex items-center gap-2">
                   {build.build_type === 'ship'
                     ? <Rocket className="w-4 h-4 text-cyan-400 flex-shrink-0" />
@@ -281,6 +367,17 @@ export default function SharedBuildsGallery() {
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+      )}
+
+      {/* Retour en haut */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 btn btn-primary p-3 rounded-full shadow-lg shadow-cyan-500/20 transition-all hover:scale-110"
+          title="Retour en haut"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
       )}
     </div>
   );

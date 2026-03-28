@@ -74,6 +74,22 @@ const CharacterTracker = React.lazy(() => import('./modules/community/CharacterT
 const CommunityGallery = React.lazy(() => import('./modules/community/CommunityGallery.jsx'));
 const ShipSystems = React.lazy(() => import('./modules/ships/ShipSystems.jsx'));
 const PiracyGuide = React.lazy(() => import('./modules/mechanics/PiracyGuide.jsx'));
+const MasterModes = React.lazy(() => import('./modules/mechanics/MasterModes.jsx'));
+const PrisonGuide = React.lazy(() => import('./modules/mechanics/PrisonGuide.jsx'));
+const Signatures = React.lazy(() => import('./modules/mechanics/Signatures.jsx'));
+const MissileGuide = React.lazy(() => import('./modules/mechanics/MissileGuide.jsx'));
+const BunkerGuide = React.lazy(() => import('./modules/mechanics/BunkerGuide.jsx'));
+const InventoryGuide = React.lazy(() => import('./modules/mechanics/InventoryGuide.jsx'));
+const AtmosphericFlight = React.lazy(() => import('./modules/mechanics/AtmosphericFlight.jsx'));
+const SmugglingGuide = React.lazy(() => import('./modules/mechanics/SmugglingGuide.jsx'));
+const DerelictGuide = React.lazy(() => import('./modules/mechanics/DerelictGuide.jsx'));
+const TurretGuide = React.lazy(() => import('./modules/mechanics/TurretGuide.jsx'));
+const CaveMining = React.lazy(() => import('./modules/mechanics/CaveMining.jsx'));
+const BoardingGuide = React.lazy(() => import('./modules/mechanics/BoardingGuide.jsx'));
+const GroupGuide = React.lazy(() => import('./modules/mechanics/GroupGuide.jsx'));
+const PowerManagement = React.lazy(() => import('./modules/mechanics/PowerManagement.jsx'));
+const SessionPlanner = React.lazy(() => import('./modules/tools/SessionPlanner.jsx'));
+const FuelCalculator = React.lazy(() => import('./modules/tools/FuelCalculator.jsx'));
 const Galactapedia = React.lazy(() => import('./modules/lore/Galactapedia.jsx'));
 const Patchnotes = React.lazy(() => import('./modules/patchnotes/Patchnotes.jsx'));
 const BlogList = React.lazy(() => import('./modules/blog/BlogList.jsx'));
@@ -223,6 +239,26 @@ function App() {
 
             {/* Piraterie */}
             <Route path="/piraterie" element={<PiracyGuide />} />
+
+            {/* Nouvelles mécaniques */}
+            <Route path="/master-modes" element={<MasterModes />} />
+            <Route path="/prison" element={<PrisonGuide />} />
+            <Route path="/signatures" element={<Signatures />} />
+            <Route path="/missiles" element={<MissileGuide />} />
+            <Route path="/bunkers" element={<BunkerGuide />} />
+            <Route path="/inventaire" element={<InventoryGuide />} />
+            <Route path="/vol-atmospherique" element={<AtmosphericFlight />} />
+            <Route path="/contrebande" element={<SmugglingGuide />} />
+            <Route path="/epaves" element={<DerelictGuide />} />
+            <Route path="/tourelles" element={<TurretGuide />} />
+            <Route path="/grottes" element={<CaveMining />} />
+            <Route path="/abordage" element={<BoardingGuide />} />
+            <Route path="/groupe" element={<GroupGuide />} />
+            <Route path="/power-management" element={<PowerManagement />} />
+
+            {/* Outils avancés */}
+            <Route path="/checklist" element={<SessionPlanner />} />
+            <Route path="/carburant" element={<FuelCalculator />} />
 
             {/* Galactapédie */}
             <Route path="/lore" element={<Galactapedia />} />

@@ -156,6 +156,211 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Profil de Dommages — breakdown par type, portée effective, rating
+// ─────────────────────────────────────────────────────────────────
+
+const RANGE_BANDS = [
+  { label: '0 – 500 m', factor: 1.0 },
+  { label: '500 – 1 000 m', factor: 0.80 },
+  { label: '1 000 – 1 500 m', factor: 0.60 },
+  { label: '1 500 – 2 000 m', factor: 0.40 },
+  { label: '2 000 m+', factor: 0.20 },
+];
+
+const RANGE_COLORS = [
+  'from-cyan-500 to-cyan-400',
+  'from-cyan-600 to-cyan-500',
+  'from-blue-600 to-cyan-600',
+  'from-purple-600 to-blue-600',
+  'from-red-600 to-purple-600',
+];
+
+function StarRating({ rating, max = 5 }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: max }, (_, i) => (
+        <Star
+          key={i}
+          size={14}
+          className={i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-space-600'}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DamageProfileSection({ selectedWeapons, stats }) {
+  const validWeapons = selectedWeapons.filter(Boolean);
+  const hasWeapons = validWeapons.length > 0;
+
+  // Répartition DPS par catégorie de dommages
+  const dmgBreakdown = useMemo(() => {
+    let energy = 0, ballistic = 0, distortion = 0;
+    for (const w of validWeapons) {
+      const rps = w.fireRate / 60;
+      const ratio = Math.min(1, w.overheatTime / 15);
+      energy     += Math.round(w.dmgEnergy     * rps * ratio);
+      ballistic  += Math.round(w.dmgPhysical   * rps * ratio);
+      distortion += Math.round(w.dmgDistortion  * rps * ratio);
+    }
+    const total = energy + ballistic + distortion;
+    return { energy, ballistic, distortion, total };
+  }, [validWeapons]);
+
+  // Rating d'efficacité
+  const ratings = useMemo(() => {
+    if (dmgBreakdown.total === 0) return { antiShield: 0, antiHull: 0, antiComponent: 0 };
+    const ePct = dmgBreakdown.energy / dmgBreakdown.total;
+    const bPct = dmgBreakdown.ballistic / dmgBreakdown.total;
+    const dPct = dmgBreakdown.distortion / dmgBreakdown.total;
+    // Anti-bouclier : énergie forte + distorsion aide
+    const antiShield = Math.min(5, Math.round((ePct * 4 + dPct * 3 + (dmgBreakdown.total > 2000 ? 1 : 0)) * 1.2));
+    // Anti-coque : balistique forte + énergie aide un peu
+    const antiHull = Math.min(5, Math.round((bPct * 4.5 + ePct * 1.5 + (dmgBreakdown.total > 2000 ? 1 : 0)) * 1.1));
+    // Anti-composants : distorsion domine
+    const antiComponent = Math.min(5, Math.round((dPct * 5 + (dmgBreakdown.total > 1500 ? 0.5 : 0)) * 1.3));
+    return {
+      antiShield: Math.max(hasWeapons ? 1 : 0, antiShield),
+      antiHull: Math.max(hasWeapons ? 1 : 0, antiHull),
+      antiComponent: Math.max(hasWeapons ? 0 : 0, antiComponent),
+    };
+  }, [dmgBreakdown, hasWeapons]);
+
+  if (!hasWeapons) {
+    return (
+      <div className="card p-4">
+        <h3 className="section-title mb-3 flex items-center gap-2">
+          <Radio size={16} className="text-purple-400" />
+          Profil de Dommages
+        </h3>
+        <div className="text-space-400 text-sm text-center py-6">
+          Sélectionnez des armes pour analyser le profil de dommages
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Répartition par type de dommage */}
+      <div className="card p-4">
+        <h3 className="section-title mb-4 flex items-center gap-2">
+          <Radio size={16} className="text-purple-400" />
+          Profil de Dommages
+        </h3>
+        <div className="space-y-3">
+          {[
+            { label: 'Énergie', value: dmgBreakdown.energy, color: 'bg-cyan-500', textColor: 'text-cyan-400' },
+            { label: 'Balistique', value: dmgBreakdown.ballistic, color: 'bg-yellow-500', textColor: 'text-yellow-400' },
+            { label: 'Distorsion', value: dmgBreakdown.distortion, color: 'bg-purple-500', textColor: 'text-purple-400' },
+          ].map(({ label, value, color, textColor }) => {
+            const pct = dmgBreakdown.total > 0 ? (value / dmgBreakdown.total) * 100 : 0;
+            return (
+              <div key={label}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`text-sm font-medium ${textColor}`}>{label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-space-400">{Math.round(pct)}%</span>
+                    <span className="text-sm font-mono text-white font-semibold">{formatDPS(value)} dps</span>
+                  </div>
+                </div>
+                <div className="h-2.5 bg-space-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${color} rounded-full transition-all duration-500`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+          <div className="flex items-center justify-between pt-2 border-t border-space-700">
+            <span className="text-sm font-semibold text-space-300">DPS combiné total</span>
+            <span className="text-lg font-black font-mono text-white">{formatDPS(dmgBreakdown.total)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Portée effective */}
+      <div className="card p-4">
+        <h3 className="section-title mb-4 flex items-center gap-2">
+          <Crosshair size={16} className="text-green-400" />
+          Portée Effective
+        </h3>
+        <div className="space-y-2.5">
+          {RANGE_BANDS.map((band, i) => {
+            const dpsAtRange = Math.round(dmgBreakdown.total * band.factor);
+            const barPct = band.factor * 100;
+            return (
+              <div key={band.label}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-space-400 w-32">{band.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-space-500">{Math.round(band.factor * 100)}%</span>
+                    <span className="text-xs font-mono text-white font-semibold w-16 text-right">{formatDPS(dpsAtRange)}</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-space-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${RANGE_COLORS[i]} transition-all duration-500`}
+                    style={{ width: `${barPct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-space-500 mt-3 leading-relaxed">
+          Estimation basée sur la dégradation des dégâts balistiques à distance. Les armes énergie maintiennent leur DPS plus longtemps.
+        </p>
+      </div>
+
+      {/* Résumé du profil — 3 cartes */}
+      <div className="card p-4">
+        <h3 className="section-title mb-4 flex items-center gap-2">
+          <Target size={16} className="text-red-400" />
+          Résumé d'Efficacité
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Anti-Bouclier */}
+          <div className="p-3 rounded-xl bg-space-700/60 border border-space-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield size={16} className="text-cyan-400" />
+              <span className="text-sm font-semibold text-white">Anti-Bouclier</span>
+            </div>
+            <StarRating rating={ratings.antiShield} />
+            <p className="text-[10px] text-space-400 mt-2 leading-relaxed">
+              Efficacité énergie + distorsion contre les boucliers ennemis
+            </p>
+          </div>
+          {/* Anti-Coque */}
+          <div className="p-3 rounded-xl bg-space-700/60 border border-space-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Flame size={16} className="text-yellow-400" />
+              <span className="text-sm font-semibold text-white">Anti-Coque</span>
+            </div>
+            <StarRating rating={ratings.antiHull} />
+            <p className="text-[10px] text-space-400 mt-2 leading-relaxed">
+              Efficacité balistique pour percer la coque et infliger des dégâts structurels
+            </p>
+          </div>
+          {/* Anti-Composants */}
+          <div className="p-3 rounded-xl bg-space-700/60 border border-space-600">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap size={16} className="text-purple-400" />
+              <span className="text-sm font-semibold text-white">Anti-Composants</span>
+            </div>
+            <StarRating rating={ratings.antiComponent} />
+            <p className="text-[10px] text-space-400 mt-2 leading-relaxed">
+              Efficacité distorsion pour désactiver les systèmes et composants ennemis
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Onglet 1 : Builder DPS
 // ─────────────────────────────────────────────────────────────────
 
@@ -566,6 +771,9 @@ function BuilderTab() {
             </div>
           )}
         </div>
+
+        {/* ── Profil de Dommages ── */}
+        <DamageProfileSection selectedWeapons={selectedWeapons} stats={stats} />
       </div>
     </div>
   );

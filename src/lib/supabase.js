@@ -436,3 +436,37 @@ export async function submitContribution(userId, contribution) {
   if (error) throw error;
   return data;
 }
+
+// ─── Comments ───────────────────────────────────────────────────────────────
+export const COMMENTS_PAGE_SIZE = 20;
+
+export async function getComments(targetType, targetId, page = 0) {
+  const from = page * COMMENTS_PAGE_SIZE;
+  const to = from + COMMENTS_PAGE_SIZE - 1;
+  const { data, error, count } = await supabase
+    .from('comments')
+    .select('*, profiles:user_id(username, avatar_url)', { count: 'exact' })
+    .eq('target_type', targetType)
+    .eq('target_id', targetId)
+    .order('created_at', { ascending: true })
+    .range(from, to);
+  if (error) throw error;
+  return { data: data ?? [], total: count ?? 0 };
+}
+
+export async function createComment(targetType, targetId, body) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Non authentifié');
+  const { data, error } = await supabase
+    .from('comments')
+    .insert({ user_id: user.id, target_type: targetType, target_id: targetId, body })
+    .select('*, profiles:user_id(username, avatar_url)')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteComment(commentId) {
+  const { error } = await supabase.from('comments').delete().eq('id', commentId);
+  if (error) throw error;
+}

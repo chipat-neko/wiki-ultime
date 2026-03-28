@@ -55,6 +55,22 @@ const ROUTE_LABELS = {
   '/parametres':            'Paramètres',
   '/blog':                  'Blog Communautaire',
   '/builds':                'Builds Communautaires',
+  '/master-modes':          'Master Modes',
+  '/prison':                'Prison & Klescher',
+  '/signatures':            'Signatures & Scanning',
+  '/missiles':              'Missiles & Contre-Mesures',
+  '/bunkers':               'Bunkers & Missions',
+  '/inventaire':            'Inventaire & Équipement',
+  '/vol-atmospherique':     'Vol Atmosphérique',
+  '/checklist':             'Planificateur de Session',
+  '/contrebande':           'Contrebande & Marché Noir',
+  '/epaves':                'Épaves & Vaisseaux Abandonnés',
+  '/tourelles':             'Guide Tourelles',
+  '/carburant':             'Calculateur Carburant',
+  '/grottes':               'Grottes & Minage FPS',
+  '/abordage':              'Abordage de Vaisseau',
+  '/groupe':                'Gameplay en Groupe',
+  '/power-management':      'Power Management',
 };
 
 export default function MainLayout({ children }) {

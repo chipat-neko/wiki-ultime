@@ -9,6 +9,7 @@ import {
   ArrowLeft, Heart, Clock, User, Tag, Loader, BookOpen, Trash2,
 } from 'lucide-react';
 import { supabase, getBlogPost, toggleBlogLike, getUserBlogLikes, deleteBlogPost } from '../../lib/supabase.js';
+import CommentsSection from '../../ui/components/CommentsSection.jsx';
 
 const CATEGORY_COLORS = {
   guide: 'badge-cyan',
@@ -161,6 +162,9 @@ export default function BlogPostView() {
           )}
         </div>
       </article>
+
+      {/* Comments */}
+      <CommentsSection targetType="blog" targetId={id} />
     </div>
   );
 }

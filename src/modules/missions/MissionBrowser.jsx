@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   SAMPLE_MISSIONS, MISSION_TYPES_DATA, MISSION_FACTIONS, MISSION_CATEGORIES,
+  getRepGain,
 } from '../../datasets/missions.js';
 import { formatCredits, formatRelativeTime } from '../../utils/formatters.js';
 import { useAppActions } from '../../core/StateManager.jsx';
@@ -158,6 +159,7 @@ const ENRICHED = SAMPLE_MISSIONS.map(m => {
     _isEvent:   Boolean(meta.event),
     _shareable: SHAREABLE_IDS.has(m.typeId),
     _available: !m.expires || m.expires > Date.now(),
+    _repGain:   getRepGain(m.typeId),
   };
 });
 
@@ -344,9 +346,9 @@ function MissionDetailModal({ mission, clickY, onClose, onAddToStack }) {
             },
             {
               icon: Star,
-              label: 'Réputation',
-              value: typeData?.reputation ?? 0,
-              sub: (typeData?.reputation > 0) ? 'rang requis' : 'Aucune',
+              label: 'Rép. Gain',
+              value: `+${mission._repGain}%`,
+              sub: (typeData?.reputation > 0) ? `rang ${typeData.reputation} requis` : 'Aucun pré-requis',
               valueClass: 'text-slate-200 text-lg font-bold font-display',
             },
             {
@@ -605,6 +607,11 @@ function MissionCard({ mission, onSelect, onAddToStack, patchInfo }) {
         {mission._shareable && (
           <span className="badge badge-cyan" title="Partageable en groupe">
             <Layers className="w-2.5 h-2.5 mr-0.5 inline" />Partage
+          </span>
+        )}
+        {mission._repGain > 0 && (
+          <span className="badge badge-purple" title="Gain de réputation par complétion">
+            <Star className="w-2.5 h-2.5 mr-0.5 inline" />Rép +{mission._repGain}%
           </span>
         )}
       </div>

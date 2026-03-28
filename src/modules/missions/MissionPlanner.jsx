@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MISSION_TYPES_DATA, MISSION_CATEGORIES, MISSION_FACTIONS, SAMPLE_MISSIONS } from '../../datasets/missions.js';
+import { MISSION_TYPES_DATA, MISSION_CATEGORIES, MISSION_FACTIONS, SAMPLE_MISSIONS, getRepGain } from '../../datasets/missions.js';
 import { formatCredits, formatRelativeTime } from '../../utils/formatters.js';
 import clsx from 'clsx';
 import {
@@ -53,13 +53,18 @@ function MissionTypeCard({ mission }) {
             {mission.reputation > 0 && (
               <span className="badge badge-purple">Rép. {mission.reputation}+</span>
             )}
+            {getRepGain(mission.id) > 0 && (
+              <span className="badge badge-purple" title="Gain de réputation par complétion">
+                <Star className="w-2.5 h-2.5 mr-0.5 inline" />+{getRepGain(mission.id)}%
+              </span>
+            )}
           </div>
         </div>
       </div>
 
       <p className="text-xs text-slate-400 mb-3 line-clamp-2">{mission.description}</p>
 
-      <div className="grid grid-cols-2 gap-2 mb-3">
+      <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="text-center p-2 rounded-lg bg-space-900/60">
           <div className="text-sm font-bold text-success-400">{formatCredits(avgPayout, true)}</div>
           <div className="text-xs text-slate-600">Prime Moy.</div>
@@ -67,6 +72,10 @@ function MissionTypeCard({ mission }) {
         <div className="text-center p-2 rounded-lg bg-space-900/60">
           <div className="text-sm font-bold text-cyan-400">{mission.estimatedTime} min</div>
           <div className="text-xs text-slate-600">Durée Est.</div>
+        </div>
+        <div className="text-center p-2 rounded-lg bg-space-900/60">
+          <div className="text-sm font-bold text-purple-400">+{getRepGain(mission.id)}%</div>
+          <div className="text-xs text-slate-600">Rép. Gain</div>
         </div>
       </div>
 

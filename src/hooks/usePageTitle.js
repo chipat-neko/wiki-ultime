@@ -59,6 +59,22 @@ const PAGE_TITLES = {
   '/parametres': 'Paramètres',
   '/blog': 'Blog Communautaire',
   '/builds': 'Builds Communautaires — Loadouts Partagés',
+  '/master-modes': 'Master Modes — Système de Vol',
+  '/prison': 'Prison — Klescher Rehabilitation',
+  '/signatures': 'Signatures & Scanning — Guide Furtivité',
+  '/missiles': 'Missiles & Contre-Mesures',
+  '/bunkers': 'Bunkers — Missions au Sol',
+  '/inventaire': 'Inventaire & Gestion d\'Équipement',
+  '/vol-atmospherique': 'Vol Atmosphérique — Guide Atterrissage',
+  '/checklist': 'Planificateur de Session — Checklist Quotidienne',
+  '/contrebande': 'Contrebande & Marché Noir — Commerce Illégal',
+  '/epaves': 'Épaves & Derelicts — Exploration',
+  '/tourelles': 'Tourelles — Guide Complet',
+  '/carburant': 'Calculateur Carburant — H2 & Quantum',
+  '/grottes': 'Grottes & Minage FPS — Exploration Souterraine',
+  '/abordage': 'Abordage de Vaisseau — Guide PvP',
+  '/groupe': 'Gameplay en Groupe — Multi-Crew & Organisations',
+  '/power-management': 'Power Management — Overclock & Énergie',
 };
 
 const BASE_TITLE = 'SC Companion';
