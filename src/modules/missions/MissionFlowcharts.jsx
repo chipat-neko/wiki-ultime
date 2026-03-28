@@ -53,7 +53,7 @@ const FLOWCHARTS = {
       { id: 4, title: 'Engager la cible', description: 'Approchez et ouvrez le feu. Ciblez d\'abord les boucliers puis les composants.', conditions: 'Armes chargées, missiles prêts', reward: null, risk: 'Élevé', children: [5, 6] },
       { id: 5, title: 'Cible éliminée', description: 'La cible est détruite. Confirmez le kill via le MobiGlas.', conditions: 'Cible confirmée détruite', reward: '15 000 - 90 000 aUEC', risk: 'Faible', children: [8] },
       { id: 6, title: 'La cible fuit en QT', description: 'La cible tente de s\'échapper via Quantum Travel.', conditions: null, reward: null, risk: 'Modéré', children: [7] },
-      { id: 7, title: 'Poursuivre et intercepter', description: 'Suivez la signature QT ou attendez au prochain point de passage connu.', conditions: 'QT Drive rapide recommandé', reward: null, risk: 'Modéré', children: [4] },
+      { id: 7, title: 'Poursuivre et intercepter', description: 'Suivez la signature QT ou attendez au prochain point de passage connu. Réengagez le combat (retour étape 4).', conditions: 'QT Drive rapide recommandé', reward: null, risk: 'Modéré', children: [] },
       { id: 8, title: 'Collecter la récompense', description: 'Retournez en zone sûre pour encaisser la prime et gagner de la réputation.', conditions: 'Pas de Crimestat actif', reward: '+ Réputation faction', risk: 'Faible', children: [] },
       { id: 9, title: 'Bonus : Chaîne de contrats', description: 'Après 5 bounties réussies, des contrats VHRT/ERT se débloquent avec de meilleures récompenses.', conditions: 'Réputation suffisante', reward: '100 000+ aUEC', risk: 'Élevé', children: [] },
     ],
@@ -127,7 +127,7 @@ const FLOWCHARTS = {
       { id: 5, title: 'Analyser les indices', description: 'Comparez les données récupérées pour identifier un pattern.', conditions: 'Minimum 2 indices trouvés', reward: null, risk: 'Faible', children: [7, 8] },
       { id: 6, title: 'Piège détecté !', description: 'Le site est piégé — des hostiles apparaissent.', conditions: null, reward: null, risk: 'Critique', children: [7] },
       { id: 7, title: 'Piste principale', description: 'Suivez la piste vers le responsable ou le lieu clé.', conditions: 'Indices cohérents', reward: null, risk: 'Modéré', children: [9] },
-      { id: 8, title: 'Fausse piste', description: 'L\'indice mène à un cul-de-sac. Retournez chercher plus d\'éléments.', conditions: null, reward: null, risk: 'Faible', children: [3] },
+      { id: 8, title: 'Fausse piste', description: 'L\'indice mène à un cul-de-sac. Retournez chercher plus d\'éléments sur le site (retour étape 3).', conditions: null, reward: null, risk: 'Faible', children: [] },
       { id: 9, title: 'Confrontation finale', description: 'Affrontez ou arrêtez le suspect. Choix moral possible.', conditions: 'Preuve suffisante', reward: null, risk: 'Élevé', children: [10, 11] },
       { id: 10, title: 'Rapport complet', description: 'Soumettez toutes les preuves pour la récompense maximale.', conditions: 'Tous les indices collectés', reward: '50 000 - 120 000 aUEC', risk: 'Faible', children: [] },
       { id: 11, title: 'Rapport partiel', description: 'Soumettez un rapport incomplet pour une récompense réduite.', conditions: 'Au moins 1 preuve', reward: '15 000 - 40 000 aUEC', risk: 'Faible', children: [] },
@@ -152,7 +152,7 @@ const FLOWCHARTS = {
       { id: 4, title: 'Infiltrer le bunker', description: 'Descendez prudemment, vérifiez chaque coin. Les ennemis utilisent la couverture.', conditions: 'Lampe + grenades utiles', reward: null, risk: 'Élevé', children: [6, 7] },
       { id: 5, title: 'Tenir la position', description: 'Fortifiez-vous et repoussez les vagues d\'ennemis pendant le timer.', conditions: 'Munitions suffisantes', reward: null, risk: 'Élevé', children: [9] },
       { id: 6, title: 'Zone sécurisée', description: 'Vous avez nettoyé un étage — progressez vers l\'objectif.', conditions: 'Tous hostiles éliminés', reward: null, risk: 'Modéré', children: [8] },
-      { id: 7, title: 'Blessé — se soigner', description: 'Vous avez pris des dégâts. Utilisez un medpen ou medigun.', conditions: 'Medpen disponible', reward: null, risk: 'Critique', children: [6] },
+      { id: 7, title: 'Blessé — se soigner', description: 'Vous avez pris des dégâts. Utilisez un medpen ou medigun, puis progressez (étape 8).', conditions: 'Medpen disponible', reward: null, risk: 'Critique', children: [8] },
       { id: 8, title: 'Objectif atteint', description: 'Activez le terminal ou récupérez l\'objet de la mission.', conditions: 'Terminal accessible', reward: null, risk: 'Faible', children: [9] },
       { id: 9, title: 'Extraction', description: 'Quittez la zone et retournez à votre vaisseau. Attention aux renforts ennemis.', conditions: 'Chemin de retour dégagé', reward: null, risk: 'Modéré', children: [10] },
       { id: 10, title: 'Compléter et looter', description: 'Mission terminée. Pillez les corps pour des armes, armures et composants.', conditions: null, reward: '25 000 - 85 000 aUEC + loot', risk: 'Faible', children: [] },
@@ -175,7 +175,7 @@ const FLOWCHARTS = {
       { id: 2, title: 'Approche prudente', description: 'Scannez la zone avant d\'approcher — vérifiez les menaces potentielles.', conditions: 'Radar actif', reward: null, risk: 'Modéré', children: [4, 5] },
       { id: 3, title: 'Contact radio', description: 'Établissez le contact avec la victime pour évaluer la situation.', conditions: 'Canal de communication', reward: null, risk: 'Faible', children: [4] },
       { id: 4, title: 'Localiser la victime', description: 'Trouvez le joueur ou PNJ dans l\'épave, sur la surface, ou en EVA.', conditions: 'Combinaison EVA si dans l\'espace', reward: null, risk: 'Modéré', children: [6, 7] },
-      { id: 5, title: 'C\'est un piège !', description: 'Des hostiles vous attendent — combat ou fuite immédiate.', conditions: null, reward: null, risk: 'Critique', children: [4] },
+      { id: 5, title: 'C\'est un piège !', description: 'Des hostiles vous attendent — combat ou fuite immédiate. Si vous survivez, localisez la victime (étape 4).', conditions: null, reward: null, risk: 'Critique', children: [] },
       { id: 6, title: 'Soins sur place', description: 'Stabilisez la victime avec un medigun ou des medpens.', conditions: 'Medigun + medpens', reward: null, risk: 'Modéré', children: [8] },
       { id: 7, title: 'Victime inconsciente', description: 'La victime est incapacitée — portez-la jusqu\'à votre vaisseau.', conditions: 'Interaction de transport', reward: null, risk: 'Élevé', children: [8] },
       { id: 8, title: 'Évacuation médicale', description: 'Placez la victime dans un lit médical et stabilisez-la pendant le vol.', conditions: 'Lit médical T2+', reward: null, risk: 'Modéré', children: [9] },
@@ -194,6 +194,9 @@ function buildTree(nodes) {
 
 // ── FlowNode component ─────────────────────────────────────────────────────
 function FlowNode({ node, depth, isLast, selectedId, onSelect, nodesMap, expandedIds, visibleNodes }) {
+  // Safety guard against circular references in data
+  if (depth > 12) return null;
+
   const isSelected = selectedId === node.id;
   const isExpanded = expandedIds.has(node.id);
   const children = (node.children || []).map(cid => nodesMap[cid]).filter(Boolean);
